@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/interaction/barrel.jpg</file>
+        <file>qml/interaction/barrel.json</file>
+        <file>qml/interaction/glMatrix-0.9.5.min.js</file>
+        <file>qml/interaction/interaction.js</file>
+        <file>qml/interaction/main.qml</file>
+        <file>qml/interaction/ThreeJSLoader.js</file>
+    </qresource>
+</RCC>

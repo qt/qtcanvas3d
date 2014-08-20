@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/framebuffer/glMatrix-0.9.5.min.js</file>
+        <file>qml/framebuffer/main.qml</file>
+        <file>qml/framebuffer/qtlogo.png</file>
+        <file>qml/framebuffer/framebuffer.js</file>
+    </qresource>
+</RCC>

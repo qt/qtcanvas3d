@@ -1,0 +1,131 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the QtCanvas3D module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPLv3 included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or later as published by the Free 
+** Software Foundation and appearing in the file LICENSE.GPL included in 
+** the packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 2.0 requirements will be
+** met: http://www.gnu.org/licenses/gpl-2.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \example jsonmodels
+    \since QtCanvas3D 1.0
+    \title JSON Models Example
+    \ingroup qtcanvas3d-examples
+    \brief Load and display several JSON models
+
+    The JSON Models Example simply demonstrates loading and displaying more than one JSON model
+    and more than one texture. A simple mouse input handling has also been added, to allow rotating
+    the scene and zooming into it.
+
+    The example incorporates some Qt Quick Enterprise Controls by default, but you can switch to
+    Qt Quick Controls instead by defining \c{#define NO_ENTERPRISE} in \c{main.cpp}. The controls
+    are used to toggle some optional animations and draw options, as well as displaying camera
+    rotations and distance.
+
+    \image jsonmodels-example.png
+
+    \section1 JSON Model Loader
+
+    First we'll include a JSON model parser, which handles parsing the json models into our internal
+    models:
+
+    \snippet jsonmodels/jsonmodels.js 0
+
+    The \c{ThreeJSLoader.js} includes a reimplementation of the json parser in \c{three.js}, but
+    we will not go into the implementation details on that.
+
+    \section1 Loading the Models
+
+    First we need to initialize all array buffers for the models:
+
+    \snippet jsonmodels/jsonmodels.js 1
+    \dots
+
+    Then we request the models to be loaded:
+
+    \snippet jsonmodels/jsonmodels.js 2
+    \dots
+
+    Then, when the load requests return, we handle the models:
+
+    \snippet jsonmodels/jsonmodels.js 3
+    \dots
+
+    Each buffer is bound and filled with the data parsed from the json models:
+
+    \snippet jsonmodels/jsonmodels.js 4
+
+    \section1 Loading the Textures
+
+    First we ask the TextureImageLoader to load the texture images one by one:
+
+    \snippet jsonmodels/jsonmodels.js 5
+    \dots
+
+    Then, after being successfully loaded, we create the textures:
+
+    \snippet jsonmodels/jsonmodels.js 6
+    \dots
+
+    \section1 Input Handling
+
+    First we add a MouseArea to fill the Canvas3D:
+
+    \snippet jsonmodels/jsonmodels.qml 0
+    \dots
+
+    Then we'll add some functionality on it. But first we need to add properties to the canvas
+    with initial values set:
+
+    \snippet jsonmodels/jsonmodels.qml 1
+
+    After that, let's do rotation on mouse movement when the left button is pressed:
+
+    \snippet jsonmodels/jsonmodels.qml 2
+
+    We need to keep the previous x and y to avoid rotation jumping when the mouse button is released
+    and repressed. These are the properties for them:
+
+    \snippet jsonmodels/jsonmodels.qml 3
+
+    Then we'll add zooming by mouse wheel:
+
+    \snippet jsonmodels/jsonmodels.qml 4
+
+    These are then used in the JavaScript side for eye/camera movement calculations:
+
+    \snippet jsonmodels/jsonmodels.js 7
+
+    We want to convert the rotation values into movement, and we do it like this:
+
+    \snippet jsonmodels/jsonmodels.js 8
+
+ */

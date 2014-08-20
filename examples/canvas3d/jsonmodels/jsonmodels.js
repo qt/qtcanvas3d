@@ -1,0 +1,839 @@
+Qt.include("glMatrix-0.9.5.min.js")
+//! [0]
+Qt.include("ThreeJSLoader.js")
+//! [0]
+
+var gl;
+
+var texturedShaderProgram = 0;
+var vertexShader = 0;
+var fragmentShader = 0;
+
+var vertexPositionAttribute;
+var textureCoordAttribute;
+var vertexNormalAttribute;
+
+var pMatrixUniform;
+var mvMatrixUniform;
+var nMatrixUniform;
+var textureSamplerUniform;
+var eyeUniform;
+
+var modelOneTexture = 0;
+var modelTwoTexture = 0;
+var modelThreeTexture = 0;
+var modelFourTexture = 0;
+var modelFiveTexture = 0;
+
+var vMatrix  = mat4.create();
+var mMatrix  = mat4.create();
+var mvMatrix = mat4.create();
+var pMatrix  = mat4.create();
+var nMatrix  = mat4.create();
+
+var fov = degToRad(45);
+var eye = [0, 1, 1];
+var light = [0, 1, 1];
+
+var posOne = [0, 0, 0];
+var posTwo = [0.3, 0, 0];
+var posThree = [-0.1, 0, 0.25];
+var posFour = [0.1, 0, -0.45];
+var posFive = [0, -0.14, 0];
+var posSix = [-1.2, -0.28, 0.0];
+var posSeven = [0.5, -0.28, 0.9];
+var posEight = [0.5, -0.28, -0.9];
+var posNine = [0.55, 0.09, -1.0];
+var posTen = [1.0, 0.09, -0.7];
+
+var rotOne = degToRad(90);
+var rotTwo = degToRad(-80);
+var rotThree = degToRad(15);
+var rotFour = degToRad(40);
+var rotFive = degToRad(60);
+
+var drawMode = 0;
+
+var canvas3d;
+
+function log(message) {
+    if (canvas3d.logAllCalls)
+        console.log(message)
+}
+
+function Model() {
+    this.verticesVBO = 0;
+    this.normalsVBO  = 0;
+    this.texCoordVBO = 0;
+    this.indexVBO    = 0;
+    this.count       = 0;
+}
+
+var modelOne = new Model();
+var modelTwo = new Model();
+var modelThree = new Model();
+var modelFour = new Model();
+var modelFive = new Model();
+
+function initGL(canvas, textureLoader) {
+    canvas3d = canvas
+    log("initGL...")
+    try {
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
+        log("   Received context: "+gl);
+
+        var contextConfig = gl.getContextAttributes();
+        log("   Depth: "+contextConfig.alpha);
+        log("   Stencil: "+contextConfig.stencil);
+        log("   Antialiasing: "+contextConfig.antialias);
+        log("   Premultiplied alpha: "+contextConfig.premultipliedAlpha);
+        log("   Preserve drawingbuffer: "+contextConfig.preserveDrawingBuffer);
+        log("   Prefer Low Power To High Performance: "+contextConfig.preferLowPowerToHighPerformance);
+        log("   Fail If Major Performance Caveat: "+contextConfig.failIfMajorPerformanceCaveat);
+
+        // Setup the OpenGL state
+        gl.enable(gl.DEPTH_TEST);
+        gl.disable(gl.CULL_FACE);
+        gl.enable(gl.BLEND);
+        gl.enable(gl.DEPTH_WRITE);
+        gl.depthMask(true);
+        gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
+
+        gl.clearColor(0.9, 0.9, 0.9, 1.0);
+        gl.clearDepth(1.0);
+
+        // Set viewport
+        gl.viewport(0, 0,
+                    canvas.width * canvas.devicePixelRatio,
+                    canvas.height * canvas.devicePixelRatio);
+
+        // Initialize the shader program
+        initShaders();
+
+        // Initialize buffers
+        initBuffers();
+
+        // Load textures
+        loadTextures(textureLoader);
+
+        // Load JSON models
+        loadJSONModels();
+
+        log("...initGL");
+    } catch(e) {
+        console.log("...initGL FAILURE!");
+        console.log(""+e);
+        console.log(""+e.message);
+    }
+}
+
+function renderGL(canvas) {
+    // draw only when we have the meshes and textures
+    if (modelOne.count <= 0 || modelTwo.count <= 0 || modelThree.count <= 0 || modelFour.count <= 0
+            || modelFive.count <= 0 || modelOneTexture == 0 || modelTwoTexture == 0
+            || modelThreeTexture == 0 || modelFourTexture == 0 || modelFiveTexture == 0)
+        return;
+
+    // draw
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    gl.useProgram(texturedShaderProgram);
+
+    // Calculate the perspective projection
+    mat4.perspective(pMatrix, fov, canvas.width / canvas.height, 0.1, 100.0);
+    gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+
+    //! [7]
+    // Get the view matrix
+    mat4.identity(vMatrix);
+    eye = moveEye(canvas.xRot, canvas.yRot, canvas.distance);
+    mat4.lookAt(vMatrix, eye, [0, 0, 0], [0, 1, 0]);
+    //! [7]
+
+    // Apply light position
+    if (canvas3d.animatingLight === true)
+        light = moveEye(canvas.lightX, canvas.lightY, canvas.lightDistance);
+    else
+        light = eye;
+    gl.uniform3fva(eyeUniform, light);
+
+    if (canvas3d.drawWireframe)
+        drawMode = gl.LINES;
+    else
+        drawMode = gl.TRIANGLES;
+
+    // Draw model one
+    // Bind the correct buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.verticesVBO);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.normalsVBO);
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.texCoordVBO);
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
+    gl.uniform1i(textureSamplerUniform, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posOne);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
+    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posTwo);
+    mat4.rotateY(mMatrix, mMatrix, rotTwo);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posThree);
+    mat4.rotateY(mMatrix, mMatrix, rotThree);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+
+    // Draw model two
+    // Bind the correct buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.verticesVBO);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.normalsVBO);
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.texCoordVBO);
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
+    gl.uniform1i(textureSamplerUniform, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posOne);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelTwo.indexVBO);
+    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posTwo);
+    mat4.rotateY(mMatrix, mMatrix, rotTwo);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posThree);
+    mat4.rotateY(mMatrix, mMatrix, rotThree);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+
+    // Draw model four
+    // Bind the correct buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.verticesVBO);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.normalsVBO);
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.texCoordVBO);
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
+    gl.uniform1i(textureSamplerUniform, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posFive);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFour.indexVBO);
+    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posSix);
+    mat4.rotateY(mMatrix, mMatrix, rotFour);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posSeven);
+    mat4.rotateY(mMatrix, mMatrix, rotOne);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posEight);
+    mat4.rotateY(mMatrix, mMatrix, rotFive);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+
+    // Draw model five
+    // Bind the correct buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.verticesVBO);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.normalsVBO);
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.texCoordVBO);
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
+    gl.uniform1i(textureSamplerUniform, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posNine);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFive.indexVBO);
+    gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posTen);
+    mat4.rotateX(mMatrix, mMatrix, rotFour);
+    mat4.rotateY(mMatrix, mMatrix, rotFive);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
+
+    // Draw model three (Includes transparency, must be drawn last)
+    // Bind the correct buffers
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.verticesVBO);
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.normalsVBO);
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.texCoordVBO);
+    gl.enableVertexAttribArray(textureCoordAttribute);
+    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
+    gl.uniform1i(textureSamplerUniform, 0);
+
+    // Calculate the modelview matrix
+    mat4.identity(mMatrix);
+    mat4.translate(mMatrix, mMatrix, posFour);
+    // Calculate normal matrix before scaling, to keep lighting in order
+    // Scale normal matrix with distance instead
+    mat4.copy(nMatrix, mMatrix);
+    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+    mat4.invert(nMatrix, nMatrix);
+    mat4.transpose(nMatrix, nMatrix);
+    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    // Scale the modelview matrix, and apply the matrix
+    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+    mat4.multiply(mvMatrix, vMatrix, mMatrix);
+    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+    // Draw the model
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelThree.indexVBO);
+    gl.drawElements(drawMode, modelThree.count, gl.UNSIGNED_SHORT, 0);
+}
+
+//! [8]
+function moveEye(xRot, yRot, distance) {
+    var xAngle = degToRad(xRot);
+    var yAngle = degToRad(yRot);
+
+    var zPos = distance * Math.cos(xAngle) * Math.cos(yAngle);
+    var xPos = distance * Math.sin(xAngle) * Math.cos(yAngle);
+    var yPos = distance * Math.sin(yAngle);
+
+    return [-xPos, yPos, zPos];
+}
+//! [8]
+
+//! [3]
+function handleLoadedModel(jsonObj) {
+    log("handleLoadedModel...");
+    var modelData = parseJSON3DModel(jsonObj, "");
+
+    if (modelOne.count === 0)
+        fillModel(modelData, modelOne);
+    else if (modelTwo.count === 0)
+        fillModel(modelData, modelTwo);
+    //! [3]
+    else if (modelThree.count === 0)
+        fillModel(modelData, modelThree);
+    else if (modelFour.count === 0)
+        fillModel(modelData, modelFour);
+    else if (modelFive.count === 0)
+        fillModel(modelData, modelFive);
+
+    log("...handleLoadedModel");
+}
+
+//! [4]
+function fillModel(modelData, model) {
+    log("   fillModel...");
+    log("   "+model.verticesVBO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.verticesVBO);
+    gl.bufferData(gl.ARRAY_BUFFER,
+                  Arrays.newFloat32Array(modelData.vertices),
+                  gl.STATIC_DRAW);
+
+    log("   "+model.normalsVBO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.normalsVBO);
+    gl.bufferData(gl.ARRAY_BUFFER,
+                  Arrays.newFloat32Array(modelData.normals),
+                  gl.STATIC_DRAW);
+
+    log("   "+model.texCoordVBO);
+    gl.bindBuffer(gl.ARRAY_BUFFER, model.texCoordVBO);
+    gl.bufferData(gl.ARRAY_BUFFER,
+                  Arrays.newFloat32Array(modelData.texCoords[0]),
+                  gl.STATIC_DRAW);
+
+    log("   "+model.indexVBO);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexVBO);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
+                  Arrays.newUint16Array(modelData.indices),
+                  gl.STATIC_DRAW);
+
+    model.count = modelData.indices.length;
+    log("   ...fillModel");
+}
+//! [4]
+
+//! [6]
+function textureLoaded(textureImage) {
+    log("textureLoaded...")
+    if (textureImage.imageState === TextureImage.LOADING_FINISHED) {
+        log("    processing "+textureImage.source);
+        if (modelOneTexture == 0 && textureImage.source == "qrc:///gold.jpg") {
+            log("    creating model one texture");
+            modelOneTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          textureImage);    // pixels
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else if (modelTwoTexture == 0 && textureImage.source == "qrc:///woodbox.jpg") {
+            log("    creating model two texture");
+            modelTwoTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          textureImage);    // pixels
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+            //! [6]
+        } else if (modelThreeTexture == 0 && textureImage.source == "qrc:///bush.png") {
+            log("    creating model three texture");
+            modelThreeTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          textureImage);    // pixels
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else if (modelFourTexture == 0 && textureImage.source == "qrc:///pallet.jpg") {
+            log("    creating model four texture");
+            modelFourTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          textureImage);    // pixels
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        } else if (modelFiveTexture == 0 && textureImage.source == "qrc:///rock.jpg") {
+            log("    creating model five texture");
+            modelFiveTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          textureImage);    // pixels
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        }
+    }
+
+    gl.bindTexture(gl.TEXTURE_2D, null);
+    log("...textureLoaded");
+}
+
+function degToRad(degrees) {
+    return degrees * Math.PI / 180;
+}
+
+function initShaders()
+{
+    log("   initShaders...")
+
+    vertexShader = getShader(gl,
+                             "attribute highp vec3 aVertexNormal;
+                              attribute highp vec3 aVertexPosition;
+                              attribute highp vec2 aTextureCoord;
+
+                              uniform highp mat4 uNormalMatrix;
+                              uniform mat4 uMVMatrix;
+                              uniform mat4 uPMatrix;
+                              uniform vec3 eyePos;
+
+                              varying highp vec2 vTextureCoord;
+                              varying highp vec4 vLighting;
+
+                              void main(void) {
+                                 gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
+                                 vTextureCoord = aTextureCoord;
+                                 highp vec4 ambientLight = vec4(0.5, 0.5, 0.5, 1.0);
+                                 highp vec4 directionalLightColor = vec4(1.0, 1.0, 1.0, 1.0);
+                                 highp vec3 directionalVector = eyePos;
+                                 highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+
+                                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
+                                 vLighting = ambientLight + (directionalLightColor * directional);
+                             }", gl.VERTEX_SHADER);
+
+    fragmentShader = getShader(gl,
+                               "varying highp vec2 vTextureCoord;
+                                varying highp vec4 vLighting;
+
+                                uniform sampler2D uSampler;
+
+                                void main(void) {
+                                    mediump vec4 texelColor = texture2D(uSampler, vTextureCoord);
+                                    gl_FragColor = vec4(texelColor * vLighting);
+                                }", gl.FRAGMENT_SHADER);
+
+    texturedShaderProgram = gl.createProgram();
+    gl.attachShader(texturedShaderProgram, vertexShader);
+    gl.attachShader(texturedShaderProgram, fragmentShader);
+    gl.linkProgram(texturedShaderProgram);
+
+    if (!gl.getProgramParameter(texturedShaderProgram, gl.LINK_STATUS)) {
+        console.log("Could not initialize shaders");
+        console.log(gl.getProgramInfoLog(texturedShaderProgram));
+    }
+
+    gl.useProgram(texturedShaderProgram);
+
+    // look up where the vertex data needs to go.
+    vertexPositionAttribute = gl.getAttribLocation(texturedShaderProgram, "aVertexPosition");
+    gl.enableVertexAttribArray(vertexPositionAttribute);
+    vertexNormalAttribute = gl.getAttribLocation(texturedShaderProgram, "aVertexNormal");
+    gl.enableVertexAttribArray(vertexNormalAttribute);
+    textureCoordAttribute = gl.getAttribLocation(texturedShaderProgram, "aTextureCoord");
+    gl.enableVertexAttribArray(textureCoordAttribute);
+
+    pMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uPMatrix");
+    mvMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uMVMatrix");
+    textureSamplerUniform = gl.getUniformLocation(texturedShaderProgram, "uSampler")
+    nMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uNormalMatrix");
+    eyeUniform = gl.getUniformLocation(texturedShaderProgram, "eyePos");
+    log("   ...initShaders");
+}
+
+//! [1]
+function initBuffers() {
+    modelOne.verticesVBO = gl.createBuffer();
+    modelOne.normalsVBO  = gl.createBuffer();
+    modelOne.texCoordVBO = gl.createBuffer();
+    modelOne.indexVBO    = gl.createBuffer();
+    modelTwo.verticesVBO = gl.createBuffer();
+    modelTwo.normalsVBO  = gl.createBuffer();
+    modelTwo.texCoordVBO = gl.createBuffer();
+    modelTwo.indexVBO    = gl.createBuffer();
+    //! [1]
+    modelThree.verticesVBO = gl.createBuffer();
+    modelThree.normalsVBO  = gl.createBuffer();
+    modelThree.texCoordVBO = gl.createBuffer();
+    modelThree.indexVBO    = gl.createBuffer();
+    modelFour.verticesVBO = gl.createBuffer();
+    modelFour.normalsVBO  = gl.createBuffer();
+    modelFour.texCoordVBO = gl.createBuffer();
+    modelFour.indexVBO    = gl.createBuffer();
+    modelFive.verticesVBO = gl.createBuffer();
+    modelFive.normalsVBO  = gl.createBuffer();
+    modelFive.texCoordVBO = gl.createBuffer();
+    modelFive.indexVBO    = gl.createBuffer();
+}
+
+//! [5]
+function loadTextures(textureLoader) {
+    // Load the first texture
+    textureLoader.loadTexture("gold.jpg");
+    log("   loadTexture sent for texture one")
+
+    // Load the second texture
+    textureLoader.loadTexture("woodbox.jpg");
+    log("   loadTexture sent for texture two")
+    //! [5]
+
+    // Load the third texture
+    textureLoader.loadTexture("bush.png");
+    log("   loadTexture sent for texture three")
+
+    // Load the fourth texture
+    textureLoader.loadTexture("pallet.jpg");
+    log("   loadTexture sent for texture four")
+
+    // Load the fifth texture
+    textureLoader.loadTexture("rock.jpg");
+    log("   loadTexture sent for texture five")
+}
+
+//! [2]
+function loadJSONModels() {
+    // Load the first model
+    var request = new XMLHttpRequest();
+    request.open("GET", "gold.json");
+    request.onreadystatechange = function () {
+        if (request.readyState === XMLHttpRequest.DONE) {
+            handleLoadedModel(JSON.parse(request.responseText));
+        }
+    }
+    request.send();
+    log("   XMLHttpRequest sent for model one")
+
+    // Load the second model
+    var request2 = new XMLHttpRequest();
+    request2.open("GET", "woodbox.json");
+    request2.onreadystatechange = function () {
+        if (request2.readyState === XMLHttpRequest.DONE) {
+            handleLoadedModel(JSON.parse(request2.responseText));
+        }
+    }
+    request2.send();
+    log("   XMLHttpRequest sent for model two")
+    //! [2]
+
+    // Load the third model
+    var request3 = new XMLHttpRequest();
+    request3.open("GET", "bush.json");
+    request3.onreadystatechange = function () {
+        if (request3.readyState === XMLHttpRequest.DONE) {
+            handleLoadedModel(JSON.parse(request3.responseText));
+        }
+    }
+    request3.send();
+    log("   XMLHttpRequest sent for model three")
+
+    // Load the fourth model
+    var request4 = new XMLHttpRequest();
+    request4.open("GET", "pallet.json");
+    request4.onreadystatechange = function () {
+        if (request4.readyState === XMLHttpRequest.DONE) {
+            handleLoadedModel(JSON.parse(request4.responseText));
+        }
+    }
+    request4.send();
+    log("   XMLHttpRequest sent for model four")
+
+    // Load the fifth model
+    var request5 = new XMLHttpRequest();
+    request5.open("GET", "rock.json");
+    request5.onreadystatechange = function () {
+        if (request5.readyState === XMLHttpRequest.DONE) {
+            handleLoadedModel(JSON.parse(request5.responseText));
+        }
+    }
+    request5.send();
+    log("   XMLHttpRequest sent for model five")
+}
+
+function getShader(gl, str, type) {
+    var shader = gl.createShader(type);
+    gl.shaderSource(shader, str);
+    gl.compileShader(shader);
+
+    if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.log("JS:Shader compile failed");
+        console.log(gl.getShaderInfoLog(shader));
+        return null;
+    }
+
+    return shader;
+}

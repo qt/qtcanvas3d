@@ -1,0 +1,179 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the QtCanvas3D module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPLv3 included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or later as published by the Free 
+** Software Foundation and appearing in the file LICENSE.GPL included in 
+** the packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 2.0 requirements will be
+** met: http://www.gnu.org/licenses/gpl-2.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \qmlmodule QtCanvas3D 1.0
+    \title QML Canvas 3D QML Types
+    \ingroup qmlmodules
+
+    \brief QML types for the QtCanvas3D API.
+
+    The QtCanvas3D functionality can be accessed via these QML types.
+
+    \section1 QML Types
+
+    \annotatedlist qtcanvas3d-qml-types
+*/
+
+/*!
+    \group qtcanvas3d-examples
+    \ingroup all-examples
+    \title QML Canvas 3D Examples
+
+    \brief Examples for the QtCanvas3D.
+
+    For some code examples, see one of the QtCanvas3D examples:
+
+    \section1 Examples
+*/
+
+/*!
+    \group qtcanvas3d-getting-started
+    \title QML Canvas 3D Getting Started
+
+    \section1 Building QtCanvas3D
+
+    To build the QtCanvas3D module from source code, set up a command prompt
+    with an environment for building Qt applications, navigate to the directory containing
+    \c {qtcanvas3d.pro}, and configure the project with qmake:
+    \code
+    qmake
+    \endcode
+
+    After running qmake, build the project with make:
+    \table
+    \header
+      \li OS                       \li Make command
+    \row
+      \li Linux                    \li make
+    \row
+      \li Windows (MinGw)          \li mingw32-make
+    \row
+      \li Windows (MSVC)           \li nmake
+    \row
+      \li OSX                      \li make
+    \endtable
+
+    The above generates the default makefiles for your configuration, which is typically
+    the release build if you are using precompiled binary Qt distribution. To build both debug
+    and release, or one specifically, use one of the following qmake lines instead.
+
+    For debug builds:
+    \code
+    qmake CONFIG+=debug
+    make
+    \endcode
+    or
+    \code
+    qmake CONFIG+=debug_and_release
+    make debug
+    \endcode
+
+    For release builds:
+    \code
+    qmake CONFIG+=release
+    make
+    \endcode
+    or
+    \code
+    qmake CONFIG+=debug_and_release
+    make release
+    \endcode
+
+    For both builds (Windows/Mac only):
+    \code
+    qmake CONFIG+="debug_and_release build_all"
+    make
+    \endcode
+
+    After building, install the module to your Qt directory:
+    \code
+    make install
+    \endcode
+
+    If you want to uninstall the module:
+    \code
+    make uninstall
+    \endcode
+
+    To build a statically linked version of the QtCanvas3D module, give the following
+    commands:
+
+    \code
+    qmake CONFIG+=static
+    make
+    make install
+    \endcode
+
+    \section1 Running examples
+
+    QtCanvas3D examples are found under the \c examples subdirectory. To build and run a
+    single example, in this case \c{interaction}, navigate to the example directory and enter the
+    following commands:
+
+    \code
+    qmake
+    make
+    ./interaction
+    \endcode
+
+    \note On some platforms, such as Windows, the executable can be generated under debug or
+    release folders, depending on your build.
+
+    \section1 A Basic Example
+
+    For a simple Canvas3D example concentrating on the QML side see the \l {Textured Cube Example},
+    or for one concentrating on the JavaScript side see the \l {Lit and Textured Cube Example}.
+
+    For all the QtCanvas3D examples, check out \l {QML Canvas 3D Examples}
+*/
+
+/*!
+    \group qtcanvas3d-known-issues
+    \title QML Canvas 3D Known Issues
+
+    \brief The known issues of QML 3D Canvas.
+
+    \list
+        \li QObject based TypedArray implementation is a temporary stop gap solution and will be removed from QtCanvas3D later on.
+        \li Texturing does not work perfectly in all of the examples.
+        \li \l{Interaction Example} and \l{JSON Models Example} crash on some Macs on startup.
+        \li Using Qt Quick Enterprise Controls buttons cause a crash on application exit
+            on Windows in certain circumstances (try \l{JSON Models Example} for reference).
+        \li Resizing window works incorrectly if viewport is updated during rendering to match
+            the window size (try \l{Framebuffer Example} for reference).
+    \endlist
+*/

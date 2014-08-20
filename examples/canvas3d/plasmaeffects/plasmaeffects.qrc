@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/plasmaeffects/glMatrix-0.9.5.min.js</file>
+        <file>qml/plasmaeffects/main.qml</file>
+        <file>qml/plasmaeffects/plasmaeffects.js</file>
+        <file>qml/plasmaeffects/qtlogo_gray.png</file>
+    </qresource>
+</RCC>

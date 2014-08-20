@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/canvasswitch/glMatrix-0.9.5.min.js</file>
+        <file>qml/canvasswitch/main.qml</file>
+        <file>qml/canvasswitch/triangle.js</file>
+        <file>qml/canvasswitch/cube.js</file>
+    </qresource>
+</RCC>

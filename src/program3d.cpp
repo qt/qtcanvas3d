@@ -1,0 +1,139 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the QtCanvas3D module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPLv3 included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or later as published by the Free 
+** Software Foundation and appearing in the file LICENSE.GPL included in 
+** the packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 2.0 requirements will be
+** met: http://www.gnu.org/licenses/gpl-2.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+#include "program3d_p.h"
+
+/*!
+ * \qmltype Program3D
+ * \since QtCanvas3D 1.0
+ * \ingroup qtcanvas3d-qml-types
+ * \brief Contains a shader program.
+ *
+ * An uncreatable QML type that contains a compiled shader program. You can get it by calling
+ * \l{Context3D::createProgram()}{Context3D.createProgram()} method.
+ */
+
+/*!
+ * \internal
+ */
+CanvasProgram::CanvasProgram(QObject *parent) :
+    CanvasAbstractObject(parent),
+    m_program(new QOpenGLShaderProgram(this))
+{
+    initializeOpenGLFunctions();
+}
+
+/*!
+ * \internal
+ */
+CanvasProgram::~CanvasProgram()
+{
+    delete m_program;
+}
+
+/*!
+ * \internal
+ */
+int CanvasProgram::uniformLocation(const QString &name)
+{
+    if (!m_program)
+        return -1;
+
+    return m_program->uniformLocation(name);
+}
+
+/*!
+ * \internal
+ */
+bool CanvasProgram::isAlive()
+{
+    return bool(m_program);
+}
+
+/*!
+ * \internal
+ */
+QOpenGLShaderProgram *CanvasProgram::qOGLProgram()
+{
+    return m_program;
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::del()
+{
+    delete m_program;
+    m_program = 0;
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::validateProgram()
+{
+    if (m_program)
+        return;
+    glValidateProgram(m_program->programId());
+}
+
+/*!
+ * \qmlproperty int Program3D::id()
+ * Holds the shader program id. Returns \c -1 if there is none.
+ */
+/*!
+ * \internal
+ */
+int CanvasProgram::id()
+{
+    if (!m_program)
+        return -1;
+
+    return m_program->programId();
+}
+
+/*!
+ * \internal
+ */
+QDebug operator<<(QDebug dbg, const CanvasProgram *program)
+{
+    if (program)
+        dbg.nospace() << "Program3D("<< program->m_name << ", id:" << program->m_program->programId() << ")";
+    else
+        dbg.nospace() << "Program3D("<< ((void*) program) <<")";
+    return dbg.maybeSpace();
+}
+

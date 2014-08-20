@@ -1,0 +1,129 @@
+/****************************************************************************
+**
+** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
+** Contact: http://www.qt-project.org/legal
+**
+** This file is part of the QtCanvas3D module of the Qt Toolkit.
+**
+** $QT_BEGIN_LICENSE:LGPL$
+** Commercial License Usage
+** Licensees holding valid commercial Qt licenses may use this file in
+** accordance with the commercial license agreement provided with the
+** Software or, alternatively, in accordance with the terms contained in
+** a written agreement between you and Digia.  For licensing terms and
+** conditions see http://qt.digia.com/licensing.  For further information
+** use the contact form at http://qt.digia.com/contact-us.
+**
+** GNU Lesser General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU Lesser
+** General Public License version 3 as published by the Free Software
+** Foundation and appearing in the file LICENSE.LGPLv3 included in the
+** packaging of this file.  Please review the following information to
+** ensure the GNU Lesser General Public License version 3 requirements
+** will be met: https://www.gnu.org/licenses/lgpl.html.
+**
+** GNU General Public License Usage
+** Alternatively, this file may be used under the terms of the GNU
+** General Public License version 2.0 or later as published by the Free 
+** Software Foundation and appearing in the file LICENSE.GPL included in 
+** the packaging of this file.  Please review the following information to
+** ensure the GNU General Public License version 2.0 requirements will be
+** met: http://www.gnu.org/licenses/gpl-2.0.html.
+**
+** $QT_END_LICENSE$
+**
+****************************************************************************/
+
+/*!
+    \example textureandlight
+    \since QtCanvas3D 1.0
+    \title Lit and Textured Cube Example
+    \ingroup qtcanvas3d-examples
+    \brief A simple cube with texturing and lighting
+
+    The Lit and Textured Cube differs only a little from \l {Textured Cube Example} on QML side, so
+    in this example we'll focus a bit more on the js object.
+
+    \image textureandlight-example.png
+
+    \section1 Matrix Library
+
+    First we'll include a fast matrix library. Using this makes it a lot easier to
+    handle all matrix transformations:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 0
+
+    \section1 initGL function
+
+    Let's take a closer look at the \c initGL function. It is called by Canvas3D once the render
+    node is ready.
+
+    First of all, we'll need to get Context3D from our Canvas3D. We want a context that supports
+    depth buffer and antialising:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 1
+
+    Then we'll initialize the OpenGL state for the context:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 2
+
+    Next, let's take a look into shader initialization in \c initShaders function, which we call
+    in the \c{initGL}. First of all we'll define the vertex shader:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 3
+
+    We'll follow that up by defining fragment shader:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 4
+
+    Then we'll need to create the shader program (Program3D), attach the shaders to it, and then
+    link and use the program:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 5
+
+    And finally look up and store the vertex attributes and uniform locations:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 6
+
+    After initializing the shader program, we'll set up the vertex buffer in \c initBuffers
+    function. Let's look at the vertex index buffer creation as an example:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 7
+
+    As can be seen, first we create the buffer, then bind it and finally insert the data into it.
+    We won't take a look at the other buffers, as they are all handled in a similar fashion.
+
+    After that, as the final step in \c{initGL}, we'll request a texture from TextureImageLoader
+    passed to \c initGL as a parameter. Once the texture image is successfully loaded, we create
+    the actual texture in \c textureLoaded function called by the TextureImageLoader:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 8
+
+    \section1 renderGL function
+
+    \c renderGL is called by Canvas3D whenever it is ready to receive a new frame. Let's go through
+    the steps that are done in each render cycle.
+
+    First we check if canvas has been resized or if pixel ratio has changed, and update the
+    projection matrix if necessary:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 9
+
+    Then we'll clear the render area using the clear color set in \c{initGL}:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 10
+
+    Next we'll reset the model view matrix and apply translation and rotations:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 11
+
+    As we have a lit cube, we'll invert and transpose the model view matrix to be used for lighting
+    calculations:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 12
+
+    And finally we'll draw the cube:
+
+    \snippet textureandlight/qml/textureandlight/textureandlight.js 13
+
+ */

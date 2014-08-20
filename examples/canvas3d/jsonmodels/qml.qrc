@@ -1,0 +1,19 @@
+<RCC>
+    <qresource prefix="/">
+        <file>glMatrix-0.9.5.min.js</file>
+        <file>gold.json</file>
+        <file>ThreeJSLoader.js</file>
+        <file>woodbox.json</file>
+        <file>bush.json</file>
+        <file>pallet.json</file>
+        <file>rock.json</file>
+        <file>pallet.jpg</file>
+        <file>rock.jpg</file>
+        <file>gold.jpg</file>
+        <file>woodbox.jpg</file>
+        <file>bush.png</file>
+        <file>jsonmodels.js</file>
+        <file>jsonmodels.qml</file>
+        <file>jsonmodelsbasic.qml</file>
+    </qresource>
+</RCC>
