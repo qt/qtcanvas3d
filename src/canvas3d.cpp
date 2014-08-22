@@ -103,6 +103,7 @@ Canvas::Canvas(QQuickItem *parent):
 {
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
+    connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -124,15 +125,13 @@ Canvas::~Canvas()
  */
 void Canvas::shutDown()
 {
+    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+
     if (!m_glContext)
         return;
 
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
-
     disconnect(m_contextWindow, 0, this, 0);
     disconnect(this, 0, this, 0);
-
-    if (m_logAllCalls) qDebug() << QOpenGLContext::currentContext() << m_glContext << m_glContextQt;
 
     m_glContext->makeCurrent(m_offscreenSurface);
     delete m_renderFbo;
@@ -407,7 +406,7 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
     if (!window)
         return;
 
-    QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+    emit needRender();
 }
 
 /*!
@@ -420,7 +419,7 @@ void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometr
 
     m_cachedGeometry = newGeometry;
 
-    QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+    emit needRender();
 }
 
 /*!
@@ -431,7 +430,7 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << change;
     QQuickItem::itemChange(change, value);
 
-    QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+    emit needRender();
 }
 
 /*!
@@ -482,7 +481,7 @@ void Canvas::setAnimated(bool animated)
     if (animated != m_isAnimated) {
         m_isAnimated = animated;
         emit animatedChanged(animated);
-        QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+        emit needRender();
     }
 }
 
@@ -525,8 +524,7 @@ void Canvas::ready()
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
 
     connect(window(), &QQuickWindow::sceneGraphInvalidated,
-            this, &Canvas::shutDown,
-            Qt::QueuedConnection);
+            this, &Canvas::shutDown);
 
     update();
 }
@@ -553,8 +551,7 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 
     if (!m_glContextQt) {
         m_glContextQt = window()->openglContext();
-
-        QMetaObject::invokeMethod(this, "ready");
+        ready();
         return 0;
     }
 
@@ -592,13 +589,13 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
                 Qt::QueuedConnection);
 
         // Get the production of FBO textures started..
-        QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+        emit needRender();
 
         update();
     }
 
     node->setRect(boundingRect());
-    QMetaObject::invokeMethod(this, "renderNext", Qt::QueuedConnection);
+    emit needRender();
 
     m_renderNodeReady = true;
 
