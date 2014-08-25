@@ -55,15 +55,13 @@ Item {
         property double zRotAnim: 0
         property bool isRunning: true
 
-        // Called by Canvas 3D once on Scene Graph render thread
-        // to allow one time initializations to happen
-        function initGL() {
+        // Emitted when one time initializations should happen
+        onInitGL: {
             GLCode.initGL(canvas3d, textureImageLoader);
         }
 
-        // Called by Canvas 3D for every frame
-        // rendered on Scene Graph render thread
-        function renderGL() {
+        // Emitted each time Canvas3D is ready for a new frame
+        onRenderGL: {
             GLCode.renderGL(canvas3d);
         }
 
@@ -156,17 +154,17 @@ Item {
             return textureImageLoader.loadImage("qrc:/qml/textureandlight/"+file);
         }
 
-        function imageLoaded(textureImage) {
+        onImageLoaded: {
             if (canvas3d.logAllCalls)
-                console.log("Texture loaded, size "+textureImage.width+"x"+textureImage.height);
-            GLCode.textureLoaded(textureImage);
+                console.log("Texture loaded, size "+image.width+"x"+image.height);
+            GLCode.textureLoaded(image);
         }
 
-        function imageLoadingError(textureImage) {
+        onImageLoadingFailed: {
             if (GLCode.textureLoadError !== undefined) {
-                GLCode.textureLoadError(textureImage);
+                GLCode.textureLoadError(image);
             }
-            console.log("Texture load FAILED, "+textureImage.errorString);
+            console.log("Texture load FAILED, "+image.errorString);
         }
     }
 }

@@ -177,8 +177,8 @@ Item {
             property double xRotAnim: mainview.xRotAnim
             property double yRotAnim: mainview.yRotAnim
             property double zRotAnim: mainview.zRotAnim
-            function initGL() { activeObject.initGL(canvas3d) }
-            function renderGL() { activeObject.renderGL(canvas3d) }
+            onInitGL: activeObject.initGL(canvas3d)
+            onRenderGL: activeObject.renderGL(canvas3d)
         }", layout)
         //! [2]
         //! [3]

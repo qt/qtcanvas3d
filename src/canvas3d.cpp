@@ -63,9 +63,9 @@ static QHash<QQuickWindow *, bool> windowClearList;
  *
  * There are two functions that are called by the Canvas3D implementation:
  * \list
- * \li initGL() method is called before first frame is rendered and usually during that you get
+ * \li initGL is emitted before the first frame is rendered, and usually during that you get
  * the 3D context and initialize resources to be used later on during the rendering cycle.
- * \li renderGL() method is called for each frame to be rendered and usually during that you
+ * \li renderGL is emitted for each frame to be rendered, and usually during that you
  * submit 3D rendering calls to draw whatever 3D content you want to be displayed.
  * \endlist
  *
@@ -110,6 +110,16 @@ Canvas::Canvas(QQuickItem *parent):
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
     setFlag(ItemHasContents, !m_runningInDesigner);
 }
+
+/*!
+ * \qmlsignal void Canvas::initGL()
+ * Emitted once when Canvas3D is ready and OpenGL state initialization can be done by the client.
+ */
+
+/*!
+ * \qmlsignal void Canvas::renderGL()
+ * Emitted each time a new frame should be drawn to Canvas3D. Driven by the QML scenegraph loop.
+ */
 
 /*!
  * \internal
@@ -197,15 +207,6 @@ bool Canvas::logAllErrors() const
  */
 /*!
  * \fn Canvas::needRender()
- * \internal
- */
-
-/*!
- * \qmlsignal Canvas3D::initGLCalled()
- * Emitted after initGL has been called.
- */
-/*!
- * \fn Canvas::initGLCalled()
  * \internal
  */
 
@@ -471,9 +472,10 @@ void Canvas::setImageLoader(CanvasTextureImageLoader *loader)
 
 /*!
  \qmlproperty bool Canvas3D::animated
- Specifies whether the Canvas3D continuously calls the \c renderGL() method to render new
+ Specifies whether the Canvas3D continuously emits the renderGL signal to render new
  frames or not. In most cases this property should be set to true as the 3D content is
  dynamic.
+ \note Currenly not used.
  */
 void Canvas::setAnimated(bool animated)
 {
@@ -620,12 +622,7 @@ void Canvas::renderNext()
     if (!m_glContext) {
         // Call the initialize function from QML/JavaScript until it calls the getContext() that in turn creates the buffers
         // Allow the JavaScript code to call the getContext() to create the context object and FBOs
-        QVariant ignoredReturnedValue;
-        QMetaObject::invokeMethod(this, "initGL",
-                                  Qt::DirectConnection,
-                                  Q_RETURN_ARG(QVariant, ignoredReturnedValue));
-
-        emit initGLCalled();
+        emit initGL();
 
         if (!m_isContextAttribsSet) {
             if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << " Context attributes not set, returning";
@@ -665,10 +662,7 @@ void Canvas::renderNext()
         m_imageLoader->notifyLoadedImages();
 
     // Call render in QML JavaScript side
-    QVariant ignoredReturnedValue;
-    QMetaObject::invokeMethod(this, "renderGL",
-                              Qt::DirectConnection,
-                              Q_RETURN_ARG(QVariant, ignoredReturnedValue));
+    emit renderGL();
 
     // Resolve MSAA
     if (m_contextAttribs.antialias()) {

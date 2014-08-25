@@ -53,7 +53,7 @@
     \snippet texturedcube/qml/texturedcube/main.qml 0
     \dots
 
-    Inside it, we create the \c initGL and \c renderGL functions to forward the initialization
+    Inside it, we catch the \c initGL and \c renderGL signals to forward the initialization
     and rendering calls to the js object:
 
     \snippet texturedcube/qml/texturedcube/main.qml 1

@@ -62,12 +62,8 @@ Item {
         property double xRotAnim: 0
         property double yRotAnim: 0
         //! [1]
-        function initGL() {
-            GLCode.initGL(canvas3d);
-        }
-        function renderGL() {
-            GLCode.renderGL();
-        }
+        onInitGL: GLCode.initGL(canvas3d)
+        onRenderGL: GLCode.renderGL()
     }
     //! [0]
 }

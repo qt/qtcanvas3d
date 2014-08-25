@@ -54,6 +54,7 @@ class Canvas;
 class CanvasTextureImageLoader : public QObject
 {
     Q_OBJECT
+    Q_PROPERTY(CanvasTextureImage* image READ image)
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
 
@@ -71,8 +72,11 @@ public:
     void notifyLoadedImages();
     void emitImageLoaded(CanvasTextureImage *textureImage);
     void emitImageLoadingError(CanvasTextureImage *textureImage);
+    inline CanvasTextureImage *image() { return m_image; }
 
 signals:
+    void imageLoaded();
+    void imageLoadingFailed();
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
 
@@ -81,6 +85,7 @@ private:
     bool m_logAllErrors;
     QMap<QUrl, CanvasTextureImage *> m_urlToImageMap;
     QList<CanvasTextureImage *> m_loadingImagesList;
+    CanvasTextureImage *m_image;
     Canvas *m_canvas;
 };
 

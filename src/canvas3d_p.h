@@ -104,7 +104,9 @@ signals:
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
     void contextChanged(CanvasContext *context);
-    void initGLCalled();
+
+    void initGL();
+    void renderGL();
 
     void textureReady(int id, const QSize &size, float devicePixelRatio);
 

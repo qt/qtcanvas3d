@@ -40,11 +40,11 @@ Window {
                 property bool animatingCamera: false
                 property bool drawWireframe: false
 
-                function initGL() {
+                onInitGL: {
                     GLCode.initGL(canvas3d, textureImageLoader);
                 }
 
-                function renderGL() {
+                onRenderGL: {
                     GLCode.renderGL(canvas3d);
                 }
 
@@ -322,13 +322,13 @@ Window {
             return textureImageLoader.loadImage("qrc:///"+file);
         }
 
-        function imageLoaded(textureImage) {
-            GLCode.textureLoaded(textureImage);
+        onImageLoaded: {
+            GLCode.textureLoaded(image);
         }
 
-        function imageLoadingError(textureImage) {
+        onImageLoadingFailed: {
             if (GLCode.textureLoadError !== undefined) {
-                GLCode.textureLoadError(textureImage);
+                GLCode.textureLoadError(image);
             }
         }
     }

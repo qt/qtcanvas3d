@@ -51,6 +51,22 @@
  */
 
 /*!
+ * \qmlproperty TextureImage TextureImageLoader::image
+ * A read-only property holding the last loaded or failed texture. Should be called on receiving the
+ * imageLoaded or imageLoadingFailed signal.
+ */
+
+/*!
+ * \qmlsignal void TextureImageLoader::imageLoaded()
+ * Emitted when a texture has been successfully loaded.
+ */
+
+/*!
+ * \qmlsignal void TextureImageLoader::imageLoadingFailed()
+ * Emitted when a texture loading has failed.
+ */
+
+/*!
  * \internal
  */
 CanvasTextureImageLoader::CanvasTextureImageLoader(QObject *parent) :
@@ -120,14 +136,9 @@ bool CanvasTextureImageLoader::logAllErrors() const
  */
 void CanvasTextureImageLoader::emitImageLoaded(CanvasTextureImage *textureImage)
 {
-    // Can't use signals as those change the signal processing to main thread
-    // Using invokeMethod() preserves execution on scene graph render thread.
     if (m_logAllCalls) qDebug() << "TexImage3DLoader::" << __FUNCTION__;
-    QVariant ignoredReturnedValue;
-    QMetaObject::invokeMethod(this, "imageLoaded",
-                              Qt::DirectConnection,
-                              Q_RETURN_ARG(QVariant, ignoredReturnedValue),
-                              Q_ARG(QVariant, QVariant::fromValue(textureImage)));
+    m_image = textureImage;
+    emit imageLoaded();
 }
 
 /*!
@@ -135,14 +146,9 @@ void CanvasTextureImageLoader::emitImageLoaded(CanvasTextureImage *textureImage)
  */
 void CanvasTextureImageLoader::emitImageLoadingError(CanvasTextureImage *textureImage)
 {
-    // Can't use signals as those change the signal processing to main thread
-    // Using invokeMethod() preserves execution on scene graph render thread.
     if (m_logAllCalls) qDebug() << "TexImage3DLoader::" << __FUNCTION__;
-    QVariant ignoredReturnedValue;
-    QMetaObject::invokeMethod(this, "imageLoadingError",
-                              Qt::DirectConnection,
-                              Q_RETURN_ARG(QVariant, ignoredReturnedValue),
-                              Q_ARG(QVariant, QVariant::fromValue(textureImage)));
+    m_image = textureImage;
+    emit imageLoadingFailed();
 }
 
 /*!
