@@ -314,6 +314,10 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         }
 
         QSurfaceFormat surfaceFormat = m_glContextQt->format();
+#if defined(QT_OPENGL_ES_2)
+        surfaceFormat.setMajorVersion(2);
+        surfaceFormat.setMinorVersion(0);
+#endif
         surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
         surfaceFormat.setSwapInterval(0);
 
