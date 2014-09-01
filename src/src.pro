@@ -1,32 +1,17 @@
+load(qt_parts)
+
 TEMPLATE = lib
 TARGET = qtcanvas3d
 QT += qml quick
 DEFINES += QTCANVAS3D_LIBRARY
+TARGETPATH = QtCanvas3D
 IMPORT_VERSION = $$MODULE_VERSION
-CONFIG += qt plugin
-
-#TARGET = $$qtLibraryTarget($$TARGET)
-message("TARGET")
-message($$TARGET)
-message("qtLibTARGET")
-message($$qtLibraryTarget($$TARGET))
-
-#TARGETPATH = com/digia/qtcanvas3d
-
-uri = com.digia.qtcanvas3d
 
 # Only build qml plugin static if Qt itself is also built static
 !contains(QT_CONFIG, static): CONFIG -= static staticlib
 
-QT.qtcanvas3d.name = QtCanvas3D
-#QT.qtcanvas3d.bins = $$QT_MODULE_INCLUDE_BASE
-QT.qtcanvas3d.sources = $$QT_MODULE_BASE/src
-
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
-load(qml_plugin)
-
-# Input
 SOURCES += qcanvas3d_plugin.cpp \
     arraybuffer.cpp \
     arraybufferview.cpp \
@@ -101,17 +86,14 @@ OTHER_FILES = qmldir \
     doc/snippets/* \
     qtcanvas3d.qmltypes
 
-#!equals(_PRO_FILE_PWD_, $$OUT_PWD) {
-#    copy_qmldir.target = $$OUT_PWD/qmldir
-#    copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
-#    copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
-#    QMAKE_EXTRA_TARGETS += copy_qmldir
-#    PRE_TARGETDEPS += $$copy_qmldir.target
-#}
+CONFIG += no_cxx_module
 
-qmldir.files = qmldir
+load(qml_plugin)
 
-#installPath = $$[QT_INSTALL_QML]/$$replace(uri, \\., /)
-#qmldir.path = $$installPath
-#target.path = $$installPath
-#INSTALLS += target qmldir
+!android:!ios {
+    copy_qmldir.target = $$DESTDIR/qmldir
+    copy_qmldir.depends = $$_PRO_FILE_PWD_/qmldir
+    copy_qmldir.commands = $(COPY_FILE) \"$$replace(copy_qmldir.depends, /, $$QMAKE_DIR_SEP)\" \"$$replace(copy_qmldir.target, /, $$QMAKE_DIR_SEP)\"
+    QMAKE_EXTRA_TARGETS += copy_qmldir
+    PRE_TARGETDEPS += $$copy_qmldir.target
+}
