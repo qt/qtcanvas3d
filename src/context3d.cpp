@@ -3512,8 +3512,7 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
         return;
     }
 
-    CanvasUint8Array *array = dynamic_cast<CanvasUint8Array *>(pixels);
-    if (!array) {
+    if (pixels->bufferType() != CanvasTypedArray::ARRAY_BUFFER_UINT_8) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__ << ":INVALID_OPERATION pixels must be Uint8Array.";
         m_error = INVALID_OPERATION;
         return;

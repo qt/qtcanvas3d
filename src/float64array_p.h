@@ -63,6 +63,7 @@ public:
 
     virtual inline int bytesPerElement() { return sizeof(double); }
     virtual inline CanvasContext::glEnums dataType() { return CanvasContext::NONE; }
+    virtual inline canvasArrayBufferTypes bufferType() { return CanvasArrayBufferView::ARRAY_BUFFER_FLOAT_64; }
 
     Q_INVOKABLE double operator [] (unsigned long index);
     Q_INVOKABLE double get(unsigned long index);

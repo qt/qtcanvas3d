@@ -66,6 +66,7 @@ public:
     Q_INVOKABLE void set(unsigned long index, unsigned char value);
     virtual inline int bytesPerElement() { return sizeof(unsigned char); }
     virtual inline CanvasContext::glEnums dataType() { return CanvasContext::UNSIGNED_BYTE; }
+    virtual inline canvasArrayBufferTypes bufferType() { return CanvasArrayBufferView::ARRAY_BUFFER_UINT_8; }
 
     //Q_INVOKABLE void set(ArrayBufferView *array, unsigned long offset);
     //Q_INVOKABLE void set(unsigned char *array, unsigned long offset);

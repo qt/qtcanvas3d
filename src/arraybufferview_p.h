@@ -60,6 +60,19 @@ class CanvasArrayBufferView : public CanvasAbstractObject
     Q_PROPERTY(unsigned long byteLength READ byteLength NOTIFY byteLengthChanged)
 
 public:
+    enum canvasArrayBufferTypes {
+        ARRAY_BUFFER_UNKNOWN = 0,
+        ARRAY_BUFFER_UINT_8,
+        ARRAY_BUFFER_UINT_8_CLAMPED,
+        ARRAY_BUFFER_UINT_16,
+        ARRAY_BUFFER_UINT_32,
+        ARRAY_BUFFER_INT_8,
+        ARRAY_BUFFER_INT_16,
+        ARRAY_BUFFER_INT_32,
+        ARRAY_BUFFER_FLOAT_32,
+        ARRAY_BUFFER_FLOAT_64
+    };
+
     explicit CanvasArrayBufferView(CanvasArrayBuffer *buffer, unsigned long byteOffset,
                                    QObject *parent = 0);
     virtual ~CanvasArrayBufferView();
@@ -69,6 +82,7 @@ public:
     CanvasArrayBuffer *buffer();
     unsigned long byteOffset();
     unsigned long byteLength();
+    virtual canvasArrayBufferTypes bufferType() = 0;
 
 signals:
     void bufferChanged(CanvasArrayBuffer *buffer);
