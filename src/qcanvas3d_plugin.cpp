@@ -115,6 +115,10 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                               1, 0,
                                               "Context3D",
                                               QLatin1String("Trying to create uncreatable: Context3D, use Canvas3D.getContext() instead."));
+    qmlRegisterUncreatableType<CanvasActiveInfo>(uri,
+                                                 1, 0,
+                                                 "ActiveInfo3D",
+                                                 QLatin1String("Trying to create uncreatable: ActiveInfo3D, use Context3D.getActiveAttrib() or Context3D.getActiveUniform() instead."));
     qmlRegisterUncreatableType<CanvasTexture>(uri,
                                               1, 0,
                                               "Texture3D",

@@ -60,7 +60,8 @@ CanvasTextureImage::CanvasTextureImage(QObject *parent) :
     m_state(INITIALIZED),
     m_errorString(""),
     m_pixelCache(0),
-    m_pixelCacheFormat(CanvasContext::NONE)
+    m_pixelCacheFormat(CanvasContext::NONE),
+    m_pixelCacheFlipY(false)
 {
     m_networkAccessManager = new QNetworkAccessManager(this);
     QObject::connect(m_networkAccessManager, &QNetworkAccessManager::finished,
@@ -160,8 +161,6 @@ void CanvasTextureImage::handleReply(QNetworkReply *reply)
     }
 
     m_image.loadFromData(reply->readAll());
-    m_image = m_image.mirrored(false, true);
-    m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
 
     setImageState(LOADING_FINISHED);
 }
@@ -172,14 +171,6 @@ void CanvasTextureImage::handleReply(QNetworkReply *reply)
 QImage & CanvasTextureImage::getImage()
 {
     return m_image;
-}
-
-/*!
- * \internal
- */
-uchar *CanvasTextureImage::getImageData()
-{
-    return m_image.bits();
 }
 
 /*!
@@ -270,27 +261,39 @@ void CanvasTextureImage::emitImageLoadingErrorSGRT()
 {
 }
 
+
 /*!
  * \internal
  */
-void *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format)
+uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool flipY)
 {
-    if (m_pixelCacheFormat == format)
+    if (m_pixelCacheFormat == format && m_pixelCacheFlipY == flipY)
         return m_pixelCache;
 
+    // Destroy the pixel cache
+    delete m_pixelCache;
+    m_pixelCache = 0;
+    m_pixelCacheFormat = CanvasContext::NONE;
+
+    // Flip the image if needed
+    if (m_pixelCacheFlipY != flipY) {
+        m_image = m_image.mirrored(false, true);
+        m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
+        m_pixelCacheFlipY = flipY;
+    }
+
+    // Get latest data for the conversion
     uchar *origPixels = m_glImage.bits();
     int width = m_glImage.width();
     int height = m_glImage.height();
 
+    // Handle format conversions if needed
     switch (format) {
     case CanvasContext::UNSIGNED_BYTE: {
         return origPixels;
         break;
     }
     case CanvasContext::UNSIGNED_SHORT_5_6_5: {
-        delete m_pixelCache;
-        m_pixelCache = 0;
-        m_pixelCacheFormat = CanvasContext::NONE;
         ushort *pixels = new ushort[width * height];
         ushort pixel;
         for (int y = 0; y < height; y++) {
@@ -307,9 +310,6 @@ void *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format)
         return m_pixelCache;
     }
     case CanvasContext::UNSIGNED_SHORT_4_4_4_4: {
-        delete m_pixelCache;
-        m_pixelCache = 0;
-        m_pixelCacheFormat = CanvasContext::NONE;
         ushort *pixels = new ushort[width * height];
         ushort pixel;
         for (int y = 0; y < height; y++) {
@@ -327,9 +327,6 @@ void *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format)
         return m_pixelCache;
     }
     case CanvasContext::UNSIGNED_SHORT_5_5_5_1: {
-        delete m_pixelCache;
-        m_pixelCache = 0;
-        m_pixelCacheFormat = CanvasContext::NONE;
         ushort *pixels = new ushort[width * height];
         ushort pixel;
         for (int y = 0; y < height; y++) {

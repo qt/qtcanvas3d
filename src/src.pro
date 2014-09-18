@@ -43,7 +43,8 @@ SOURCES += qcanvas3d_plugin.cpp \
     teximage3d.cpp \
     teximage3dloader.cpp \
     texture3d.cpp \
-    uniformlocation.cpp
+    uniformlocation.cpp \
+    activeinfo3d.cpp
 
 HEADERS += qcanvas3d_plugin.h \
     arraybuffer_p.h \
@@ -77,7 +78,8 @@ HEADERS += qcanvas3d_plugin.h \
     teximage3d_p.h \
     teximage3dloader_p.h \
     texture3d_p.h \
-    uniformlocation_p.h
+    uniformlocation_p.h \
+    activeinfo3d_p.h
 
 OTHER_FILES = qmldir \
     doc/* \

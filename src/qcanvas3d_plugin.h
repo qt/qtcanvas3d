@@ -63,6 +63,7 @@
 #include "renderbuffer3d_p.h"
 #include "shaderprecisionformat_p.h"
 #include "teximage3dloader_p.h"
+#include "activeinfo3d_p.h"
 
 #include <QQmlExtensionPlugin>
 
@@ -93,6 +94,7 @@ QML_DECLARE_TYPE(CanvasFrameBuffer)
 QML_DECLARE_TYPE(CanvasRenderBuffer)
 QML_DECLARE_TYPE(CanvasShaderPrecisionFormat)
 QML_DECLARE_TYPE(CanvasTextureImageLoader)
+QML_DECLARE_TYPE(CanvasActiveInfo)
 
 class QtCanvas3DPlugin : public QQmlExtensionPlugin
 {

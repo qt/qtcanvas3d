@@ -93,8 +93,7 @@ public:
     void load();
     void handleReply(QNetworkReply *reply);
     QImage &getImage();
-    uchar *getImageData();
-    void *convertToFormat(CanvasContext::glEnums format);
+    uchar *convertToFormat(CanvasContext::glEnums format, bool flipY = false);
 
     void emitImageLoadedSGRT();
     void emitImageLoadingErrorSGRT();
@@ -121,6 +120,7 @@ private:
     QString m_errorString;
     uchar *m_pixelCache;
     CanvasContext::glEnums m_pixelCacheFormat;
+    bool m_pixelCacheFlipY;
     QImage m_glImage;
     QVariant *m_anyValue;
 };

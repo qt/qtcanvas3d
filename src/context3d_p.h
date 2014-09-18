@@ -64,6 +64,7 @@
 #define ENUM_AS_PROPERTY(A) Q_PROPERTY(CanvasContext::glEnums A READ A ## _read); inline CanvasContext::glEnums A ## _read() { return CanvasContext::A; }
 
 class Canvas;
+class CanvasActiveInfo;
 class CanvasTexture;
 class CanvasShader;
 class CanvasFrameBuffer;
@@ -76,6 +77,8 @@ class CanvasArrayBufferView;
 class CanvasArrayBuffer;
 class CanvasFloat32Array;
 class CanvasInt32Array;
+class CanvasUint16Array;
+class CanvasUint8Array;
 class CanvasTypedArray;
 class CanvasShaderPrecisionFormat;
 class EnumToStringMap;
@@ -88,6 +91,9 @@ class QT_CANVAS3D_EXPORT CanvasContext : public QObject, protected QOpenGLFuncti
     Q_ENUMS(glEnums)
 
     Q_PROPERTY(Canvas *canvas READ canvas NOTIFY canvasChanged)
+    Q_PROPERTY(uint drawingBufferWidth READ drawingBufferWidth NOTIFY drawingBufferWidthChanged)
+    Q_PROPERTY(uint drawingBufferHeight READ drawingBufferHeight NOTIFY drawingBufferHeightChanged)
+
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
 
@@ -938,6 +944,9 @@ public:
     void setCanvas(Canvas *canvas);
     Canvas *canvas();
 
+    uint drawingBufferWidth();
+    uint drawingBufferHeight();
+
     Q_INVOKABLE QVariantList getSupportedExtensions();
     Q_INVOKABLE QVariant getExtension(const QString &name);
 
@@ -1142,6 +1151,10 @@ public:
     Q_INVOKABLE void readPixels(int x, int y, long width, long height, glEnums format,
                                 glEnums type, CanvasArrayBufferView *pixels);
 
+    Q_INVOKABLE CanvasActiveInfo *getActiveAttrib(CanvasProgram *program, uint index);
+    Q_INVOKABLE CanvasActiveInfo *getActiveUniform(CanvasProgram *program, uint index);
+
+
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
     void setDevicePixelRatio(float ratio);
@@ -1151,10 +1164,36 @@ public:
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
 
+    /*
+    TODO: Add these missing functions
+    sequence<WebGLShader>? getAttachedShaders(WebGLProgram program);
+    any getFramebufferAttachmentParameter(GLenum target, GLenum attachment, GLenum pname);
+    any getRenderbufferParameter(GLenum target, GLenum pname);
+    any getTexParameter(GLenum target, GLenum pname);
+    any getUniform(WebGLProgram program, WebGLUniformLocation? location);
+    any getVertexAttrib(GLuint index, GLenum pname);
+    GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
+
+    void stencilFunc(GLenum func, GLint ref, GLuint mask);
+    void stencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
+    void stencilMask(GLuint mask);
+    void stencilMaskSeparate(GLenum face, GLuint mask);
+    void stencilOp(GLenum fail, GLenum zfail, GLenum zpass);
+    void stencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
+
+     void vertexAttrib1fv(GLuint indx, sequence<GLfloat> values);
+     void vertexAttrib2fv(GLuint indx, sequence<GLfloat> values);
+     void vertexAttrib3fv(GLuint indx, sequence<GLfloat> values);
+     void vertexAttrib4fv(GLuint indx, sequence<GLfloat> values);
+    */
+
     void setLogAllCalls(bool logCalls);
     bool logAllCalls() const;
     void setLogAllErrors(bool logErrors);
     bool logAllErrors() const;
+
+    uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
+                        int bytesPerPixel, int width, int height);
 
 signals:
     //void viewportChanged(const QRect &viewport); // TODO: unused
@@ -1163,8 +1202,14 @@ signals:
     void canvasChanged(Canvas *canvas);
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
+    void drawingBufferWidthChanged();
+    void drawingBufferHeightChanged();
 
 private:
+
+    bool m_unpackFlipYEnabled;
+    bool m_unpackPremultiplyAlphaEnabled;
+    glEnums m_unpackColorspaceConversion;
 
     bool m_logAllCalls;
     bool m_logAllErrors;
