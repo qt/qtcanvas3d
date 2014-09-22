@@ -46,6 +46,7 @@ function initGL(canvas, textureLoader) {
         gl.cullFace(gl.BACK);
         gl.enable(gl.DEPTH_WRITE);
         gl.depthMask(true);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
         // Initialize the shader program
         initShaders();

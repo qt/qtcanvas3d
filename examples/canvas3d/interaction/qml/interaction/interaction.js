@@ -94,6 +94,7 @@ function initGL(canvas, textureLoader) {
         theModel.indexVBO.name = "BarrelModel.indexVBO";
 
         // Load the barrel texture
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         textureLoader.loadImage("qrc:/qml/interaction/barrel.jpg");
 
         // Load the model

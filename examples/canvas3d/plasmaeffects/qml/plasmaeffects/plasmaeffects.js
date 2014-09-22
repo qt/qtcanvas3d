@@ -61,6 +61,7 @@ function initGL(canvas, textureLoader) {
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
         gl.disable(gl.BLEND);
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
         // Set viewport
         gl.viewport(0, 0, canvas.width * canvas.devicePixelRatio,

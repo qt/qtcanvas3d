@@ -114,6 +114,7 @@ function initGL(canvas, textureLoader) {
         initBuffers();
 
         // Load textures
+        gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
         loadTextures(textureLoader);
 
         // Load JSON models

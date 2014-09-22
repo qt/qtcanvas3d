@@ -42,6 +42,7 @@ function initGL(canvas, textureLoader) {
     gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clearDepth(1.0);
     gl.depthFunc(gl.LESS);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     // Set the viewport
     gl.viewport(0, 0, canvas.width, canvas.height);
