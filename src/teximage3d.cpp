@@ -278,9 +278,9 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool f
     // Flip the image if needed
     if (m_pixelCacheFlipY != flipY) {
         m_image = m_image.mirrored(false, true);
-        m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
         m_pixelCacheFlipY = flipY;
     }
+    m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
 
     // Get latest data for the conversion
     uchar *origPixels = m_glImage.bits();
