@@ -1691,7 +1691,7 @@ void CanvasContext::deleteProgram(CanvasProgram *program)
 
 /*!
  * \qmlmethod void Context3D::attachShader(Program3D program, Shader3D shader)
- * Deletes the given program as if by calling \c{glDeleteProgram()}.
+ * Attaches the given \a shader object to the given \a program object.
  * Calling this method repeatedly on the same object has no side effects.
  * \a program is the Program3D to be deleted.
  */
@@ -1704,8 +1704,36 @@ void CanvasContext::attachShader(CanvasProgram *program, CanvasShader *shader)
     if (!program || !shader || !program->isAlive())
         return;
 
-    program->qOGLProgram()->addShader(shader->qOGLShader());
+    program->attach(shader);
 }
+
+/*!
+ * \qmlmethod list<Shader3D> Context3D::getAttachedShaders(Program3D program)
+ * Returns the list of shaders currently attached to the given \a program.
+ */
+/*!
+ * \internal
+ */
+QVariantList CanvasContext::getAttachedShaders(CanvasProgram *program)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(program:" << program << ")";
+
+    QVariantList shaderList;
+    if (!program)
+        return shaderList;
+
+    QList<CanvasShader *> shaders = program->attachedShaders();
+
+    for (QList<CanvasShader *>::const_iterator iter = shaders.constBegin();
+         iter != shaders.constEnd(); iter++) {
+        CanvasShader *shader = *iter;
+        shaderList << QVariant::fromValue(shader);
+    }
+
+    return shaderList;
+}
+
 
 /*!
  * \qmlmethod void Context3D::detachShader(Program3D program, Shader3D shader)
@@ -1722,7 +1750,7 @@ void CanvasContext::detachShader(CanvasProgram *program, CanvasShader *shader)
     if (!program || !shader || !program->isAlive())
         return;
 
-    program->qOGLProgram()->removeShader(shader->qOGLShader());
+    program->detach(shader);
 }
 
 /*!
@@ -1739,7 +1767,7 @@ void CanvasContext::linkProgram(CanvasProgram *program)
     if (!program || !program->isAlive())
         return;
 
-    program->qOGLProgram()->link();
+    program->link();
 }
 
 /*!
@@ -2025,7 +2053,7 @@ QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums para
         // Intentional flow through
     case VALIDATE_STATUS: {
         GLint value = 0;
-        glGetProgramiv(program->qOGLProgram()->programId(), GLenum(paramName), &value);
+        glGetProgramiv(program->id(), GLenum(paramName), &value);
         if (m_logAllCalls) qDebug() << "    getProgramParameter returns " << value;
         return QVariant::fromValue(value == GL_TRUE);
     }
@@ -2035,7 +2063,7 @@ QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums para
         // Intentional flow through
     case ACTIVE_UNIFORMS: {
         GLint value = 0;
-        glGetProgramiv(program->qOGLProgram()->programId(), GLenum(paramName), &value);
+        glGetProgramiv(program->id(), GLenum(paramName), &value);
         if (m_logAllCalls) qDebug() << "    getProgramParameter returns " << value;
         return QVariant::fromValue(value);
     }
@@ -2762,7 +2790,7 @@ CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
         return 0;
     }
 
-    int index = program->qOGLProgram()->uniformLocation(name);
+    int index = program->uniformLocation(name);
     if (index < 0) {
         //if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__ << ": INVALID name " << name;
         return 0;
@@ -2791,10 +2819,10 @@ int CanvasContext::getAttribLocation(CanvasProgram *program, const QString &name
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__ << ": INVALID Program3D reference " << program;
         return -1;
     } else {
-        if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "(" <<program<< ", " <<name << "):" << program->qOGLProgram()->attributeLocation(name);
+        if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "(" <<program<< ", " <<name << "):" << program->attributeLocation(name);
     }
 
-    return program->qOGLProgram()->attributeLocation(name);
+    return program->attributeLocation(name);
 }
 
 /*!
@@ -2812,7 +2840,7 @@ void CanvasContext::bindAttribLocation(CanvasProgram *program, int index, const 
         return;
     }
 
-    program->qOGLProgram()->bindAttributeLocation(name, index);
+    program->bindAttributeLocation(index, name);
 }
 
 /*!
@@ -3420,7 +3448,7 @@ QString CanvasContext::getProgramInfoLog(CanvasProgram *program) const
         return QString();
 
     // Returning a copy, V4VM takes ownership
-    return program->qOGLProgram()->log();
+    return program->log();
 }
 
 /*!
@@ -3502,9 +3530,9 @@ void CanvasContext::useProgram(CanvasProgram *program)
                                 << "(program:" << program << ")";
     // TODO: Check if this is ok
     m_currentProgram = program;
-    if (!program || !program->qOGLProgram()->isLinked())
+    if (!program || !program->isLinked())
         return;
-    program->qOGLProgram()->bind();
+    program->bind();
 }
 
 /*!

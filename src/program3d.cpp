@@ -78,6 +78,17 @@ int CanvasProgram::uniformLocation(const QString &name)
 /*!
  * \internal
  */
+int CanvasProgram::attributeLocation(const QString &name)
+{
+    if (!m_program)
+        return -1;
+
+    return m_program->attributeLocation(name);
+}
+
+/*!
+ * \internal
+ */
 bool CanvasProgram::isAlive()
 {
     return bool(m_program);
@@ -86,9 +97,71 @@ bool CanvasProgram::isAlive()
 /*!
  * \internal
  */
-QOpenGLShaderProgram *CanvasProgram::qOGLProgram()
+void CanvasProgram::attach(CanvasShader *shader)
 {
-    return m_program;
+    if (m_attachedShaders.count(shader) == 0) {
+        m_attachedShaders.append(shader);
+        m_program->addShader(shader->qOGLShader());
+    }
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::detach(CanvasShader *shader)
+{
+    if (m_attachedShaders.count(shader) > 0) {
+        m_attachedShaders.removeOne(shader);
+        m_program->removeShader(shader->qOGLShader());
+    }
+}
+
+/*!
+ * \internal
+ */
+const QList<CanvasShader *> &CanvasProgram::attachedShaders() const
+{
+    return m_attachedShaders;
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::link()
+{
+    if (m_program)
+        m_program->link();
+}
+
+/*!
+ * \internal
+ */
+bool CanvasProgram::isLinked()
+{
+    if (!m_program)
+        return false;
+
+    return m_program->isLinked();
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::bind()
+{
+    if (m_program)
+        m_program->bind();
+}
+
+/*!
+ * \internal
+ */
+void CanvasProgram::bindAttributeLocation(int index, const QString &name)
+{
+    if (!m_program)
+        return;
+
+    m_program->bindAttributeLocation(name, index);
 }
 
 /*!
@@ -98,6 +171,7 @@ void CanvasProgram::del()
 {
     delete m_program;
     m_program = 0;
+    m_attachedShaders.clear();
 }
 
 /*!
@@ -123,6 +197,17 @@ int CanvasProgram::id()
         return -1;
 
     return m_program->programId();
+}
+
+/*!
+ * \internal
+ */
+QString CanvasProgram::log()
+{
+    if (!m_program)
+        return "";
+
+    return m_program->log();
 }
 
 /*!

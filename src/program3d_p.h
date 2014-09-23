@@ -49,10 +49,12 @@
 
 #include "context3d_p.h"
 #include "abstractobject3d_p.h"
+#include "shader3d_p.h"
 
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLShaderProgram>
 #include <QDebug>
+#include <QList>
 
 class CanvasProgram : public CanvasAbstractObject, protected QOpenGLFunctions
 {
@@ -64,16 +66,27 @@ public:
     virtual ~CanvasProgram();
 
     int uniformLocation(const QString &name);
+    int attributeLocation(const QString &name);
     void del();
     bool isAlive();
     void validateProgram();
-    QOpenGLShaderProgram *qOGLProgram();
     int id();
+    void link();
+    bool isLinked();
+    void bind();
+    void bindAttributeLocation(int index, const QString &name);
+
+    void attach(CanvasShader *shader);
+    void detach(CanvasShader *shader);
+    const QList<CanvasShader *> &attachedShaders() const;
+
+    QString log();
 
     friend QDebug operator<< (QDebug d, const CanvasProgram *program);
 
 private:
     QOpenGLShaderProgram *m_program;
+    QList<CanvasShader *> m_attachedShaders;
 
 signals:
     void idChanged(int id);

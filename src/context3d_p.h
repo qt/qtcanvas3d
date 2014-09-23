@@ -1153,7 +1153,7 @@ public:
 
     Q_INVOKABLE CanvasActiveInfo *getActiveAttrib(CanvasProgram *program, uint index);
     Q_INVOKABLE CanvasActiveInfo *getActiveUniform(CanvasProgram *program, uint index);
-
+    Q_INVOKABLE QVariantList getAttachedShaders(CanvasProgram *program);
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1164,9 +1164,9 @@ public:
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
 
+
     /*
     TODO: Add these missing functions
-    sequence<WebGLShader>? getAttachedShaders(WebGLProgram program);
     any getFramebufferAttachmentParameter(GLenum target, GLenum attachment, GLenum pname);
     any getRenderbufferParameter(GLenum target, GLenum pname);
     any getTexParameter(GLenum target, GLenum pname);
