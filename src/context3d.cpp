@@ -3721,9 +3721,16 @@ void CanvasContext::viewport(int x, int y, int width, int height)
 /*!
  * \qmlmethod void Context3D::drawArrays(glEnums mode, int first, int count)
  * Renders the geometric primitives held in the currently bound array buffer starting from \a first
- * up to \a count using \a mode for drawing. Mode must be one of \c{Context3D.POINTS},
- * \c{Context3D.LINES}, \c{Context3D.LINE_LOOP}, \c{Context3D.LINE_STRIP}, \c{Context3D.TRIANGLES},
- * \c{Context3D.TRIANGLE_STRIP}, or \c{Context3D.TRIANGLE_FAN}.
+ * up to \a count using \a mode for drawing. Mode can be one of:
+ * \list
+ * \li \c{Context3D.POINTS}
+ * \li \c{Context3D.LINES}
+ * \li \c{Context3D.LINE_LOOP}
+ * \li \c{Context3D.LINE_STRIP}
+ * \li \c{Context3D.TRIANGLES}
+ * \li \c{Context3D.TRIANGLE_STRIP}
+ * \li \c{Context3D.TRIANGLE_FAN}
+ * \endlist
  */
 /*!
  * \internal
@@ -3740,11 +3747,24 @@ void CanvasContext::drawArrays(glEnums mode, int first, int count)
 /*!
  * \qmlmethod void Context3D::drawElements(glEnums mode, int count, glEnums type, long offset)
  * Renders the number of geometric elements given in \a count held in the currently bound element
- * array buffer using \a mode for drawing. Mode must be one of \c{Context3D.POINTS},
- * \c{Context3D.LINES}, \c{Context3D.LINE_LOOP}, \c{Context3D.LINE_STRIP}, \c{Context3D.TRIANGLES},
- * \c{Context3D.TRIANGLE_STRIP}, or \c{Context3D.TRIANGLE_FAN}. \a type specifies the element type
- * and must be either \c Context3D.UNSIGNED_BYTE or \c{Context3D.UNSIGNED_SHORT}. \a offset
- * specifies the location where indices are stored.
+ * array buffer using \a mode for drawing. Mode can be one of:
+ * \list
+ * \li \c{Context3D.POINTS}
+ * \li \c{Context3D.LINES}
+ * \li \c{Context3D.LINE_LOOP}
+ * \li \c{Context3D.LINE_STRIP}
+ * \li \c{Context3D.TRIANGLES}
+ * \li \c{Context3D.TRIANGLE_STRIP}
+ * \li \c{Context3D.TRIANGLE_FAN}
+ * \endlist
+ *
+ * \a type specifies the element type and can be one of:
+ * \list
+ * \li \c Context3D.UNSIGNED_BYTE
+ * \li \c{Context3D.UNSIGNED_SHORT}
+ * \endlist
+ *
+ * \a offset specifies the location where indices are stored.
  */
 /*!
  * \internal
@@ -3846,4 +3866,174 @@ CanvasActiveInfo *CanvasContext::getActiveUniform(CanvasProgram *program, uint i
     glGetActiveUniform(program->id(), index, 512, &length, &size, &type, name);
     QString strName(name);
     return new CanvasActiveInfo(size, CanvasContext::glEnums(type), strName);
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilFunc(glEnums func, int ref, uint mask)
+ * Sets front and back function \a func and reference value \a ref for stencil testing.
+ * Also sets the \a mask value that is ANDed with both reference and stored stencil value when
+ * the test is done. \a func is initially set to \c{Context3D.ALWAYS} and can be one of:
+ * \list
+ * \li \c{Context3D.NEVER}
+ * \li \c{Context3D.LESS}
+ * \li \c{Context3D.LEQUAL}
+ * \li \c{Context3D.GREATER}
+ * \li \c{Context3D.GEQUAL}
+ * \li \c{Context3D.EQUAL}
+ * \li \c{Context3D.NOTEQUAL}
+ * \li \c{Context3D.ALWAYS}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilFunc(glEnums func, int ref, uint mask)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(func:" <<  glEnumToString(func)
+                                << ", ref:" << ref
+                                << ", mask:" << mask
+                                << ")";
+
+    glStencilFunc(GLenum(func), ref, mask);
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilFuncSeparate(glEnums face, glEnums func, int ref, uint mask)
+ * Sets front and/or back (defined by \a face) function \a func and reference value \a ref for
+ * stencil testing. Also sets the \a mask value that is ANDed with both reference and stored stencil
+ * value when the test is done. \a face can be one of:
+ * \list
+ * \li \c{Context3D.FRONT}
+ * \li \c{Context3D.BACK}
+ * \li \c{Context3D.FRONT_AND_BACK}
+ * \endlist
+ * \a func is initially set to \c{Context3D.ALWAYS} and can be one of:
+ * \list
+ * \li \c{Context3D.NEVER}
+ * \li \c{Context3D.LESS}
+ * \li \c{Context3D.LEQUAL}
+ * \li \c{Context3D.GREATER}
+ * \li \c{Context3D.GEQUAL}
+ * \li \c{Context3D.EQUAL}
+ * \li \c{Context3D.NOTEQUAL}
+ * \li \c{Context3D.ALWAYS}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilFuncSeparate(glEnums face, glEnums func, int ref, uint mask)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(face:" <<  glEnumToString(face)
+                                << ", func:" <<  glEnumToString(func)
+                                << ", ref:" << ref
+                                << ", mask:" << mask
+                                << ")";
+    glStencilFuncSeparate(GLenum(face), GLenum(func), ref, mask);
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilMask(uint mask)
+ * Controls the front and back writing of individual bits in the stencil planes. \a mask defines
+ * the bit mask to enable and disable writing of individual bits in the stencil planes.
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilMask(uint mask)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(mask:" << mask
+                                << ")";
+    glStencilMask(mask);
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilMaskSeparate(glEnums face, uint mask)
+ * Controls the front and/or back writing (defined by \a face) of individual bits in the stencil
+ * planes. \a mask defines the bit mask to enable and disable writing of individual bits in the
+ * stencil planes. \a face can be one of:
+ * \list
+ * \li \c{Context3D.FRONT}
+ * \li \c{Context3D.BACK}
+ * \li \c{Context3D.FRONT_AND_BACK}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilMaskSeparate(glEnums face, uint mask)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(face:" <<  glEnumToString(face)
+                                << ", mask:" << mask
+                                << ")";
+    glStencilMaskSeparate(GLenum(face), mask);
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilOp(glEnums sfail, glEnums zfail, glEnums zpass)
+ * Sets the front and back stencil test actions for failing the test \a zfail and passing the test
+ * \a zpass. \a sfail, \a zfail and \a zpass are initially set to \c{Context3D.KEEP} and can be one
+ * of:
+ * \list
+ * \li \c{Context3D.KEEP}
+ * \li \c{Context3D.ZERO}
+ * \li \c{Context3D.GL_REPLACE}
+ * \li \c{Context3D.GL_INCR}
+ * \li \c{Context3D.GL_INCR_WRAP}
+ * \li \c{Context3D.GL_DECR}
+ * \li \c{Context3D.GL_DECR_WRAP}
+ * \li \c{Context3D.GL_INVERT}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilOp(glEnums sfail, glEnums zfail, glEnums zpass)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(sfail:" <<  glEnumToString(sfail)
+                                << ", zfail:" <<  glEnumToString(zfail)
+                                << ", zpass:" << glEnumToString(zpass)
+                                << ")";
+    glStencilOp(GLenum(sfail), GLenum(zfail), GLenum(zpass));
+}
+
+/*!
+ * \qmlmethod void Context3D::stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass)
+ * Sets the front and/or back (defined by \a face) stencil test actions for failing the test
+ * \a zfail and passing the test \a zpass. \a face can be one of:
+ * \list
+ * \li \c{Context3D.FRONT}
+ * \li \c{Context3D.BACK}
+ * \li \c{Context3D.FRONT_AND_BACK}
+ * \endlist
+ *
+ * \a sfail, \a zfail and \a zpass are initially set to \c{Context3D.KEEP} and can be one of:
+ * \list
+ * \li \c{Context3D.KEEP}
+ * \li \c{Context3D.ZERO}
+ * \li \c{Context3D.GL_REPLACE}
+ * \li \c{Context3D.GL_INCR}
+ * \li \c{Context3D.GL_INCR_WRAP}
+ * \li \c{Context3D.GL_DECR}
+ * \li \c{Context3D.GL_DECR_WRAP}
+ * \li \c{Context3D.GL_INVERT}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(face:" <<  glEnumToString(face)
+                                << ", fail:" <<  glEnumToString(fail)
+                                << ", zfail:" <<  glEnumToString(zfail)
+                                << ", zpass:" << glEnumToString(zpass)
+                                << ")";
+    glStencilOpSeparate(GLenum(face), GLenum(fail), GLenum(zfail), GLenum(zpass));
 }

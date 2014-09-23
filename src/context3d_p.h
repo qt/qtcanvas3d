@@ -1155,6 +1155,14 @@ public:
     Q_INVOKABLE CanvasActiveInfo *getActiveUniform(CanvasProgram *program, uint index);
     Q_INVOKABLE QVariantList getAttachedShaders(CanvasProgram *program);
 
+    Q_INVOKABLE void stencilFunc(glEnums func, int ref, uint mask);
+    Q_INVOKABLE void stencilFuncSeparate(glEnums face, glEnums func, int ref, uint mask);
+    Q_INVOKABLE void stencilMask(uint mask);
+    Q_INVOKABLE void stencilMaskSeparate(glEnums face, uint mask);
+    Q_INVOKABLE void stencilOp(glEnums fail, glEnums zfail, glEnums zpass);
+    Q_INVOKABLE void stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass);
+
+
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
     void setDevicePixelRatio(float ratio);
@@ -1173,13 +1181,6 @@ public:
     any getUniform(WebGLProgram program, WebGLUniformLocation? location);
     any getVertexAttrib(GLuint index, GLenum pname);
     GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
-
-    void stencilFunc(GLenum func, GLint ref, GLuint mask);
-    void stencilFuncSeparate(GLenum face, GLenum func, GLint ref, GLuint mask);
-    void stencilMask(GLuint mask);
-    void stencilMaskSeparate(GLenum face, GLuint mask);
-    void stencilOp(GLenum fail, GLenum zfail, GLenum zpass);
-    void stencilOpSeparate(GLenum face, GLenum fail, GLenum zfail, GLenum zpass);
 
      void vertexAttrib1fv(GLuint indx, sequence<GLfloat> values);
      void vertexAttrib2fv(GLuint indx, sequence<GLfloat> values);
