@@ -1162,6 +1162,11 @@ public:
     Q_INVOKABLE void stencilOp(glEnums fail, glEnums zfail, glEnums zpass);
     Q_INVOKABLE void stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass);
 
+    Q_INVOKABLE void vertexAttrib1fva(uint indx, QVariantList values);
+    Q_INVOKABLE void vertexAttrib2fva(uint indx, QVariantList values);
+    Q_INVOKABLE void vertexAttrib3fva(uint indx, QVariantList values);
+    Q_INVOKABLE void vertexAttrib4fva(uint indx, QVariantList values);
+
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1181,11 +1186,6 @@ public:
     any getUniform(WebGLProgram program, WebGLUniformLocation? location);
     any getVertexAttrib(GLuint index, GLenum pname);
     GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
-
-     void vertexAttrib1fv(GLuint indx, sequence<GLfloat> values);
-     void vertexAttrib2fv(GLuint indx, sequence<GLfloat> values);
-     void vertexAttrib3fv(GLuint indx, sequence<GLfloat> values);
-     void vertexAttrib4fv(GLuint indx, sequence<GLfloat> values);
     */
 
     void setLogAllCalls(bool logCalls);

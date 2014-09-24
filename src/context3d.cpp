@@ -4037,3 +4037,112 @@ void CanvasContext::stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail,
                                 << ")";
     glStencilOpSeparate(GLenum(face), GLenum(fail), GLenum(zfail), GLenum(zpass));
 }
+
+
+/*!
+ * \qmlmethod void Context3D::vertexAttrib1fva(int indx, list<variant> values)
+ * Sets the array of float values given in \a values to the generic vertex attribute index
+ * specified by \a indx.
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::vertexAttrib1fva(uint indx, QVariantList values)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(indx" << indx
+                                << ", values:" << values
+                                << ")";
+    if (!m_currentProgram)
+        return;
+
+    int size = values.count();
+    float *arrayData = new float[size];
+
+    ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
+
+    glVertexAttrib1fv(indx, arrayData);
+
+    delete arrayData;
+}
+
+/*!
+ * \qmlmethod void Context3D::vertexAttrib2fva(int indx, list<variant> values)
+ * Sets the array of float values given in \a values to the generic vertex attribute index
+ * specified by \a indx.
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::vertexAttrib2fva(uint indx, QVariantList values)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(indx" << indx
+                                << ", values:" << values
+                                << ")";
+    if (!m_currentProgram)
+        return;
+
+    int size = values.count();
+    float *arrayData = new float[size];
+
+    ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
+
+    glVertexAttrib2fv(indx, arrayData);
+
+    delete arrayData;
+}
+
+/*!
+ * \qmlmethod void Context3D::vertexAttrib3fva(int indx, list<variant> values)
+ * Sets the array of float values given in \a values to the generic vertex attribute index
+ * specified by \a indx.
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::vertexAttrib3fva(uint indx, QVariantList values)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(indx" << indx
+                                << ", values:" << values
+                                << ")";
+    if (!m_currentProgram)
+        return;
+
+    int size = values.count();
+    float *arrayData = new float[size];
+
+    ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
+
+    glVertexAttrib3fv(indx, arrayData);
+
+    delete arrayData;
+}
+
+/*!
+ * \qmlmethod void Context3D::vertexAttrib4fva(int indx, list<variant> values)
+ * Sets the array of float values given in \a values to the generic vertex attribute index
+ * specified by \a indx.
+ */
+/*!
+ * \internal
+ */
+void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(indx" << indx
+                                << ", values:" << values
+                                << ")";
+    if (!m_currentProgram)
+        return;
+
+    int size = values.count();
+    float *arrayData = new float[size];
+
+    ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
+
+    glVertexAttrib4fv(indx, arrayData);
+
+    delete arrayData;
+}
