@@ -919,6 +919,8 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     if (unpackedData != srcData)
         delete unpackedData;
 
+    if (deleteTempPixels)
+        delete pixels;
 }
 
 
