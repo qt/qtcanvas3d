@@ -1167,6 +1167,10 @@ public:
     Q_INVOKABLE void vertexAttrib3fva(uint indx, QVariantList values);
     Q_INVOKABLE void vertexAttrib4fva(uint indx, QVariantList values);
 
+    Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target, glEnums attachment, glEnums pname);
+    Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
+    Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
+    Q_INVOKABLE QVariantList getUniform(CanvasProgram *program, CanvasUniformLocation *location);
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1177,13 +1181,8 @@ public:
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
 
-
     /*
     TODO: Add these missing functions
-    any getFramebufferAttachmentParameter(GLenum target, GLenum attachment, GLenum pname);
-    any getRenderbufferParameter(GLenum target, GLenum pname);
-    any getTexParameter(GLenum target, GLenum pname);
-    any getUniform(WebGLProgram program, WebGLUniformLocation? location);
     any getVertexAttrib(GLuint index, GLenum pname);
     GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
     */
@@ -1197,9 +1196,6 @@ public:
                         int bytesPerPixel, int width, int height);
 
 signals:
-    //void viewportChanged(const QRect &viewport); // TODO: unused
-    //void viewportWidthChanged(int width); // TODO: unused
-    //void viewportHeightChanged(int height); // TODO: unused
     void canvasChanged(Canvas *canvas);
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);

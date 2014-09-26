@@ -726,7 +726,8 @@ void CanvasContext::copyTexImage2D(glEnums target, int level, glEnums internalfo
 /*!
  * \qmlmethod void Context3D::copyTexSubImage2D(glEnums target, int level, int xoffset, int yoffset, int x, int y, int width, int height)
  * Copies to into a currently bound 2D texture subimage.
- * \a target specifies the target texture of the active texture unit. Must be \c{Context3D.TEXTURE_2D},
+ * \a target specifies the target texture of the active texture unit. Must be
+ * \c{Context3D.TEXTURE_2D},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_X},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Y},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Z}, or \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Z}.
@@ -3400,7 +3401,7 @@ void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bo
                                 << "(uniformLocation:" << uniformLocation
                                 << ", transpose:" << transpose
                                 << ", value:" << value
-                               << ")";
+                                << ")";
 
     if (!m_currentProgram || !uniformLocation)
         return;
@@ -4588,4 +4589,271 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
     glVertexAttrib4fv(indx, arrayData);
 
     delete arrayData;
+}
+
+/*!
+ * \qmlmethod int Context3D::getFramebufferAttachmentParameter(glEnums target, glEnums attachment, glEnums pname)
+ * Returns information specified by \a pname about given \a attachment of a framebuffer object
+ * bound to the given \a target.
+ */
+/*!
+ * \internal
+ */
+int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums attachment,
+                                                     glEnums pname)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(target" << glEnumToString(target)
+                                << ", attachment:" << glEnumToString(attachment)
+                                << ", pname:" << glEnumToString(pname)
+                                << ")";
+    GLint parameter;
+    glGetFramebufferAttachmentParameteriv(target, attachment, pname, &parameter);
+    return parameter;
+}
+
+/*!
+ * \qmlmethod int Context3D::getRenderbufferParameter(glEnums target, glEnums pname)
+ * Returns information specified by \a pname of a renderbuffer object
+ * bound to the given \a target.
+ */
+/*!
+ * \internal
+ */
+int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(target" << glEnumToString(target)
+                                << ", pname:" << glEnumToString(pname)
+                                << ")";
+
+    GLint parameter;
+    glGetRenderbufferParameteriv(target, pname, &parameter);
+    return parameter;
+}
+
+/*!
+ * \qmlmethod variant Context3D::getTexParameter(glEnums target, glEnums pname)
+ * Returns parameter specified by the \a pname of a texture object
+ * bound to the given \a target. \a pname must be one of:
+ * \list
+ * \li \c{Context3D.TEXTURE_MAG_FILTER}
+ * \li \c{Context3D.TEXTURE_MIN_FILTER}
+ * \li \c{Context3D.TEXTURE_WRAP_S}
+ * \li \c{Context3D.TEXTURE_WRAP_T}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(target" << glEnumToString(target)
+                                << ", pname:" << glEnumToString(pname)
+                                << ")";
+
+    GLint parameter = 0;
+    if (!m_currentTexture) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_OPERATION No current texture bound";
+        m_error = INVALID_OPERATION;
+    } else if (!m_currentTexture->isAlive()) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_OPERATION Currently bound texture is deleted";
+        m_error = INVALID_OPERATION;
+    } else {
+        switch (pname) {
+        case TEXTURE_MAG_FILTER:
+            // Intentional flow through
+        case TEXTURE_MIN_FILTER:
+            // Intentional flow through
+        case TEXTURE_WRAP_S:
+            // Intentional flow through
+        case TEXTURE_WRAP_T:
+            glGetTexParameteriv(target, pname, &parameter);
+            break;
+        default:
+            // Intentional flow through
+            if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                         << ":INVALID_ENUM invalid pname "<< glEnumToString(pname)
+                                         << " must be one of: TEXTURE_MAG_FILTER, "
+                                         << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S or TEXTURE_WRAP_T";
+            m_error = INVALID_ENUM;
+            break;
+        }
+    }
+
+    return QVariant::fromValue(parameter);
+}
+
+/*!
+ * \qmlmethod list<variant> Context3D::getUniform(Program3D program, UniformLocation3D location)
+ * Returns the uniform value at the given \a location in the \a program.
+ * The type returned is dependent on the uniform type, as shown in the table:
+ * \table
+ * \header
+ *   \li Data Type
+ *   \li Returned Type
+ * \row
+ *   \li boolean
+ *   \li sequence<boolean> (with 1 element)
+ * \row
+ *   \li int
+ *   \li sequence<int> (with 1 element)
+ * \row
+ *   \li float
+ *   \li sequence<float> (with 1 element)
+ * \row
+ *   \li vec2
+ *   \li sequence<float> (with 2 elements)
+ * \row
+ *   \li vec3
+ *   \li sequence<float> (with 3 elements)
+ * \row
+ *   \li vec4
+ *   \li sequence<float> (with 4 elements)
+ * \row
+ *   \li ivec2
+ *   \li sequence<int> (with 2 elements)
+ * \row
+ *   \li ivec3
+ *   \li sequence<int> (with 3 elements)
+ * \row
+ *   \li ivec4
+ *   \li sequence<int> (with 4 elements)
+ * \row
+ *   \li bvec2
+ *   \li sequence<boolean> (with 2 elements)
+ * \row
+ *   \li bvec3
+ *   \li sequence<boolean> (with 3 elements)
+ * \row
+ *   \li bvec4
+ *   \li sequence<boolean> (with 4 elements)
+ * \row
+ *   \li mat2
+ *   \li sequence<float> (with 4 elements)
+ * \row
+ *   \li mat3
+ *   \li sequence<float> (with 9 elements)
+ * \row
+ *   \li mat4
+ *   \li sequence<float> (with 16 elements)
+ * \row
+ *   \li sampler2D
+ *   \li sequence<int> (with 1 element)
+ * \row
+ *   \li samplerCube
+ *   \li sequence<int> (with 1 element)
+ *  \endtable
+ */
+/*!
+ * \internal
+ */
+QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation *location)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(program" << program
+                                << ", location:" << location
+                                << ")";
+
+    if (!program) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_OPERATION No program was specified";
+        m_error = INVALID_OPERATION;
+    } else  if (!location) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_OPERATION No location was specified";
+        m_error = INVALID_OPERATION;
+    } else {
+        uint programId = program->id();
+        uint locationId = location->id();
+        CanvasActiveInfo *info = getActiveUniform(program, locationId);
+        int numValues = 4;
+
+        qDebug() << "Context3D::" << __FUNCTION__ << "info->type():" << glEnumToString(info->type());
+
+        switch (info->type()) {
+        case SAMPLER_2D:
+            // Intentional flow through
+        case SAMPLER_CUBE:
+            // Intentional flow through
+        case INT:
+            numValues--;
+            // Intentional flow through
+        case INT_VEC2:
+            numValues--;
+            // Intentional flow through
+        case INT_VEC3:
+            numValues--;
+            // Intentional flow through
+        case INT_VEC4: {
+            // TODO: Should return Int32Array
+            GLint *value = new GLint[numValues];
+            glGetUniformiv(programId, locationId, value);
+            QVariantList list;
+            for (int i = 0; i < numValues; i++)
+                list << QVariant(value[i]);
+            return list;
+        }
+        case FLOAT:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_VEC2:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_VEC3:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_VEC4: {
+            // TODO: Should return Float32Array
+            GLfloat *value = new GLfloat[numValues];
+            glGetUniformfv(programId, locationId, value);
+            QVariantList list;
+            for (int i = 0; i < numValues; i++) {
+                list << QVariant(value[i]);
+            }
+            return list;
+        }
+        case BOOL:
+            numValues--;
+            // Intentional flow through
+        case BOOL_VEC2:
+            numValues--;
+            // Intentional flow through
+        case BOOL_VEC3:
+            numValues--;
+            // Intentional flow through
+        case BOOL_VEC4: {
+            GLint *value = new GLint[numValues];
+            glGetUniformiv(programId, locationId, value);
+            QVariantList list;
+            for (int i = 0; i < numValues; i++)
+                list << QVariant(bool(value[i]));
+            return list;
+        }
+        case FLOAT_MAT2:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_MAT3:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_MAT4: {
+            numValues = numValues * numValues;
+            // TODO: Should return Float32Array
+            qDebug() << "Context3D::" << __FUNCTION__ << " numValues = " << numValues;
+            GLfloat *value = new GLfloat[numValues];
+            glGetUniformfv(programId, locationId, value);
+            QVariantList list;
+            for (int i = 0; i < numValues; i++)
+                list << QVariant(value[i]);
+            return list;
+        }
+        default:
+            break;
+        }
+    }
+
+    return QVariantList();
 }
