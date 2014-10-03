@@ -86,7 +86,7 @@ OTHER_FILES = qmldir \
     doc/src/* \
     doc/images/* \
     doc/snippets/* \
-    qtcanvas3d.qmltypes
+    plugins.qmltypes
 
 CONFIG += no_cxx_module
 
