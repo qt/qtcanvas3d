@@ -92,9 +92,15 @@ CanvasContext::CanvasContext(QOpenGLContext *context, int width, int height, QOb
     m_error(NO_ERROR),
     m_currentFramebuffer(0),
     m_map(EnumToStringMap::newInstance()),
-    m_canvas(0)
+    m_canvas(0),
+    m_maxVertexAttribs(0)
 {
     m_context = context;
+
+    int value = 0;
+    glGetIntegerv(MAX_VERTEX_ATTRIBS, &value);
+    m_maxVertexAttribs = uint(value);
+
 #ifndef QT_NO_DEBUG
     const GLubyte *version = glGetString(GL_VERSION);
     qDebug() << "Context3D::" << __FUNCTION__
@@ -3117,6 +3123,7 @@ int CanvasContext::getShaderParameter(CanvasShader *shader, glEnums pname)
 CanvasBuffer *CanvasContext::createBuffer()
 {
     CanvasBuffer *newBuffer = new CanvasBuffer(this);
+    m_idToCanvasBufferMap[newBuffer->id()] = newBuffer;
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << ":" << newBuffer;
 
     // Returning a pointer to QObject that has parent set
@@ -3440,7 +3447,6 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
                                 << ", offset:" << offset
                                 << ")";
 
-    // TODO: Fix offset
     glVertexAttribPointer(indx, size, GLenum(type), normalized, stride, (GLvoid *)offset);
 }
 
@@ -3742,6 +3748,7 @@ void CanvasContext::deleteBuffer(CanvasBuffer *buffer)
         return;
     }
 
+    m_idToCanvasBufferMap.remove(buffer->id());
     buffer->del();
 }
 
@@ -4687,8 +4694,159 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
     return QVariant::fromValue(parameter);
 }
 
+
 /*!
- * \qmlmethod list<variant> Context3D::getUniform(Program3D program, UniformLocation3D location)
+ * \qmlmethod int Context3D::getVertexAttribOffset(int index, glEnums pname)
+ * Returns the offset of the specified generic vertex attribute pointer \a index. \a pname must be
+ * \c{Context3D.VERTEX_ATTRIB_ARRAY_POINTER}
+ * \list
+ * \li \c{Context3D.TEXTURE_MAG_FILTER}
+ * \li \c{Context3D.TEXTURE_MIN_FILTER}
+ * \li \c{Context3D.TEXTURE_WRAP_S}
+ * \li \c{Context3D.TEXTURE_WRAP_T}
+ * \endlist
+ */
+/*!
+ * \internal
+ */
+uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(index" << index
+                                << ", pname:" << glEnumToString(pname)
+                                << ")";
+
+    uint offset = 0;
+    if (pname != VERTEX_ATTRIB_ARRAY_POINTER) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_ENUM pname must be "
+                                     << "VERTEX_ATTRIB_ARRAY_POINTER";
+        m_error = INVALID_ENUM;
+        return 0;
+    }
+
+    if (index >= m_maxVertexAttribs) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_VALUE index must be smaller than "
+                                     << m_maxVertexAttribs;
+        m_error = INVALID_VALUE;
+        return 0;
+    }
+
+    glGetVertexAttribPointerv(index, GLenum(pname), (GLvoid**) &offset);
+    return offset;
+}
+
+/*!
+ * \qmlmethod variant Context3D::getVertexAttrib(int index, glEnums pname)
+ * Returns the requested parameter \a pname of the specified generic vertex attribute pointer
+ * \a index. The type returned is dependent on the requested \a pname, as shown in the table:
+ * \table
+ * \header
+ *   \li pname
+ *   \li Returned Type
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING}
+ *   \li \c{CanvasBuffer}
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_ENABLED}
+ *   \li \c{boolean}
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_SIZE}
+ *   \li \c{int}
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_STRIDE}
+ *   \li \c{int}
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_TYPE}
+ *   \li \c{glEnums}
+ * \row
+ *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_NORMALIZED}
+ *   \li \c{boolean}
+ * \row
+ *   \li \c{Context3D.CURRENT_VERTEX_ATTRIB}
+ *   \li \c{sequence<float>} (with 4 elements)
+ *  \endtable
+ */
+/*!
+ * \internal
+ */
+QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(index" << index
+                                << ", pname:" << glEnumToString(pname)
+                                << ")";
+
+    if (index >= MAX_VERTEX_ATTRIBS) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_VALUE index must be smaller than "
+                                     << "MAX_VERTEX_ATTRIBS = " << MAX_VERTEX_ATTRIBS;
+        m_error = INVALID_VALUE;
+    } else {
+        switch (pname) {
+        case VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            if (value == 0 || !m_idToCanvasBufferMap.contains(value))
+                return QVariant();
+
+            return QVariant::fromValue(m_idToCanvasBufferMap[value]);
+        }
+        break;
+        case VERTEX_ATTRIB_ARRAY_ENABLED: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            return QVariant::fromValue( bool(value));
+        }
+        break;
+        case VERTEX_ATTRIB_ARRAY_SIZE: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            return QVariant::fromValue(value);
+        }
+        break;
+        case VERTEX_ATTRIB_ARRAY_STRIDE: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            return QVariant::fromValue(value);
+        }
+        break;
+        case VERTEX_ATTRIB_ARRAY_TYPE: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            return QVariant::fromValue(value);
+        }
+        case VERTEX_ATTRIB_ARRAY_NORMALIZED: {
+            GLint value = 0;
+            glGetVertexAttribiv(index, GLenum(pname), &value);
+            return QVariant::fromValue( bool(value));
+        }
+        case CURRENT_VERTEX_ATTRIB: {
+            // TODO: Should be Float32Array
+            GLfloat values[4];
+            glGetVertexAttribfv(index, GLenum(pname), values);
+
+            QList<float> floatList;
+            floatList.push_back(values[0]);
+            floatList.push_back(values[1]);
+            floatList.push_back(values[2]);
+            floatList.push_back(values[3]);
+            return QVariant::fromValue(floatList);
+            }
+        default:
+            if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                         << ":INVALID_ENUM index must be smaller than "
+                                         << "MAX_VERTEX_ATTRIBS = " << MAX_VERTEX_ATTRIBS;
+            m_error = INVALID_ENUM;
+        }
+    }
+
+    return QVariant();
+}
+
+/*!
+ * \qmlmethod variant Context3D::getUniform(Program3D program, UniformLocation3D location)
  * Returns the uniform value at the given \a location in the \a program.
  * The type returned is dependent on the uniform type, as shown in the table:
  * \table
@@ -4751,7 +4909,7 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
 /*!
  * \internal
  */
-QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation *location)
+QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation *location)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(program" << program
@@ -4779,9 +4937,11 @@ QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLoca
             // Intentional flow through
         case SAMPLER_CUBE:
             // Intentional flow through
-        case INT:
-            numValues--;
-            // Intentional flow through
+        case INT: {
+            GLint value = 0;
+            glGetUniformiv(programId, locationId, &value);
+            return QVariant::fromValue(value);
+        }
         case INT_VEC2:
             numValues--;
             // Intentional flow through
@@ -4789,17 +4949,22 @@ QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLoca
             numValues--;
             // Intentional flow through
         case INT_VEC4: {
-            // TODO: Should return Int32Array
+            numValues--;
             GLint *value = new GLint[numValues];
             glGetUniformiv(programId, locationId, value);
-            QVariantList list;
+
+            QList<float> intList;
             for (int i = 0; i < numValues; i++)
-                list << QVariant(value[i]);
-            return list;
+                intList << value[i];
+
+            // TODO: Should return Int32Array
+            return QVariant::fromValue(intList);
         }
-        case FLOAT:
-            numValues--;
-            // Intentional flow through
+        case FLOAT: {
+            GLfloat value = 0;
+            glGetUniformfv(programId, locationId, &value);
+            return QVariant::fromValue(value);
+        }
         case FLOAT_VEC2:
             numValues--;
             // Intentional flow through
@@ -4807,18 +4972,23 @@ QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLoca
             numValues--;
             // Intentional flow through
         case FLOAT_VEC4: {
-            // TODO: Should return Float32Array
-            GLfloat *value = new GLfloat[numValues];
-            glGetUniformfv(programId, locationId, value);
-            QVariantList list;
-            for (int i = 0; i < numValues; i++) {
-                list << QVariant(value[i]);
-            }
-            return list;
-        }
-        case BOOL:
             numValues--;
-            // Intentional flow through
+            GLfloat *value = new GLfloat[numValues];
+
+            glGetUniformfv(programId, locationId, value);
+
+            QList<float> floatList;
+            for (int i = 0; i < numValues; i++)
+                floatList << value[i];
+
+            // TODO: Should return Float32Array
+            return QVariant::fromValue(floatList);
+        }
+        case BOOL: {
+            GLint value = 0;
+            glGetUniformiv(programId, locationId, &value);
+            return QVariant::fromValue(bool(value));
+        }
         case BOOL_VEC2:
             numValues--;
             // Intentional flow through
@@ -4826,12 +4996,16 @@ QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLoca
             numValues--;
             // Intentional flow through
         case BOOL_VEC4: {
+            numValues--;
             GLint *value = new GLint[numValues];
+
             glGetUniformiv(programId, locationId, value);
-            QVariantList list;
+
+            QList<bool> boolList;
             for (int i = 0; i < numValues; i++)
-                list << QVariant(bool(value[i]));
-            return list;
+                boolList << value[i];
+
+            return QVariant::fromValue(boolList);
         }
         case FLOAT_MAT2:
             numValues--;
@@ -4841,19 +5015,21 @@ QVariantList CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLoca
             // Intentional flow through
         case FLOAT_MAT4: {
             numValues = numValues * numValues;
-            // TODO: Should return Float32Array
-            qDebug() << "Context3D::" << __FUNCTION__ << " numValues = " << numValues;
             GLfloat *value = new GLfloat[numValues];
+
             glGetUniformfv(programId, locationId, value);
-            QVariantList list;
+
+            QList<float> floatList;
             for (int i = 0; i < numValues; i++)
-                list << QVariant(value[i]);
-            return list;
+                floatList << value[i];
+
+            // TODO: Should return Float32Array
+            return QVariant::fromValue(floatList);
         }
         default:
             break;
         }
     }
 
-    return QVariantList();
+    return QVariant();
 }

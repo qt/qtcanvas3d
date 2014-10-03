@@ -64,6 +64,7 @@ public:
     };
 
     explicit CanvasBuffer(QObject *parent = 0);
+    CanvasBuffer(const CanvasBuffer& other);
     virtual ~CanvasBuffer();
 
     void del();

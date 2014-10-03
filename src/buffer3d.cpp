@@ -55,11 +55,25 @@
  */
 CanvasBuffer::CanvasBuffer(QObject *parent) :
     CanvasAbstractObject(parent),
+    QOpenGLFunctions(),
     m_bindTarget(CanvasBuffer::UNINITIALIZED)
 {
     initializeOpenGLFunctions();
     glGenBuffers(1, &m_bufferId);
 }
+
+/*!
+ * \internal
+ */
+CanvasBuffer::CanvasBuffer(const CanvasBuffer& other) :
+    CanvasAbstractObject(), // Copying a QObject, leave it parentless..
+    QOpenGLFunctions(),
+    m_bufferId(other.m_bufferId),
+    m_bindTarget(other.m_bindTarget)
+{
+    initializeOpenGLFunctions();
+}
+
 
 /*!
  * \internal

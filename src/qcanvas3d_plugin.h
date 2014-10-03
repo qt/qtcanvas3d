@@ -67,6 +67,8 @@
 
 #include <QQmlExtensionPlugin>
 
+Q_DECLARE_METATYPE(CanvasBuffer)
+
 QML_DECLARE_TYPE(Canvas)
 //QML_DECLARE_TYPE(QFBOCanvas3D)
 QML_DECLARE_TYPE(CanvasContext)

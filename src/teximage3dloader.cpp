@@ -72,7 +72,9 @@
 CanvasTextureImageLoader::CanvasTextureImageLoader(QObject *parent) :
     QObject(parent),
     m_logAllCalls(false),
-    m_logAllErrors(true)
+    m_logAllErrors(true),
+    m_image(0),
+    m_canvas(0)
 {
 }
 

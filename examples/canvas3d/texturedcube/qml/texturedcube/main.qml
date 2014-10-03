@@ -59,7 +59,6 @@ Item {
         property double xRotAnim: 0
         property double yRotAnim: 0
         property double zRotAnim: 0
-        property bool isRunning: true
 
         //! [1]
         // Emitted when one time initializations should happen

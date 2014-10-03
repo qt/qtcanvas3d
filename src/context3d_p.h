@@ -1170,7 +1170,9 @@ public:
     Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target, glEnums attachment, glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
-    Q_INVOKABLE QVariantList getUniform(CanvasProgram *program, CanvasUniformLocation *location);
+    Q_INVOKABLE QVariant getUniform(CanvasProgram *program, CanvasUniformLocation *location);
+    Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
+    Q_INVOKABLE QVariant getVertexAttrib(uint index, glEnums pname);
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1180,12 +1182,6 @@ public:
 
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
-
-    /*
-    TODO: Add these missing functions
-    any getVertexAttrib(GLuint index, GLenum pname);
-    GLsizeiptr getVertexAttribOffset(GLuint index, GLenum pname);
-    */
 
     void setLogAllCalls(bool logCalls);
     bool logAllCalls() const;
@@ -1203,7 +1199,6 @@ signals:
     void drawingBufferHeightChanged();
 
 private:
-
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
     glEnums m_unpackColorspaceConversion;
@@ -1211,6 +1206,7 @@ private:
     bool m_logAllCalls;
     bool m_logAllErrors;
     QRect m_glViewportRect;
+
 
     qreal m_devicePixelRatio;
     CanvasProgram *m_currentProgram;
@@ -1222,11 +1218,14 @@ private:
     CanvasFrameBuffer *m_currentFramebuffer;
     CanvasRenderBuffer *m_currentRenderbuffer;
     CanvasContextAttributes m_contextAttributes;
+    QMap<int, CanvasBuffer*> m_idToCanvasBufferMap;
     friend class Canvas;
     friend class QFBOCanvas3D;
     QString m_emptyString;
     EnumToStringMap *m_map;
     Canvas *m_canvas;
+    uint m_maxVertexAttribs;
+    float **m_vertexAttribPointers;
 };
 
 #endif // CONTEXT3D_P_H
