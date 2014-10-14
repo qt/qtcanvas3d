@@ -50,7 +50,7 @@
  * \internal
  */
 CanvasRenderBuffer::CanvasRenderBuffer(QObject *parent) :
-    QObject(parent)
+    CanvasAbstractObject(parent)
 {
     initializeOpenGLFunctions();
     glGenRenderbuffers(1, &m_renderbufferId);

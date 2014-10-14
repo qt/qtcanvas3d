@@ -47,11 +47,12 @@
 #ifndef TEXIMAGE3DLOADER_P_H
 #define TEXIMAGE3DLOADER_P_H
 
+#include "abstractobject3d_p.h"
 #include "teximage3d_p.h"
 
 class Canvas;
 
-class CanvasTextureImageLoader : public QObject
+class CanvasTextureImageLoader : public CanvasAbstractObject
 {
     Q_OBJECT
     Q_PROPERTY(CanvasTextureImage* image READ image)

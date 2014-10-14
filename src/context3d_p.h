@@ -49,6 +49,7 @@
 
 #include "canvas3dcommon_p.h"
 #include "contextattributes_p.h"
+#include "abstractobject3d_p.h"
 
 #include <QtGui/QOpenGLFunctions>
 #include <QString>
@@ -83,7 +84,7 @@ class CanvasTypedArray;
 class CanvasShaderPrecisionFormat;
 class EnumToStringMap;
 
-class QT_CANVAS3D_EXPORT CanvasContext : public QObject, protected QOpenGLFunctions
+class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
     Q_DISABLE_COPY(CanvasContext)

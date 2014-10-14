@@ -48,25 +48,18 @@
 #define ABSTRACTOBJECT3D_P_H
 
 #include <QObject>
+#include <QQmlPropertyMap>
 #include <QThread>
 
-class CanvasAbstractObject : public QObject
+class CanvasAbstractObject : public QQmlPropertyMap
 {
     Q_OBJECT
-    Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
 
 public:
     explicit CanvasAbstractObject(QObject *parent = 0);
     virtual ~CanvasAbstractObject();
 
-    void setName(const QString &name);
-    const QString &name();
-
-signals:
-    void nameChanged(const QString &name);
-
-protected:
-    QString m_name;
+    QString name() const;
 };
 
 #endif // ABSTRACTOBJECT3D_P_H

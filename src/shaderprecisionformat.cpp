@@ -52,7 +52,7 @@
  * \internal
  */
 CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
-    QObject(parent)
+    CanvasAbstractObject(parent)
 {
 }
 

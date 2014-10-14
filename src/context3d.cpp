@@ -77,7 +77,7 @@
 
 // Owned by the SG Render Thread!
 CanvasContext::CanvasContext(QOpenGLContext *context, int width, int height, QObject *parent) :
-    QObject(parent),
+    CanvasAbstractObject(parent),
     QOpenGLFunctions(context),
     m_unpackFlipYEnabled(false),
     m_logAllCalls(false),
@@ -3159,7 +3159,7 @@ CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
     }
 
     CanvasUniformLocation *location = new CanvasUniformLocation(index, this);
-    location->setName(name);
+    location->insert("name", name);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(program:" << program
                                 << ", name:" << name
@@ -4930,9 +4930,9 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
         CanvasActiveInfo *info = getActiveUniform(program, locationId);
         int numValues = 4;
 
-        qDebug() << "Context3D::" << __FUNCTION__ << "info->type():" << glEnumToString(info->type());
+        qDebug() << "Context3D::" << __FUNCTION__ << "info->type():" << glEnumToString(info->infoType());
 
-        switch (info->type()) {
+        switch (info->infoType()) {
         case SAMPLER_2D:
             // Intentional flow through
         case SAMPLER_CUBE:

@@ -47,9 +47,11 @@
 #ifndef CONTEXTATTRIBUTES_P_H
 #define CONTEXTATTRIBUTES_P_H
 
+#include "abstractobject3d_p.h"
+
 #include <QObject>
 
-class CanvasContextAttributes : public QObject
+class CanvasContextAttributes : public CanvasAbstractObject
 {
     Q_OBJECT
 

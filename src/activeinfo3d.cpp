@@ -52,7 +52,7 @@
 
 CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
                                    QString name, QObject *parent) :
-    QObject(parent),
+    CanvasAbstractObject(parent),
     m_size(size),
     m_type(type),
     m_name(name)
@@ -66,7 +66,7 @@ CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
 /*!
  * \internal
  */
-int CanvasActiveInfo::size() const
+int CanvasActiveInfo::infoSize() const
 {
     return m_size;
 }
@@ -78,7 +78,7 @@ int CanvasActiveInfo::size() const
 /*!
  * \internal
  */
-CanvasContext::glEnums CanvasActiveInfo::type() const
+CanvasContext::glEnums CanvasActiveInfo::infoType() const
 {
     return m_type;
 }
@@ -90,7 +90,7 @@ CanvasContext::glEnums CanvasActiveInfo::type() const
 /*!
  * \internal
  */
-QString CanvasActiveInfo::name() const
+QString CanvasActiveInfo::infoName() const
 {
     return m_name;
 }

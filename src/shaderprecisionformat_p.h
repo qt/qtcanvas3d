@@ -47,9 +47,11 @@
 #ifndef SHADERPRECISIONFORMAT_P_H
 #define SHADERPRECISIONFORMAT_P_H
 
+#include "abstractobject3d_p.h"
+
 #include <QObject>
 
-class CanvasShaderPrecisionFormat : public QObject
+class CanvasShaderPrecisionFormat : public CanvasAbstractObject
 {
     Q_OBJECT
     Q_PROPERTY(int rangeMin READ rangeMin NOTIFY rangeMinChanged)

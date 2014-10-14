@@ -216,7 +216,7 @@ QString CanvasProgram::log()
 QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 {
     if (program)
-        dbg.nospace() << "Program3D("<< program->m_name << ", id:" << program->m_program->programId() << ")";
+        dbg.nospace() << "Program3D("<< program->name() << ", id:" << program->m_program->programId() << ")";
     else
         dbg.nospace() << "Program3D("<< ((void*) program) <<")";
     return dbg.maybeSpace();

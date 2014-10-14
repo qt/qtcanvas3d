@@ -252,7 +252,7 @@ TypedArray *Float32Array::subarray(long begin, long end)
 QDebug operator<<(QDebug dbg, const CanvasFloat32Array *array)
 {
     if (array)
-        dbg.nospace() << "Float32Array ("<< array->m_name <<", length:" << array->length() << ")";
+        dbg.nospace() << "Float32Array ("<< array->name() <<", length:" << array->length() << ")";
     else
         dbg.nospace() << "Float32Array (null)";
     return dbg.maybeSpace();

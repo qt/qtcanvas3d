@@ -134,7 +134,7 @@ GLuint CanvasBuffer::id()
 QDebug operator<<(QDebug dbg, const CanvasBuffer *buffer)
 {
     if (buffer)
-        dbg.nospace() << "Buffer3D("<< buffer->m_name <<", id:" << buffer->m_bufferId << ")";
+        dbg.nospace() << "Buffer3D("<< buffer->name() <<", id:" << buffer->m_bufferId << ")";
     else
         dbg.nospace() << "Buffer3D("<< ((void*) buffer) <<")";
     return dbg.maybeSpace();

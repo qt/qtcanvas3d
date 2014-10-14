@@ -37,26 +37,19 @@
 #include "abstractobject3d_p.h"
 
 CanvasAbstractObject::CanvasAbstractObject(QObject *parent) :
-    QObject(parent)
+    QQmlPropertyMap(parent)
 {
-    m_name = QString("0x%1").arg((long long) this, 0, 16);
+    insert("name", QVariant::fromValue(QString("0x%1").arg((long long) this, 0, 16)));
 }
 
 CanvasAbstractObject::~CanvasAbstractObject()
 {
 }
 
-void CanvasAbstractObject::setName(const QString &name)
+QString CanvasAbstractObject::name() const
 {
-    if (m_name == name)
-        return;
+    if (!contains("name"))
+        return "";
 
-    m_name = name;
-
-    emit nameChanged(m_name);
-}
-
-const QString &CanvasAbstractObject::name()
-{
-    return m_name;
+    return value("name").toString();
 }

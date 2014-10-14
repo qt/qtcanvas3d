@@ -70,7 +70,7 @@
  * \internal
  */
 CanvasTextureImageLoader::CanvasTextureImageLoader(QObject *parent) :
-    QObject(parent),
+    CanvasAbstractObject(parent),
     m_logAllCalls(false),
     m_logAllErrors(true),
     m_image(0),

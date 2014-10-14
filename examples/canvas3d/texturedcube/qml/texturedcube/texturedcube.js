@@ -45,7 +45,8 @@ function initGL(canvas, textureLoader) {
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
     // Set the viewport
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    var pixelRatio = canvas.devicePixelRatio;
+    gl.viewport(0, 0, pixelRatio * canvas.width, pixelRatio * canvas.height);
 
     // Initialize the shader program
     initShaders();
@@ -114,6 +115,7 @@ function renderGL(canvas) {
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotAnim), [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotAnim), [0, 1, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotAnim), [0, 0, 1]);
+
     // Set the matrix to shader
     gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 

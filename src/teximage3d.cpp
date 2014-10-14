@@ -358,7 +358,7 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool f
 QDebug operator<<(QDebug dbg, const CanvasTextureImage *texImage)
 {
     if (texImage)
-        dbg.nospace() << "TexImage3D("<< ((void*) texImage) << texImage->m_name << ")";
+        dbg.nospace() << "TexImage3D("<< ((void*) texImage) << texImage->name() << ")";
     else
         dbg.nospace() << "TexImage3D("<< ((void*) texImage) <<")";
     return dbg.maybeSpace();

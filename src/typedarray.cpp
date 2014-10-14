@@ -115,7 +115,7 @@ void CanvasTypedArray::setLength(unsigned long length)
 QDebug operator<<(QDebug dbg, const CanvasTypedArray *array)
 {
     if (array)
-        dbg.nospace() << "TypedArray ("<< array->m_name <<", length:" << array->length() << ")";
+        dbg.nospace() << "TypedArray ("<< array->name() <<", length:" << array->length() << ")";
     else
         dbg.nospace() << "TypedArray (null)";
     return dbg.maybeSpace();

@@ -57,7 +57,7 @@
  * \internal
  */
 CanvasContextAttributes::CanvasContextAttributes(QObject *parent) :
-    QObject(parent),
+    CanvasAbstractObject(parent),
     m_alpha(false),  // Should be true according to official WebGL spec. But ignored for now.
     m_depth(false),
     m_stencil(false),

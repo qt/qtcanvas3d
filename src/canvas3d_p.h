@@ -62,7 +62,6 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_DISABLE_COPY(Canvas)
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
-    Q_PROPERTY(bool animated READ isAnimated WRITE setAnimated NOTIFY animatedChanged)
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
@@ -74,8 +73,6 @@ public:
 
     void handleWindowChanged(QQuickWindow *win);
     float devicePixelRatio();
-    void setAnimated(bool animated);
-    bool isAnimated();
 
     void setLogAllCalls(bool logCalls);
     bool logAllCalls() const;
@@ -135,7 +132,6 @@ private:
 
     int m_maxSamples;
     int m_samples;
-    bool m_isAnimated;
     float m_devicePixelRatio;
 
     CanvasTextureImageLoader *m_imageLoader;

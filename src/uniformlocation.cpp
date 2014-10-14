@@ -76,7 +76,7 @@ int CanvasUniformLocation::id()
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)
-        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->m_name <<", location:" << uLoc->m_location << ")";
+        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
     else
         dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
 

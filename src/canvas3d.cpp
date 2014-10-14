@@ -93,7 +93,6 @@ Canvas::Canvas(QQuickItem *parent):
     m_maxSamples(4),
     #endif
     m_samples(0),
-    m_isAnimated(false),
     m_devicePixelRatio(1.0f),
     m_imageLoader(0),
     m_isContextAttribsSet(false),
@@ -472,29 +471,6 @@ void Canvas::setImageLoader(CanvasTextureImageLoader *loader)
     loader->setCanvas(this);
 
     emit imageLoaderChanged(loader);
-}
-
-/*!
- \qmlproperty bool Canvas3D::animated
- Specifies whether the Canvas3D continuously emits the renderGL signal to render new
- frames or not. In most cases this property should be set to true as the 3D content is
- dynamic.
- \note Currenly not used.
- */
-void Canvas::setAnimated(bool animated)
-{
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
-    if (animated != m_isAnimated) {
-        m_isAnimated = animated;
-        emit animatedChanged(animated);
-        emit needRender();
-    }
-}
-
-bool Canvas::isAnimated()
-{
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
-    return m_isAnimated;
 }
 
 /*!

@@ -50,7 +50,7 @@
  * \internal
  */
 CanvasShader::CanvasShader(QOpenGLShader::ShaderType type, QObject *parent) :
-    QObject(parent),
+    CanvasAbstractObject(parent),
     m_shader(new QOpenGLShader(type, this)),
     m_sourceCode("")
 {

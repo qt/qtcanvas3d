@@ -48,10 +48,11 @@
 #define SHADER3D_P_H
 
 #include "context3d_p.h"
+#include "abstractobject3d_p.h"
 
 #include <QOpenGLShader>
 
-class CanvasShader : public QObject
+class CanvasShader : public CanvasAbstractObject
 {
     Q_OBJECT
 public:

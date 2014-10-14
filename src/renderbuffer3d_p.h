@@ -47,10 +47,12 @@
 #ifndef RENDERBUFFER3D_P_H
 #define RENDERBUFFER3D_P_H
 
+#include "abstractobject3d_p.h"
+
 #include <QObject>
 #include <QOpenGLFunctions>
 
-class CanvasRenderBuffer : public QObject, protected QOpenGLFunctions
+class CanvasRenderBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
 public:
