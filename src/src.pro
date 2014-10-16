@@ -10,6 +10,8 @@ IMPORT_VERSION = $$MODULE_VERSION
 # Only build qml plugin static if Qt itself is also built static
 !contains(QT_CONFIG, static): CONFIG -= static staticlib
 
+include($$PWD/designer/designer.pri)
+
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
 SOURCES += qcanvas3d_plugin.cpp \
@@ -86,7 +88,9 @@ OTHER_FILES = qmldir \
     doc/src/* \
     doc/images/* \
     doc/snippets/* \
-    plugins.qmltypes
+    plugins.qmltypes \
+    designer/* \
+    designer/default/*
 
 CONFIG += no_cxx_module
 
