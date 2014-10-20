@@ -252,33 +252,33 @@ function initBuffers()
 function initShaders()
 {
     log("    initShaders ENTER {")
-    var vertexShader = getShader(gl,"
-                              attribute highp vec3 aVertexPosition;
-                              attribute mediump vec4 aVertexColor;
-                              attribute highp vec2 aTextureCoord;
-
-                              uniform mat4 uMVMatrix;
-                              uniform mat4 uPMatrix;
-
-                              varying mediump vec4 vColor;
-                              varying highp vec2 vTextureCoord;
-                              varying highp vec4 vPos;
-
-                              void main(void) {
-                                  vPos = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                  vColor = aVertexColor;
-                                  vTextureCoord = aTextureCoord;
+    var vertexShader = getShader(gl,
+                              "attribute highp vec3 aVertexPosition;                 \
+                              attribute mediump vec4 aVertexColor;                   \
+                              attribute highp vec2 aTextureCoord;                    \
+                                                                                     \
+                              uniform mat4 uMVMatrix;                                \
+                              uniform mat4 uPMatrix;                                 \
+                                                                                     \
+                              varying mediump vec4 vColor;                           \
+                              varying highp vec2 vTextureCoord;                      \
+                              varying highp vec4 vPos;                               \
+                                                                                     \
+                              void main(void) {                                      \
+                                  vPos = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                 \
+                                  gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);          \
+                                  vColor = aVertexColor;                             \
+                                  vTextureCoord = aTextureCoord;                     \
                               }", gl.VERTEX_SHADER);
-    var fragmentShader = getShader(gl,"
-                               varying mediump vec4 vColor;
-                               varying highp vec2 vTextureCoord;
-                               varying highp vec4 vPos;
-
-                               uniform sampler2D uSampler;
-
-                               void main(void) {
-                                   gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
+    var fragmentShader = getShader(gl,
+                               "varying mediump vec4 vColor;                   \
+                               varying highp vec2 vTextureCoord;               \
+                               varying highp vec4 vPos;                        \
+                                                                               \
+                               uniform sampler2D uSampler;                     \
+                                                                               \
+                               void main(void) {                               \
+                                   gl_FragColor = vColor * texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));                   \
                                }", gl.FRAGMENT_SHADER);
 
     var shaderProgram = gl.createProgram();

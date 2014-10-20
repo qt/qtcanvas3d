@@ -385,51 +385,51 @@ function initShaders()
 
     log("    initShaders ENTER...")
     var cubeVertexShader = getShader(gl,
-                                     "attribute highp vec3 aVertexPosition;
-                                      attribute mediump vec4 aVertexColor;
-                                      attribute highp vec2 aTextureCoord;
-
-                                      uniform mat4 uMVMatrix;
-                                      uniform mat4 uPMatrix;
-
-                                      varying mediump vec4 vColor;
-                                      varying highp vec2 vTextureCoord;
-                                      varying highp vec4 vPos;
-
-                                      void main(void) {
-                                          vPos = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                          vColor = aVertexColor;
-                                          vTextureCoord = aTextureCoord;
+                                     "attribute highp vec3 aVertexPosition;       \
+                                      attribute mediump vec4 aVertexColor;        \
+                                      attribute highp vec2 aTextureCoord;         \
+                                                                                  \
+                                      uniform mat4 uMVMatrix;                     \
+                                      uniform mat4 uPMatrix;                      \
+                                                                                  \
+                                      varying mediump vec4 vColor;                \
+                                      varying highp vec2 vTextureCoord;           \
+                                      varying highp vec4 vPos;                    \
+                                                                                  \
+                                      void main(void) {                           \
+                                          vPos = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);             \
+                                          gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);      \
+                                          vColor = aVertexColor;                  \
+                                          vTextureCoord = aTextureCoord;          \
                                       }", gl.VERTEX_SHADER);
     var cubeFragmentShader = getShader(gl,
-                                       "#define PI 3.1415926535897932384626433832795
-                                        uniform highp float uTime;
-
-                                        varying mediump vec4 vColor;
-                                        varying highp vec2 vTextureCoord;
-                                        varying highp vec4 vPos;
-
-                                        uniform sampler2D uSampler;
-
-                                        void main(void) {
-                                            highp vec4 volScale = vec4(3.0, 3.0, 3.0, 2.0);
-                                            highp vec4 volume = vPos * volScale - volScale/2.0;
-
-                                            highp vec2 scaling = vec2(20.0,20.0);
-                                            highp vec2 coord = vTextureCoord * scaling - scaling/2.0;
-                                            highp float value = sin(volume.x+coord.x+uTime);
-                                            value += sin((volume.y+coord.y+uTime)/1.5);
-                                            value += sin((volume.z+coord.y+uTime)/1.5);
-
-                                            coord += scaling/2.0 * vec2(sin(uTime/3.0), cos(uTime/2.0));
-                                            value += sin(sqrt(coord.x*coord.x + coord.y*coord.y + 1.0) + uTime);
-                                            value = value/2.0;
-                                            value = sin(PI*value);
-                                            highp vec4 col = vec4(value, value, value, 1.0);
-                                            highp vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-                                            gl_FragColor = vec4(col.rgb * vColor.rgb * textureColor.rgb, textureColor.a);
-                                        }", gl.FRAGMENT_SHADER);
+                                       " \
+                                        uniform highp float uTime;              \
+                                                                                \
+                                        varying mediump vec4 vColor;            \
+                                        varying highp vec2 vTextureCoord;       \
+                                        varying highp vec4 vPos;                \
+                                                                                \
+                                        uniform sampler2D uSampler;             \
+                                                                                \
+                                        void main(void) {                       \
+                                            highp vec4 volScale = vec4(3.0, 3.0, 3.0, 2.0);                 \
+                                            highp vec4 volume = vPos * volScale - volScale/2.0;             \
+                                                                                                            \
+                                            highp vec2 scaling = vec2(20.0,20.0);                           \
+                                            highp vec2 coord = vTextureCoord * scaling - scaling/2.0;       \
+                                            highp float value = sin(volume.x+coord.x+uTime);                \
+                                            value += sin((volume.y+coord.y+uTime)/1.5);                     \
+                                            value += sin((volume.z+coord.y+uTime)/1.5);                     \
+                                                                                                            \
+                                            coord += scaling/2.0 * vec2(sin(uTime/3.0), cos(uTime/2.0));    \
+                                            value += sin(sqrt(coord.x*coord.x + coord.y*coord.y + 1.0) + uTime); \
+                                            value = value/2.0;                                              \
+                                            value = sin(3.14*value);                                          \
+                                            highp vec4 col = vec4(value, value, value, 1.0);                \
+                                            highp vec4 textureColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));   \
+                                            gl_FragColor = vec4(col.rgb * vColor.rgb * textureColor.rgb, textureColor.a);            \
+                                         }", gl.FRAGMENT_SHADER);
 
     //! [0]
     cubeShaderProgram = gl.createProgram();
@@ -461,51 +461,51 @@ function initShaders()
     //! [2]
     // BACKGROUND SHADER
     var bkgVertexShader = getShader(gl,
-                                    "attribute highp vec2 aVertexPosition;
-                                     attribute highp vec2 aTextureCoord;
-
-                                     varying highp vec2 vTextureCoord;
-
-                                     void main(void) {
-                                         gl_Position = vec4(aVertexPosition, 0.0, 1.0);
-                                         vTextureCoord = aTextureCoord;
+                                    "attribute highp vec2 aVertexPosition; \
+                                     attribute highp vec2 aTextureCoord;   \
+                                                                           \
+                                     varying highp vec2 vTextureCoord;     \
+                                                                           \
+                                     void main(void) {                     \
+                                         gl_Position = vec4(aVertexPosition, 0.0, 1.0); \
+                                         vTextureCoord = aTextureCoord;                 \
                                      }", gl.VERTEX_SHADER);
     var bkgFragmentShader = getShader(gl,
-                                      "uniform highp float uTime;
-                                       varying highp vec2 vTextureCoord;
-
-                                       void main(void) {
-                                           highp vec2 position = vTextureCoord.xy;
-
-                                           highp float centerX = position.x - 0.5 + sin(uTime / 2.0) * 0.1;
-                                           highp float centerY = position.y - 0.5 + cos(uTime / 2.0) * 0.1;
-
-                                           highp float x = log(sqrt(centerX*centerX + centerY*centerY));
-                                           highp float y = atan(centerX, centerY);
-
-                                           highp float color = cos(x * cos(uTime / 30.0) * 80.0) + cos(x * cos(uTime / 30.0) * 10.0) +
-                                                               cos(y * cos(uTime / 20.0) * 40.0) + cos(y * sin(uTime / 50.0) * 40.0);
-                                           color *= 0.5;
-
-                                           gl_FragColor = vec4(color * sin(uTime / 10.0) * 0.5, color * (1.0 - sin(uTime / 10.0)) * 0.5, sin( color + uTime / 3.0 ) * 0.3, 1.0 );
+                                      "uniform highp float uTime;                  \
+                                       varying highp vec2 vTextureCoord;           \
+                                                                                   \
+                                       void main(void) {                           \
+                                           highp vec2 position = vTextureCoord.xy; \
+                                                                                   \
+                                           highp float centerX = position.x - 0.5 + sin(uTime / 2.0) * 0.1; \
+                                           highp float centerY = position.y - 0.5 + cos(uTime / 2.0) * 0.1; \
+                                                                                                            \
+                                           highp float x = log(sqrt(centerX*centerX + centerY*centerY));    \
+                                           highp float y = atan(centerX, centerY);                          \
+                                                                                                            \
+                                           highp float color = cos(x * cos(uTime / 30.0) * 80.0) + cos(x * cos(uTime / 30.0) * 10.0) + \
+                                                               cos(y * cos(uTime / 20.0) * 40.0) + cos(y * sin(uTime / 50.0) * 40.0);  \
+                                           color *= 0.5;                                                                               \
+                                                                                                                                       \
+                                           gl_FragColor = vec4(color * sin(uTime / 10.0) * 0.5, color * (1.0 - sin(uTime / 10.0)) * 0.5, sin( color + uTime / 3.0 ) * 0.3, 1.0 ); \
                                        }", gl.FRAGMENT_SHADER);
     var bkgFragmentShaderBW = getShader(gl,
-                                        "uniform highp float uTime;
-                                         varying highp vec2 vTextureCoord;
-
-                                         void main(void) {
-                                             highp vec2 position = vTextureCoord.xy;
-
-                                             highp float centerX = position.x - 0.5 + sin(uTime / 3.0) * 0.1;
-                                             highp float centerY = position.y - 0.5 + cos(uTime / 3.0) * 0.1;
-
-                                             highp float x = log(sqrt(centerX*centerX + centerY*centerY));
-                                             highp float y = atan(centerX, centerY);
-
-                                             highp float color = cos(x * cos(uTime / 30.0) * 80.0) + cos(x * cos(uTime / 30.0) * 10.0);
-                                             color += cos(y * cos(uTime / 20.0) * 40.0) + cos(y * sin(uTime / 50.0) * 40.0);
-                                             color *= 0.2;
-                                             gl_FragColor = vec4(color, color, color, 1.0 );
+                                        "uniform highp float uTime;        \
+                                         varying highp vec2 vTextureCoord; \
+                                                                           \
+                                         void main(void) {                 \
+                                             highp vec2 position = vTextureCoord.xy; \
+                                                                                     \
+                                             highp float centerX = position.x - 0.5 + sin(uTime / 3.0) * 0.1; \
+                                             highp float centerY = position.y - 0.5 + cos(uTime / 3.0) * 0.1; \
+                                                                                                              \
+                                             highp float x = log(sqrt(centerX*centerX + centerY*centerY));    \
+                                             highp float y = atan(centerX, centerY);                          \
+                                                                                                              \
+                                             highp float color = cos(x * cos(uTime / 30.0) * 80.0) + cos(x * cos(uTime / 30.0) * 10.0); \
+                                             color += cos(y * cos(uTime / 20.0) * 40.0) + cos(y * sin(uTime / 50.0) * 40.0);            \
+                                             color *= 0.2;                                                                              \
+                                             gl_FragColor = vec4(color, color, color, 1.0 );                                            \
                                          }", gl.FRAGMENT_SHADER);
 
     //! [1]
