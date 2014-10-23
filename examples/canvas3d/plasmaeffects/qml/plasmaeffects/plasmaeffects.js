@@ -158,6 +158,9 @@ function renderGL(canvas) {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
 
+    gl.disableVertexAttribArray(bkgAttribute_vertexPosition);
+    gl.disableVertexAttribArray(bkgAttribute_textureCoord);
+
     gl.enable(gl.DEPTH_TEST);
     gl.depthMask(true);
     gl.enable(gl.DEPTH_WRITE);
@@ -240,6 +243,11 @@ function renderGL(canvas) {
 
     gl.uniformMatrix4fva(cubeUniform_mvMatrix, false, mvMatrix);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+
+    gl.disableVertexAttribArray(cubeAttribute_vertexPosition);
+    gl.disableVertexAttribArray(cubeAttribute_vertexColor);
+    gl.disableVertexAttribArray(cubeAttribute_textureCoord);
+
 }
 
 function initBuffers()
@@ -447,11 +455,8 @@ function initShaders()
     gl.useProgram(cubeShaderProgram);
 
     cubeAttribute_vertexPosition = gl.getAttribLocation(cubeShaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(cubeAttribute_vertexPosition);
     cubeAttribute_vertexColor = gl.getAttribLocation(cubeShaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(cubeAttribute_vertexColor);
     cubeAttribute_textureCoord = gl.getAttribLocation(cubeShaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(cubeAttribute_textureCoord);
 
     cubeUniform_time = gl.getUniformLocation(cubeShaderProgram, "uTime");
     cubeUniform_pMatrix = gl.getUniformLocation(cubeShaderProgram, "uPMatrix");
@@ -524,9 +529,7 @@ function initShaders()
     gl.useProgram(bkgShaderProgram);
 
     bkgAttribute_vertexPosition = gl.getAttribLocation(bkgShaderProgram, "aVertexPosition");
-    gl.enableVertexAttribArray(bkgAttribute_vertexPosition);
     bkgAttribute_textureCoord = gl.getAttribLocation(bkgShaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(bkgAttribute_textureCoord);
 
     bkgUniform_time = gl.getUniformLocation(bkgShaderProgram, "uTime");
     gl.bindTexture(gl.TEXTURE_2D, 0);
