@@ -75,7 +75,7 @@ var modelThree = new Model();
 var modelFour = new Model();
 var modelFive = new Model();
 
-function initGL(canvas, textureLoader) {
+function initGL(canvas) {
     canvas3d = canvas
     log("initGL...")
     try {
@@ -115,7 +115,7 @@ function initGL(canvas, textureLoader) {
 
         // Load textures
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        loadTextures(textureLoader);
+        loadTextures();
 
         // Load JSON models
         loadJSONModels();
@@ -567,84 +567,6 @@ function fillModel(modelData, model) {
 }
 //! [4]
 
-//! [6]
-function textureLoaded(textureImage) {
-    log("textureLoaded...")
-    if (textureImage.imageState === TextureImage.LOADING_FINISHED) {
-        log("    processing "+textureImage.source);
-        if (modelOneTexture == 0 && textureImage.source == "qrc:///gold.jpg") {
-            log("    creating model one texture");
-            modelOneTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          textureImage);    // pixels
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        } else if (modelTwoTexture == 0 && textureImage.source == "qrc:///woodbox.jpg") {
-            log("    creating model two texture");
-            modelTwoTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          textureImage);    // pixels
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-            //! [6]
-        } else if (modelThreeTexture == 0 && textureImage.source == "qrc:///bush.png") {
-            log("    creating model three texture");
-            modelThreeTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          textureImage);    // pixels
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        } else if (modelFourTexture == 0 && textureImage.source == "qrc:///pallet.jpg") {
-            log("    creating model four texture");
-            modelFourTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          textureImage);    // pixels
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        } else if (modelFiveTexture == 0 && textureImage.source == "qrc:///rock.jpg") {
-            log("    creating model five texture");
-            modelFiveTexture = gl.createTexture();
-            gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          textureImage);    // pixels
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        }
-    }
-
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    log("...textureLoaded");
-}
-
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
@@ -743,27 +665,117 @@ function initBuffers() {
 }
 
 //! [5]
-function loadTextures(textureLoader) {
+function loadTextures() {
     // Load the first texture
-    textureLoader.loadTexture("gold.jpg");
-    log("   loadTexture sent for texture one")
+    var goldImage = TextureImageFactory.newTexImage();
+    goldImage.imageLoaded.connect(function() {
+        log("    creating model one texture");
+        modelOneTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
+        gl.texImage2D(gl.TEXTURE_2D,    // target
+                      0,                // level
+                      gl.RGBA,          // internalformat
+                      gl.RGBA,          // format
+                      gl.UNSIGNED_BYTE, // type
+                      goldImage);       // pixels
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
+    goldImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+goldImage.errorString);
+    });
+    goldImage.src = "qrc:///gold.jpg";
+    log("   texture one source set")
 
     // Load the second texture
-    textureLoader.loadTexture("woodbox.jpg");
-    log("   loadTexture sent for texture two")
+    var woodBoxImage = TextureImageFactory.newTexImage();
+    woodBoxImage.imageLoaded.connect(function() {
+        log("    creating model two texture");
+        modelTwoTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
+        gl.texImage2D(gl.TEXTURE_2D,    // target
+                      0,                // level
+                      gl.RGBA,          // internalformat
+                      gl.RGBA,          // format
+                      gl.UNSIGNED_BYTE, // type
+                      woodBoxImage);    // pixels
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
+    woodBoxImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+woodBoxImage.errorString);
+    });
+    woodBoxImage.src = "qrc:///woodbox.jpg";
+    log("   texture two source set")
     //! [5]
 
     // Load the third texture
-    textureLoader.loadTexture("bush.png");
-    log("   loadTexture sent for texture three")
+    var bushImage = TextureImageFactory.newTexImage();
+    bushImage.imageLoaded.connect(function() {
+        log("    creating model three texture");
+        modelThreeTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
+        gl.texImage2D(gl.TEXTURE_2D,    // target
+                      0,                // level
+                      gl.RGBA,          // internalformat
+                      gl.RGBA,          // format
+                      gl.UNSIGNED_BYTE, // type
+                      bushImage);    // pixels
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
+    bushImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+bushImage.errorString);
+    });
+    bushImage.src = "qrc:///bush.png";
+    log("   texture three source set")
 
     // Load the fourth texture
-    textureLoader.loadTexture("pallet.jpg");
-    log("   loadTexture sent for texture four")
+    var palletImage = TextureImageFactory.newTexImage();
+    palletImage.imageLoaded.connect(function() {
+        log("    creating model four texture");
+        modelFourTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
+        gl.texImage2D(gl.TEXTURE_2D,    // target
+                      0,                // level
+                      gl.RGBA,          // internalformat
+                      gl.RGBA,          // format
+                      gl.UNSIGNED_BYTE, // type
+                      palletImage);     // pixels
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
+    palletImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+palletImage.errorString);
+    });
+    palletImage.src = "qrc:///pallet.jpg";
+    log("   texture four source set")
 
     // Load the fifth texture
-    textureLoader.loadTexture("rock.jpg");
-    log("   loadTexture sent for texture five")
+    var rockImage = TextureImageFactory.newTexImage();
+    rockImage.imageLoaded.connect(function() {
+        log("    creating model five texture");
+        modelFiveTexture = gl.createTexture();
+        gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
+        gl.texImage2D(gl.TEXTURE_2D,    // target
+                      0,                // level
+                      gl.RGBA,          // internalformat
+                      gl.RGBA,          // format
+                      gl.UNSIGNED_BYTE, // type
+                      rockImage);       // pixels
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+        gl.generateMipmap(gl.TEXTURE_2D);
+    });
+    rockImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+rockImage.errorString);
+    });
+    rockImage.src = "qrc:///rock.jpg";
+    log("   texture five source set")
 }
 
 //! [2]

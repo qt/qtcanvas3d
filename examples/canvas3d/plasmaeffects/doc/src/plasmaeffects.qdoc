@@ -42,6 +42,10 @@
     \brief Apply oldsk00l plasma effects into a canvas
 
     The Plasma Effects Example concentrates on showing how to use different shaders in Canvas3D.
+    These shaders are of "old school graphics demo" variety that achieve their effects with raw
+    computations based on combining output of trigonometrical functions in various ways. But they
+    demonstrate how you can hand over high intensity calculations to the Graphics Processing Unit
+    (GPU) when using QtCanvas3D.
 
     For a more thorough look into the QML side see the \l {Textured Cube Example} and
     for a more thorough look into the JavaScript side see the \l {Lit and Textured Cube Example}.

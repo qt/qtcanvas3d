@@ -48,11 +48,9 @@
  * \sa Context3D, Canvas3D, {QML Canvas 3D QML Types}
  */
 
-
-
 CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
                                    QString name, QObject *parent) :
-    CanvasAbstractObject(parent),
+    QObject(parent),
     m_size(size),
     m_type(type),
     m_name(name)
@@ -60,37 +58,25 @@ CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
 }
 
 /*!
- * \qmlproperty int ActiveInfo3D::size
- * Size of the active attrib or uniform.
+ * \internal
  */
+const QString CanvasActiveInfo::name() const
+{
+    return m_name;
+}
+
 /*!
  * \internal
  */
-int CanvasActiveInfo::infoSize() const
+int CanvasActiveInfo::size() const
 {
     return m_size;
 }
 
 /*!
- * \qmlproperty Context3D.glEnums ActiveInfo3D::type
- * Type of the active attrib or uniform.
- */
-/*!
  * \internal
  */
-CanvasContext::glEnums CanvasActiveInfo::infoType() const
+CanvasContext::glEnums CanvasActiveInfo::type() const
 {
     return m_type;
-}
-
-/*!
- * \qmlproperty string ActiveInfo3D::name
- * Name of the active attrib or uniform.
- */
-/*!
- * \internal
- */
-QString CanvasActiveInfo::infoName() const
-{
-    return m_name;
 }

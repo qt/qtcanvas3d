@@ -41,7 +41,7 @@ function log(message) {
         console.log(message)
 }
 
-function initGL(canvas, textureLoader) {
+function initGL(canvas) {
     canvas3d = canvas;
     log("*******************************************************************************************");
     log("initGL ENTER...");
@@ -74,7 +74,25 @@ function initGL(canvas, textureLoader) {
         initShaders();
 
         // Load the texture
-        textureLoader.loadImage("qrc:/qml/plasmaeffects/qtlogo_gray.png");
+        var qtLogoImage = TextureImageFactory.newTexImage();
+        qtLogoImage.imageLoaded.connect(function() {
+            cubeTexture = gl.createTexture();
+            gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          qtLogoImage);     // pixels
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+        qtLogoImage.imageLoadingFailed.connect(function() {
+            console.log("Texture load FAILED, "+qtLogoImage.errorString);
+        });
+        qtLogoImage.src = "qrc:/qml/plasmaeffects/qtlogo_gray.png";
 
         log("...initGL EXIT");
     } catch(e) {
@@ -83,29 +101,6 @@ function initGL(canvas, textureLoader) {
         console.log(""+e.message);
     }
     log("*******************************************************************************************");
-}
-
-function textureLoaded(textureImage) {
-    log("textureLoaded ENTER...")
-
-    if (textureImage.imageState == TextureImage.LOADING_FINISHED && cubeTexture  == 0) {
-        if (canvas3d.logAllCalls)
-            console.log("    processing "+textureImage.source);
-        cubeTexture = gl.createTexture();
-        gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-        gl.texImage2D(gl.TEXTURE_2D,    // target
-                      0,                // level
-                      gl.RGBA,          // internalformat
-                      gl.RGBA,          // format
-                      gl.UNSIGNED_BYTE, // type
-                      textureImage);    // pixels
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-    }
-
-    log("...textureLoaded EXIT");
 }
 
 function degToRad(degrees) {

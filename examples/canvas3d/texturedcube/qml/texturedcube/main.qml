@@ -52,9 +52,6 @@ Item {
         id: canvas3d
         anchors.fill: parent
         //! [0]
-        //! [2]
-        imageLoader: textureImageLoader
-        //! [2]
         focus: true
         property double xRotAnim: 0
         property double yRotAnim: 0
@@ -63,7 +60,7 @@ Item {
         //! [1]
         // Emitted when one time initializations should happen
         onInitGL: {
-            GLCode.initGL(canvas3d, textureImageLoader);
+            GLCode.initGL(canvas3d);
         }
 
         // Emitted each time Canvas3D is ready for a new frame
@@ -140,23 +137,4 @@ Item {
             }
         }
     }
-
-    //! [3]
-    TextureImageLoader {
-        id: textureImageLoader
-
-        onImageLoaded: {
-            if (canvas3d.logAllCalls)
-                console.log("Texture loaded, size "+image.width+"x"+image.height);
-            GLCode.textureLoaded(image);
-        }
-
-        onImageLoadingFailed: {
-            if (GLCode.textureLoadError !== undefined) {
-                GLCode.textureLoadError(image);
-            }
-            console.log("Texture load FAILED, "+image.errorString);
-        }
-    }
-    //! [3]
 }

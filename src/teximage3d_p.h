@@ -50,16 +50,36 @@
 #include "context3d_p.h"
 #include "abstractobject3d_p.h"
 
-#include <QUrl>
-#include <QNetworkAccessManager>
-#include <QImage>
-#include <QNetworkReply>
+#include <QtCore/QUrl>
+#include <QtGui/QImage>
+#include <QtNetwork/QNetworkAccessManager>
+#include <QtNetwork/QNetworkReply>
+
+class CanvasTextureImageFactory : public QObject
+{
+    Q_OBJECT
+    Q_DISABLE_COPY(CanvasTextureImageFactory)
+
+public:
+    static QObject *texture_image_factory_provider(QQmlEngine *engine, QJSEngine *scriptEngine);
+    static CanvasTextureImageFactory *factory(QQmlEngine *engine);
+    explicit CanvasTextureImageFactory(QQmlEngine *engine, QObject *parent = 0);
+    ~CanvasTextureImageFactory();
+
+    void handleImageLoadingStarted(CanvasTextureImage *image);
+    void notifyLoadedImages();
+
+    Q_INVOKABLE CanvasTextureImage* newTexImage();
+private:
+    QQmlEngine *m_qmlEngine;
+    QList<CanvasTextureImage *> m_loadingImagesList;
+};
 
 class CanvasTextureImage : public CanvasAbstractObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(CanvasTextureImage)
-    Q_PROPERTY(QUrl source READ source WRITE setSource NOTIFY sourceChanged)
+    Q_PROPERTY(QUrl src READ src WRITE setSrc NOTIFY srcChanged)
     Q_PROPERTY(TextureImageState imageState READ imageState NOTIFY imageStateChanged)
     Q_PROPERTY(int width READ width NOTIFY widthChanged)
     Q_PROPERTY(int height READ height NOTIFY heightChanged)
@@ -75,45 +95,50 @@ public:
         LOADING_ERROR
     };
 
-    explicit CanvasTextureImage(QObject *parent = 0);
+    Q_INVOKABLE explicit CanvasTextureImage(CanvasTextureImageFactory *parent = 0);
     virtual ~CanvasTextureImage();
 
+    Q_INVOKABLE CanvasTextureImage *create();
     Q_INVOKABLE ulong id();
+    Q_INVOKABLE CanvasTextureImage *resize(int width, int height);
 
-    QVariant *anything();
+    QVariant *anything() const;
     void setAnything(QVariant *value);
 
-    const QUrl &source() const;
-    void setSource(const QUrl &src);
-    TextureImageState imageState();
-    int width();
-    int height();
+    const QUrl &src() const;
+    void setSrc(const QUrl &src);
+    TextureImageState imageState() const;
+    int width() const;
+    int height() const;
     QString errorString() const;
+
+    void emitImageLoaded();
+    void emitImageLoadingError();
 
     void load();
     void handleReply(QNetworkReply *reply);
     QImage &getImage();
     uchar *convertToFormat(CanvasContext::glEnums format, bool flipY = false);
 
-    void emitImageLoadedSGRT();
-    void emitImageLoadingErrorSGRT();
-
     friend QDebug operator<< (QDebug d, const CanvasTextureImage *buffer);
 
 private:
     void setImageState(TextureImageState state);
+    explicit CanvasTextureImage(const QImage &source, int width, int height, QObject *parent = 0);
 
 signals:
-    void sourceChanged(QUrl source);
+    void srcChanged(QUrl source);
     void imageStateChanged(TextureImageState state);
     void widthChanged(int width);
     void heightChanged(int height);
     void errorStringChanged(const QString errorString);
     void anythingChanged(QVariant *value);
+    void imageLoadingStarted(CanvasTextureImage *image);
+    void imageLoaded(CanvasTextureImage *image);
+    void imageLoadingFailed(CanvasTextureImage *image);
 
 private:
     QNetworkAccessManager *m_networkAccessManager;
-    int m_requestId;
     QImage m_image;
     QUrl m_source;
     TextureImageState m_state;
@@ -123,6 +148,7 @@ private:
     bool m_pixelCacheFlipY;
     QImage m_glImage;
     QVariant *m_anyValue;
+    CanvasTextureImageFactory *m_parentFactory;
 };
 
 #endif // TEXIMAGE3D_P_H

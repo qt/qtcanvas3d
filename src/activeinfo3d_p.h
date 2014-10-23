@@ -47,29 +47,29 @@
 #ifndef CANVASACTIVEINFO_P_H
 #define CANVASACTIVEINFO_P_H
 
-#include "abstractobject3d_p.h"
+#include <QObject>
 #include "context3d_p.h"
 
-class CanvasActiveInfo : public CanvasAbstractObject
+class CanvasActiveInfo : public QObject
 {
     Q_OBJECT
 
-    Q_PROPERTY(int size READ infoSize NOTIFY infoSizeChanged)
-    Q_PROPERTY(CanvasContext::glEnums type READ infoType NOTIFY infoTypeChanged)
-    Q_PROPERTY(QString name READ infoName NOTIFY infoNameChanged)
+    Q_PROPERTY(int size READ size NOTIFY sizeChanged)
+    Q_PROPERTY(CanvasContext::glEnums type READ type NOTIFY typeChanged)
+    Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 
 public:
     explicit CanvasActiveInfo(int size, CanvasContext::glEnums type,
                               QString name, QObject *parent = 0);
 
-    int infoSize() const;
-    CanvasContext::glEnums infoType() const;
-    QString infoName() const;
+    int size() const;
+    CanvasContext::glEnums type() const;
+    const QString name() const;
 
 signals:
-    void infoSizeChanged(int size);
-    void infoTypeChanged(CanvasContext::glEnums type);
-    void infoNameChanged(QString &name);
+    void sizeChanged(int size);
+    void typeChanged(CanvasContext::glEnums type);
+    void nameChanged(const QString name);
 
 private:
     int m_size;

@@ -939,7 +939,8 @@ public:
     ENUM_AS_PROPERTY(UNPACK_COLORSPACE_CONVERSION_WEBGL)
     ENUM_AS_PROPERTY(BROWSER_DEFAULT_WEBGL)
 
-    CanvasContext(QOpenGLContext *context, int width, int height, QObject *parent = 0);
+    CanvasContext(QOpenGLContext *context, QSurface *surface,
+                  int width, int height, QObject *parent = 0);
     ~CanvasContext();
 
     void setCanvas(Canvas *canvas);
@@ -1168,7 +1169,9 @@ public:
     Q_INVOKABLE void vertexAttrib3fva(uint indx, QVariantList values);
     Q_INVOKABLE void vertexAttrib4fva(uint indx, QVariantList values);
 
-    Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target, glEnums attachment, glEnums pname);
+    Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target,
+                                                      glEnums attachment,
+                                                      glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getUniform(CanvasProgram *program, CanvasUniformLocation *location);
@@ -1215,6 +1218,7 @@ private:
     CanvasBuffer *m_currentElementArrayBuffer;
     CanvasTexture *m_currentTexture;
     QOpenGLContext *m_context;
+    QSurface *m_surface;
     glEnums m_error;
     CanvasFrameBuffer *m_currentFramebuffer;
     CanvasRenderBuffer *m_currentRenderbuffer;

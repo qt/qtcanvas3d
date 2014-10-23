@@ -130,8 +130,6 @@ public:
     Q_INVOKABLE CanvasUint8ClampedArray* newUint8ClampedArray(QVariantList array);
     Q_INVOKABLE CanvasUint8ClampedArray* newUint8ClampedArray(CanvasArrayBuffer *buffer,
                                                               unsigned long byteOffset);
-
-    Q_INVOKABLE CanvasTextureImage* newTexImage();
 };
 
 #endif // TYPEDARRAYFACTORY_P_H

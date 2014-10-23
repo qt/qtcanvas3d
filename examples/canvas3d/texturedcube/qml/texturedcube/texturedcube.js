@@ -27,7 +27,7 @@ function log(message) {
 }
 
 //! [0]
-function initGL(canvas, textureLoader) {
+function initGL(canvas) {
     canvas3d = canvas
     log("*******************************************************************************************")
     log("initGL ENTER...")
@@ -55,18 +55,8 @@ function initGL(canvas, textureLoader) {
     initBuffers();
 
     // Load the texture
-    textureLoader.loadImage("qrc:/qml/texturedcube/qtlogo_gray.png");
-
-    log("...initGL EXIT");
-    log("*******************************************************************************************");
-}
-//! [0]
-
-function textureLoaded(textureImage) {
-    log("textureLoaded ENTER {")
-
-    if (textureImage.imageState == TextureImage.LOADING_FINISHED && cubeTexture  == 0) {
-        log("    processing "+textureImage.source);
+    var qtLogoImage = TextureImageFactory.newTexImage();
+    qtLogoImage.imageLoaded.connect(function() {
         cubeTexture = gl.createTexture();
         gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
@@ -74,15 +64,21 @@ function textureLoaded(textureImage) {
                       gl.RGBA,          // internalformat
                       gl.RGBA,          // format
                       gl.UNSIGNED_BYTE, // type
-                      textureImage);    // pixels
+                      qtLogoImage);    // pixels
 
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         gl.generateMipmap(gl.TEXTURE_2D);
-    }
+    });
+    qtLogoImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+qtLogoImage.errorString);
+    });
+    qtLogoImage.src = "qrc:/qml/texturedcube/qtlogo_gray.png";
 
-    log("}");
+    log("...initGL EXIT");
+    log("*******************************************************************************************");
 }
+//! [0]
 
 function degToRad(degrees) {
     return degrees * Math.PI / 180;

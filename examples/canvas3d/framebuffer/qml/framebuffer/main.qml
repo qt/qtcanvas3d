@@ -50,7 +50,6 @@ Item {
     Canvas3D {
         id: canvas3d
         anchors.fill: parent
-        imageLoader: textureImageLoader
         property double xRotSlider: 0
         property double yRotSlider: 0
         property double zRotSlider: 0
@@ -61,7 +60,7 @@ Item {
 
         // Emitted when one time initializations should happen
         onInitGL: {
-            GLCode.initGL(canvas3d, textureImageLoader);
+            GLCode.initGL(canvas3d);
         }
 
         // Emitted each time Canvas3D is ready for a new frame
@@ -210,29 +209,6 @@ Item {
             minimumValue: 0;
             maximumValue: 360;
             onValueChanged: canvas3d.zRotSlider = value;
-        }
-    }
-
-    TextureImageLoader {
-        id: textureImageLoader
-
-        function loadTexture(file) {
-            if (canvas3d.logAllCalls)
-                console.log("TextureImageLoader.loadTexture(qrc:/qml/framebuffer/"+file+")")
-            return textureImageLoader.loadImage("qrc:/qml/framebuffer/"+file);
-        }
-
-        onImageLoaded: {
-            if (canvas3d.logAllCalls)
-                console.log("Texture loaded, size "+image.width+"x"+image.height);
-            GLCode.textureLoaded(image);
-        }
-
-        onImageLoadingFailed: {
-            if (GLCode.textureLoadError !== undefined) {
-                GLCode.textureLoadError(image);
-            }
-            console.log("Texture load FAILED, "+image.errorString);
         }
     }
 }

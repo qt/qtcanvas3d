@@ -39,6 +39,108 @@
 
 #include <QJSValueIterator>
 
+static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
+
+/*!
+ * \internal
+ */
+CanvasTextureImageFactory::CanvasTextureImageFactory(QQmlEngine *engine, QObject *parent) :
+    QObject(parent)
+{
+    m_qmlEngine = engine;
+}
+
+/*!
+ * \internal
+ */
+CanvasTextureImageFactory::~CanvasTextureImageFactory()
+{
+    m_qmlEngineToImageFactoryMap.remove(m_qmlEngine);
+}
+
+/*!
+ * \qmltype TextureImageFactory
+ * \since QtCanvas3D 1.0
+ * \ingroup qtcanvas3d-qml-types
+ * \brief Create TextureImage elements.
+ *
+ * This static QML type is used for creating TextureImage instances by calling the
+ * TextureImageFactory::newTexImage() function.
+ *
+ * \sa TextureImage
+ */
+
+/*!
+ * \internal
+ */
+QObject *CanvasTextureImageFactory::texture_image_factory_provider(QQmlEngine *engine,
+                                                                   QJSEngine *scriptEngine)
+{
+    Q_UNUSED(scriptEngine)
+    return factory(engine);
+}
+
+/*!
+ * \internal
+ */
+CanvasTextureImageFactory *CanvasTextureImageFactory::factory(QQmlEngine *engine)
+{
+    if (m_qmlEngineToImageFactoryMap.contains(engine))
+        return m_qmlEngineToImageFactoryMap[engine];
+
+    CanvasTextureImageFactory *factory = new CanvasTextureImageFactory(engine);
+    m_qmlEngineToImageFactoryMap[engine] = factory;
+    return factory;
+}
+
+/*!
+ * \internal
+ */
+void CanvasTextureImageFactory::handleImageLoadingStarted(CanvasTextureImage *image)
+{
+    if (m_loadingImagesList.contains(image))
+        return;
+
+    m_loadingImagesList << image;
+}
+
+/*!
+ * \internal
+ */
+void CanvasTextureImageFactory::notifyLoadedImages()
+{
+    if (!m_loadingImagesList.size())
+        return;
+
+    QMutableListIterator<CanvasTextureImage *> it(m_loadingImagesList);
+    while (it.hasNext()) {
+        CanvasTextureImage *image = it.next();
+        if (image->imageState() == CanvasTextureImage::LOADING_FINISHED) {
+            m_loadingImagesList.removeOne(image);
+            image->emitImageLoaded();
+
+        } else if (image->imageState() == CanvasTextureImage::LOADING_ERROR) {
+            m_loadingImagesList.removeOne(image);
+            image->emitImageLoadingError();
+        }
+    }
+}
+
+/*!
+ * \qmlmethod TextureImage TextureImageFactory::newTexImage()
+ * Returns a new empty TextureImage.
+ */
+/*!
+ * \internal
+ */
+CanvasTextureImage *CanvasTextureImageFactory::newTexImage()
+{
+    CanvasTextureImage *newImg = new CanvasTextureImage(this);
+    connect(newImg, &CanvasTextureImage::imageLoadingStarted,
+            this, &CanvasTextureImageFactory::handleImageLoadingStarted);
+    return newImg;
+}
+
 /*!
  * \qmltype TextureImage
  * \since QtCanvas3D 1.0
@@ -46,17 +148,35 @@
  * \brief Contains a texture image.
  *
  * An uncreatable QML type that contains a texture image created by calling
- * TextureImageLoader::loadImage().
+ * TextureImageFactory::newTexImage() and settings the \c src of the image.
  *
- * \sa TextureImageLoader
+ * \sa TextureImageFactory
  */
 
 /*!
  * \internal
  */
-CanvasTextureImage::CanvasTextureImage(QObject *parent) :
+CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent) :
     CanvasAbstractObject(parent),
-    m_requestId(0),
+    m_networkAccessManager(0),
+    m_state(INITIALIZED),
+    m_errorString(""),
+    m_pixelCache(0),
+    m_pixelCacheFormat(CanvasContext::NONE),
+    m_pixelCacheFlipY(false),
+    m_parentFactory(parent)
+{
+    m_networkAccessManager = new QNetworkAccessManager(this);
+    QObject::connect(m_networkAccessManager, &QNetworkAccessManager::finished,
+                     this, &CanvasTextureImage::handleReply);
+}
+
+/*!
+ * \internal
+ */
+CanvasTextureImage::CanvasTextureImage(const QImage &source, int width, int height, QObject *parent) :
+    CanvasAbstractObject(parent),
+    m_networkAccessManager(0),
     m_state(INITIALIZED),
     m_errorString(""),
     m_pixelCache(0),
@@ -66,6 +186,9 @@ CanvasTextureImage::CanvasTextureImage(QObject *parent) :
     m_networkAccessManager = new QNetworkAccessManager(this);
     QObject::connect(m_networkAccessManager, &QNetworkAccessManager::finished,
                      this, &CanvasTextureImage::handleReply);
+
+    m_image = source.scaled(width, height);
+    setImageState(LOADING_FINISHED);
 }
 
 /*!
@@ -78,13 +201,21 @@ CanvasTextureImage::~CanvasTextureImage()
 }
 
 /*!
- * \qmlproperty url TextureImage::source()
- * Contains the url to the image.
+ * \internal
+ */
+CanvasTextureImage *CanvasTextureImage::create()
+{
+    return new CanvasTextureImage();
+}
+
+/*!
+ * \qmlproperty url TextureImage::src()
+ * Contains the url source where the image data is loaded from.
  */
 /*!
  * \internal
  */
-const QUrl &CanvasTextureImage::source() const
+const QUrl &CanvasTextureImage::src() const
 {
     return m_source;
 }
@@ -92,13 +223,13 @@ const QUrl &CanvasTextureImage::source() const
 /*!
  * \internal
  */
-void CanvasTextureImage::setSource(const QUrl &url)
+void CanvasTextureImage::setSrc(const QUrl &url)
 {
     if (url == m_source)
         return;
 
     m_source = url;
-    emit sourceChanged(m_source);
+    emit srcChanged(m_source);
 
     load();
 }
@@ -118,6 +249,22 @@ ulong CanvasTextureImage::id()
 /*!
  * \internal
  */
+void CanvasTextureImage::emitImageLoaded()
+{
+    emit imageLoaded(this);
+}
+
+/*!
+ * \internal
+ */
+void CanvasTextureImage::emitImageLoadingError()
+{
+    emit imageLoadingFailed(this);
+}
+
+/*!
+ * \internal
+ */
 void CanvasTextureImage::load()
 {
     if (m_source.isEmpty()) {
@@ -132,6 +279,8 @@ void CanvasTextureImage::load()
         return;
 
     setImageState(LOADING);
+    emit imageLoadingStarted(this);
+
     QNetworkRequest request(m_source);
     m_networkAccessManager->get(request);
 }
@@ -154,9 +303,9 @@ QString CanvasTextureImage::errorString() const
 void CanvasTextureImage::handleReply(QNetworkReply *reply)
 {
     if (reply->error() != QNetworkReply::NoError) {
-        setImageState(LOADING_ERROR);
         m_errorString = reply->errorString();
         emit errorStringChanged(m_errorString);
+        setImageState(LOADING_ERROR);
         return;
     }
 
@@ -168,7 +317,7 @@ void CanvasTextureImage::handleReply(QNetworkReply *reply)
 /*!
  * \internal
  */
-QImage & CanvasTextureImage::getImage()
+QImage &CanvasTextureImage::getImage()
 {
     return m_image;
 }
@@ -176,7 +325,7 @@ QImage & CanvasTextureImage::getImage()
 /*!
  * \internal
  */
-QVariant *CanvasTextureImage::anything()
+QVariant *CanvasTextureImage::anything() const
 {
     return m_anyValue;
 }
@@ -201,7 +350,7 @@ void CanvasTextureImage::setAnything(QVariant *value)
 /*!
  * \internal
  */
-CanvasTextureImage::TextureImageState CanvasTextureImage::imageState()
+CanvasTextureImage::TextureImageState CanvasTextureImage::imageState() const
 {
     return m_state;
 }
@@ -224,7 +373,7 @@ void CanvasTextureImage::setImageState(TextureImageState state)
 /*!
  * \internal
  */
-int CanvasTextureImage::width()
+int CanvasTextureImage::width() const
 {
     if (m_state != LOADING_FINISHED)
         return 0;
@@ -239,28 +388,13 @@ int CanvasTextureImage::width()
 /*!
  * \internal
  */
-int CanvasTextureImage::height()
+int CanvasTextureImage::height() const
 {
     if (m_state != LOADING_FINISHED)
         return 0;
 
     return m_image.height();
 }
-
-/*!
- * \internal
- */
-void CanvasTextureImage::emitImageLoadedSGRT()
-{
-}
-
-/*!
- * \internal
- */
-void CanvasTextureImage::emitImageLoadingErrorSGRT()
-{
-}
-
 
 /*!
  * \internal
@@ -350,6 +484,21 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool f
     }
 
     return 0;
+}
+
+/*!
+ * \qmlmethod TextureImage TextureImage::resize(int width, int height)
+ * Returns a copy of the texture image resized to the given \a width and \a height.
+ */
+/*!
+ * \internal
+ */
+CanvasTextureImage *CanvasTextureImage::resize(int width, int height)
+{
+    if (m_state != LOADING_FINISHED)
+        return 0;
+
+    return new CanvasTextureImage(m_image, width, height);
 }
 
 /*!

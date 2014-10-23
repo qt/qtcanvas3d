@@ -45,10 +45,11 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                       1, 0,
                                                       "Arrays",
                                                       CanvasTypedArrayFactory::type_array_factory_provider);
+    qmlRegisterSingletonType<CanvasTextureImageFactory>(uri,
+                                                        1, 0,
+                                                        "TextureImageFactory",
+                                                        CanvasTextureImageFactory::texture_image_factory_provider);
 
-    qmlRegisterType<CanvasTextureImageLoader>(uri,
-                                              1, 0,
-                                              "TextureImageLoader");
     qmlRegisterType<CanvasTextureImage>(uri,
                                         1, 0,
                                         "TextureImage");

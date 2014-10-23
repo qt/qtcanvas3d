@@ -41,11 +41,14 @@
 #include "arraybuffer_p.h"
 #include "canvas3dcommon_p.h"
 #include "canvasrendernode_p.h"
+#include "teximage3d_p.h"
 
-#include <QGuiApplication>
+#include <QtGui/QGuiApplication>
 #include <QtGui/QOffscreenSurface>
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFramebufferObject>
+#include <QtQml/QQmlEngine>
+#include <QtQml/QQmlContext>
 
 static QList<const QQuickWindow *> staticClearList;
 static QHash<Canvas *, QQuickWindow *> canvasWindowList;
@@ -94,7 +97,6 @@ Canvas::Canvas(QQuickItem *parent):
     #endif
     m_samples(0),
     m_devicePixelRatio(1.0f),
-    m_imageLoader(0),
     m_isContextAttribsSet(false),
     m_antialiasFbo(0),
     m_renderFbo(0),
@@ -108,6 +110,7 @@ Canvas::Canvas(QQuickItem *parent):
     // Set contents to false in case we are in qml designer to make component look nice
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
     setFlag(ItemHasContents, !m_runningInDesigner);
+
 }
 
 /*!
@@ -375,7 +378,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
             m_antialiasFbo = new QOpenGLFramebufferObject(m_initialisedSize, antialiasFboFormat);
         }
 
-        m_context3D = new CanvasContext(m_glContext, m_initialisedSize.width() * m_devicePixelRatio,
+        m_context3D = new CanvasContext(m_glContext, m_offscreenSurface, m_initialisedSize.width() * m_devicePixelRatio,
                                         m_initialisedSize.height() * m_devicePixelRatio);
         m_context3D->setCanvas(this);
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
@@ -444,33 +447,6 @@ CanvasContext *Canvas::context()
 {
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << "()";
     return m_context3D;
-}
-
-/*!
- * \qmlproperty TextureImageLoader Canvas3D::imageLoader
- * Specifies the texture image loader that can be used to load images and used with the Context3D
- * texture methods.
- * \sa Context3D, TextureImageLoader
- */
-/*!
- * \internal
- */
-CanvasTextureImageLoader *Canvas::imageLoader()
-{
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
-    return m_imageLoader;
-}
-
-void Canvas::setImageLoader(CanvasTextureImageLoader *loader)
-{
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << "(loader: " << loader << ")";
-    if (loader == m_imageLoader)
-        return;
-
-    m_imageLoader = loader;
-    loader->setCanvas(this);
-
-    emit imageLoaderChanged(loader);
 }
 
 /*!
@@ -637,9 +613,10 @@ void Canvas::renderNext()
     if (!isComponentComplete())
         return;
 
-    // Check if there is a image loader ask it to notify any image loads
-    if (m_imageLoader)
-        m_imageLoader->notifyLoadedImages();
+    // Check if any images are loaded and need to be notified while the correct
+    // GL context is current.
+    QQmlEngine *engine = QQmlEngine::contextForObject(this)->engine();
+    CanvasTextureImageFactory::factory(engine)->notifyLoadedImages();
 
     // Call render in QML JavaScript side
     emit renderGL();

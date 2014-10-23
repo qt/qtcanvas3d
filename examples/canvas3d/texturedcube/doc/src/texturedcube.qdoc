@@ -58,23 +58,16 @@
 
     \snippet texturedcube/qml/texturedcube/main.qml 1
 
-    As we want to add a texture in the js object, we need to set the \c imageLoader property in
-    the canvas:
-
-    \snippet texturedcube/qml/texturedcube/main.qml 2
-
-    The TextureImageLoader itself is outside the Canvas3D and handles texture load successes and
-    possible errors:
-
-    \snippet texturedcube/qml/texturedcube/main.qml 3
-
     \section1 The JavaScript Object
 
     First we import the js object in the QML:
 
     \snippet texturedcube/qml/texturedcube/main.qml 4
 
-    In the \c initGL function of the js object, we initialize the OpenGL state:
+    In the \c initGL function of the js object, we initialize the OpenGL state. We also create the
+    TextureImage and register handlers for image load success and fail signals. In the case of
+    load success the OpenGL texture is created and the loaded image is used to fill the texture
+    with pixel data:
 
     \snippet texturedcube/qml/texturedcube/texturedcube.js 0
 

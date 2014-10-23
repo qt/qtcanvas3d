@@ -40,7 +40,7 @@ function Model() {
 
 var theModel = new Model();
 
-function initGL(canvas, textureLoader) {
+function initGL(canvas) {
     canvas3d = canvas
     log("*******************************************************************************************")
     log("initGL ENTER...")
@@ -95,7 +95,27 @@ function initGL(canvas, textureLoader) {
 
         // Load the barrel texture
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-        textureLoader.loadImage("qrc:/qml/interaction/barrel.jpg");
+        // Load the Qt logo as texture
+        var barrelImage = TextureImageFactory.newTexImage();
+        barrelImage.imageLoaded.connect(function() {
+            barrelTexture = gl.createTexture();
+            barrelTexture.name = "barrelTexture"
+            gl.bindTexture(gl.TEXTURE_2D, barrelTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          barrelImage);     // pixels
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+        barrelImage.imageLoadingFailed.connect(function() {
+            console.log("Texture load FAILED, "+barrelImage.errorString);
+        });
+        barrelImage.src = "qrc:/qml/interaction/barrel.jpg";
 
         // Load the model
         log("    Create XMLHttpRequest")
@@ -238,32 +258,6 @@ function handleLoadedModel(jsonObj) {
 
     theModel.count = modelData.indices.length;
     log("...handleLoadedModel EXIT");
-    log("*******************************************************************************************");
-}
-
-function textureLoaded(textureImage) {
-    log("*******************************************************************************************");
-    log("textureLoaded ENTER...")
-
-    if (textureImage.imageState == TextureImage.LOADING_FINISHED && barrelTexture  == 0) {
-        log("    processing "+textureImage.source);
-        barrelTexture = gl.createTexture();
-        barrelTexture.name = "barrelTexture"
-        gl.bindTexture(gl.TEXTURE_2D, barrelTexture);
-        gl.texImage2D(gl.TEXTURE_2D,    // target
-                      0,                // level
-                      gl.RGBA,          // internalformat
-                      gl.RGBA,          // format
-                      gl.UNSIGNED_BYTE, // type
-                      textureImage);    // pixels
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
-    }
-
-    gl.bindTexture(gl.TEXTURE_2D, null);
-    log("...textureLoaded EXIT");
     log("*******************************************************************************************");
 }
 

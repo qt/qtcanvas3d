@@ -43,7 +43,6 @@ SOURCES += qcanvas3d_plugin.cpp \
     shader3d.cpp \
     shaderprecisionformat.cpp \
     teximage3d.cpp \
-    teximage3dloader.cpp \
     texture3d.cpp \
     uniformlocation.cpp \
     activeinfo3d.cpp
@@ -78,7 +77,6 @@ HEADERS += qcanvas3d_plugin.h \
     shader3d_p.h \
     shaderprecisionformat_p.h \
     teximage3d_p.h \
-    teximage3dloader_p.h \
     texture3d_p.h \
     uniformlocation_p.h \
     activeinfo3d_p.h

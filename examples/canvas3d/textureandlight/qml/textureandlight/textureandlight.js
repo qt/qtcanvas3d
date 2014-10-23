@@ -23,7 +23,7 @@ var width = 0;
 var height = 0;
 var canvas3d;
 
-function initGL(canvas, textureLoader) {
+function initGL(canvas) {
     canvas3d = canvas;
     //! [1]
     // Get the OpenGL context object that represents the API we call
@@ -50,15 +50,11 @@ function initGL(canvas, textureLoader) {
     // Initialize vertex and color buffers
     initBuffers();
 
-    // Load the texture
-    textureLoader.loadTexture("qtlogo.png");
-}
-
-//! [8]
-function textureLoaded(textureImage) {
-    if (textureImage.imageState == TextureImage.LOADING_FINISHED && cubeTexture  == 0) {
-        if (canvas3d.logAllCalls)
-            console.log("    processing "+textureImage.source);
+    // Load the Qt logo as texture
+    var qtLogoImage = TextureImageFactory.newTexImage();
+    //! [8]
+    qtLogoImage.imageLoaded.connect(function() {
+        console.log("Texture loaded, "+qtLogoImage.src);
         // Create the Texture3D object
         cubeTexture = gl.createTexture();
         // Bind it
@@ -69,15 +65,20 @@ function textureLoaded(textureImage) {
                       gl.RGBA,          // internalformat
                       gl.RGBA,          // format
                       gl.UNSIGNED_BYTE, // type
-                      textureImage);    // pixels
+                      qtLogoImage);     // pixels
         // Set texture filtering parameters
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
         // Generate mipmap
         gl.generateMipmap(gl.TEXTURE_2D);
-    }
+    });
+    //! [8]
+    qtLogoImage.imageLoadingFailed.connect(function() {
+        console.log("Texture load FAILED, "+qtLogoImage.errorString);
+    });
+    qtLogoImage.src = "qrc:/qml/textureandlight/qtlogo.png";
 }
-//! [8]
+
 
 function degToRad(degrees) {
     return degrees * Math.PI / 180;

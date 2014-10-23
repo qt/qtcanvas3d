@@ -574,16 +574,3 @@ CanvasUint8ClampedArray *CanvasTypedArrayFactory::newUint8ClampedArray(CanvasArr
     return new CanvasUint8ClampedArray(buffer, byteOffset);
 }
 
-/*!
- * \qmlmethod TextureImage Arrays::newTexImage()
- * Returns a new empty TextureImage.
- */
-/*!
- * \internal
- */
-CanvasTextureImage *CanvasTypedArrayFactory::newTexImage()
-{
-    CanvasTextureImage *newImg = new CanvasTextureImage();
-    if (VERBOSE_ALL_TYPED_ARRAY_CALLS) qDebug() << "Arrays::" << __FUNCTION__ << "():"<<newImg;
-    return newImg;
-}

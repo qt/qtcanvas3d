@@ -76,7 +76,8 @@
  */
 
 // Owned by the SG Render Thread!
-CanvasContext::CanvasContext(QOpenGLContext *context, int width, int height, QObject *parent) :
+CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
+                             int width, int height, QObject *parent) :
     CanvasAbstractObject(parent),
     QOpenGLFunctions(context),
     m_unpackFlipYEnabled(false),
@@ -88,15 +89,14 @@ CanvasContext::CanvasContext(QOpenGLContext *context, int width, int height, QOb
     m_currentArrayBuffer(0),
     m_currentElementArrayBuffer(0),
     m_currentTexture(0),
-    m_context(0),
+    m_context(context),
+    m_surface(surface),
     m_error(NO_ERROR),
     m_currentFramebuffer(0),
     m_map(EnumToStringMap::newInstance()),
     m_canvas(0),
     m_maxVertexAttribs(0)
 {
-    m_context = context;
-
     int value = 0;
     glGetIntegerv(MAX_VERTEX_ATTRIBS, &value);
     m_maxVertexAttribs = uint(value);
@@ -3159,7 +3159,7 @@ CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
     }
 
     CanvasUniformLocation *location = new CanvasUniformLocation(index, this);
-    location->insert("name", name);
+    location->setName(name);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(program:" << program
                                 << ", name:" << name
@@ -4932,9 +4932,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
         CanvasActiveInfo *info = getActiveUniform(program, locationId);
         int numValues = 4;
 
-        qDebug() << "Context3D::" << __FUNCTION__ << "info->type():" << glEnumToString(info->infoType());
-
-        switch (info->infoType()) {
+        switch (info->type()) {
         case SAMPLER_2D:
             // Intentional flow through
         case SAMPLER_CUBE:

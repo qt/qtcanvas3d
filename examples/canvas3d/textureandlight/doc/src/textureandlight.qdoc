@@ -93,9 +93,9 @@
     As can be seen, first we create the buffer, then bind it and finally insert the data into it.
     We won't take a look at the other buffers, as they are all handled in a similar fashion.
 
-    After that, as the final step in \c{initGL}, we'll request a texture from TextureImageLoader
-    passed to \c initGL as a parameter. Once the texture image is successfully loaded, we create
-    the actual texture in \c textureLoaded function called by the TextureImageLoader:
+    After that, as the final step in \c{initGL}, we'll create a texture image from
+    TextureImageFactory. And we register handlers for \c imageLoaded and \c imageLoadingFailed
+    signals. Once the texture image is successfully loaded, we create the actual texture:
 
     \snippet textureandlight/qml/textureandlight/textureandlight.js 8
 

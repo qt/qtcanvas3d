@@ -23,7 +23,6 @@ Window {
                 id: canvas3d
                 Layout.fillHeight: true
                 Layout.fillWidth: true
-                imageLoader: textureImageLoader
                 property double xRot: 0.0
                 property double yRot: 45.0
                 property double distance: 2.0
@@ -36,7 +35,7 @@ Window {
                 property bool drawWireframe: false
 
                 onInitGL: {
-                    GLCode.initGL(canvas3d, textureImageLoader);
+                    GLCode.initGL(canvas3d);
                 }
 
                 onRenderGL: {
@@ -256,24 +255,6 @@ Window {
             to: 10.0
             duration: 30000
             easing.type: Easing.InOutSine
-        }
-    }
-
-    TextureImageLoader {
-        id: textureImageLoader
-
-        function loadTexture(file) {
-            return textureImageLoader.loadImage("qrc:///"+file);
-        }
-
-        onImageLoaded: {
-            GLCode.textureLoaded(image);
-        }
-
-        onImageLoadingFailed: {
-            if (GLCode.textureLoadError !== undefined) {
-                GLCode.textureLoadError(image);
-            }
         }
     }
 }

@@ -49,7 +49,6 @@
 
 #include "canvas3dcommon_p.h"
 #include "context3d_p.h"
-#include "teximage3dloader_p.h"
 
 #include <QQuickItem>
 #include <QQuickWindow>
@@ -65,7 +64,6 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
-    Q_PROPERTY(CanvasTextureImageLoader *imageLoader READ imageLoader WRITE setImageLoader NOTIFY imageLoaderChanged)
 
 public:
     Canvas(QQuickItem *parent = 0);
@@ -81,9 +79,6 @@ public:
 
     GLuint drawFBOHandle();
 
-    CanvasTextureImageLoader *imageLoader();
-    void setImageLoader(CanvasTextureImageLoader *loader);
-
     Q_INVOKABLE CanvasContext *getContext(const QString &name);
     Q_INVOKABLE CanvasContext *getContext(const QString &name, const QVariantMap &options);
     CanvasContext *context();
@@ -97,7 +92,6 @@ signals:
     void needRender();
     void devicePixelRatioChanged(float ratio);
     void animatedChanged(bool animated);
-    void imageLoaderChanged(CanvasTextureImageLoader *loader);
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
     void contextChanged(CanvasContext *context);
@@ -134,7 +128,6 @@ private:
     int m_samples;
     float m_devicePixelRatio;
 
-    CanvasTextureImageLoader *m_imageLoader;
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;

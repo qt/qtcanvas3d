@@ -54,8 +54,27 @@ function initGL(canvas, textureLoader) {
         // Initialize vertex and color buffers
         initBuffers();
 
-        // Load the texture
-        textureLoader.loadTexture("qtlogo.png");
+        // Load the Qt logo as texture
+        var qtLogoImage = TextureImageFactory.newTexImage();
+        qtLogoImage.imageLoaded.connect(function() {
+            cubeTexture = gl.createTexture();
+            cubeTexture.name = "CubeTexture";
+            gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
+            gl.texImage2D(gl.TEXTURE_2D,    // target
+                          0,                // level
+                          gl.RGBA,          // internalformat
+                          gl.RGBA,          // format
+                          gl.UNSIGNED_BYTE, // type
+                          qtLogoImage);    // pixels
+
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
+            gl.generateMipmap(gl.TEXTURE_2D);
+        });
+        qtLogoImage.imageLoadingFailed.connect(function() {
+            console.log("Texture load FAILED, "+qtLogoImage.errorString);
+        });
+        qtLogoImage.src = "qrc:/qml/framebuffer/qtlogo.png";
 
         //! [1]
         // Create the framebuffer object
@@ -99,25 +118,6 @@ function initGL(canvas, textureLoader) {
         console.log("initGL FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
-    }
-}
-
-function textureLoaded(textureImage) {
-    if (textureImage.imageState == TextureImage.LOADING_FINISHED && cubeTexture  == 0) {
-        log("    processing "+textureImage.source);
-        cubeTexture = gl.createTexture();
-        cubeTexture.name = "CubeTexture";
-        gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-        gl.texImage2D(gl.TEXTURE_2D,    // target
-                      0,                // level
-                      gl.RGBA,          // internalformat
-                      gl.RGBA,          // format
-                      gl.UNSIGNED_BYTE, // type
-                      textureImage);    // pixels
-
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
     }
 }
 
