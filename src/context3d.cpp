@@ -2789,7 +2789,7 @@ void CanvasContext::uniform1fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform1fv(location->id(), array.count(), arrayData);
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -2808,7 +2808,7 @@ void CanvasContext::uniform2fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform2fv(location->id(), array.count() / 2, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -2827,7 +2827,7 @@ void CanvasContext::uniform3fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform3fv(location->id(), array.count() / 3, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -2846,7 +2846,7 @@ void CanvasContext::uniform4fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.count()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform4fv(location->id(), array.count() / 4, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -2865,7 +2865,7 @@ void CanvasContext::uniform1iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform1iv(location->id(), array.count(), arrayData);
-    delete arrayData;
+    delete [] arrayData;
 
 }
 
@@ -2885,7 +2885,7 @@ void CanvasContext::uniform2iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform2iv(location->id(), array.count() / 2, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 
 }
 
@@ -2905,7 +2905,7 @@ void CanvasContext::uniform3iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform3iv(location->id(), array.count() / 3, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 
 }
 
@@ -2925,7 +2925,7 @@ void CanvasContext::uniform4iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform4iv(location->id(), array.length() / 4, arrayData);
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -3359,7 +3359,7 @@ void CanvasContext::uniformMatrix4fva(CanvasUniformLocation *uniformLocation, bo
 
     glUniformMatrix4fv(location, numMatrices, transpose, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -3390,7 +3390,7 @@ void CanvasContext::uniformMatrix3fva(CanvasUniformLocation *uniformLocation, bo
 
     glUniformMatrix3fv(location, numMatrices, transpose, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -3422,7 +3422,7 @@ void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bo
 
     glUniformMatrix2fv(location, numMatrices, transpose, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -4292,6 +4292,7 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(CanvasProgram *program, uint in
     GLenum type = 0;
     glGetActiveAttrib(program->id(), index, 512, &length, &size, &type, name);
     QString strName(name);
+    delete [] name;
     return new CanvasActiveInfo(size, CanvasContext::glEnums(type), strName);
 }
 
@@ -4316,6 +4317,7 @@ CanvasActiveInfo *CanvasContext::getActiveUniform(CanvasProgram *program, uint i
     GLenum type = 0;
     glGetActiveUniform(program->id(), index, 512, &length, &size, &type, name);
     QString strName(name);
+    delete [] name;
     return new CanvasActiveInfo(size, CanvasContext::glEnums(type), strName);
 }
 
@@ -4514,7 +4516,7 @@ void CanvasContext::vertexAttrib1fva(uint indx, QVariantList values)
 
     glVertexAttrib1fv(indx, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -4541,7 +4543,7 @@ void CanvasContext::vertexAttrib2fva(uint indx, QVariantList values)
 
     glVertexAttrib2fv(indx, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -4568,7 +4570,7 @@ void CanvasContext::vertexAttrib3fva(uint indx, QVariantList values)
 
     glVertexAttrib3fv(indx, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
@@ -4595,7 +4597,7 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
 
     glVertexAttrib4fv(indx, arrayData);
 
-    delete arrayData;
+    delete [] arrayData;
 }
 
 /*!
