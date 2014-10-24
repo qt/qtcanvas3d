@@ -162,17 +162,17 @@ function initShaders() {
     log("    Initializing shaders...");
 
     vertexShader = getShader(gl, "attribute highp vec3 aVertexPosition; \
-                                  attribute highp vec4 aVertexColor; \
-                                  uniform highp mat4 uMVMatrix; \
-                                  uniform highp mat4 uPMatrix; \
-                                  varying highp vec4 vColor; \
-                                  void main(void) { \
+                                  attribute highp vec4 aVertexColor;    \
+                                  uniform highp mat4 uMVMatrix;         \
+                                  uniform highp mat4 uPMatrix;          \
+                                  varying highp vec4 vColor;            \
+                                  void main(void) {                     \
                                       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0); \
-                                      vColor = aVertexColor; \
+                                      vColor = aVertexColor;            \
                                   }", gl.VERTEX_SHADER);
-    fragmentShader = getShader(gl, "varying highp vec4 vColor; \
-                                    void main(void) { \
-                                        gl_FragColor = vColor; \
+    fragmentShader = getShader(gl, "varying highp vec4 vColor;  \
+                                    void main(void) {           \
+                                        gl_FragColor = vColor;  \
                                     }", gl.FRAGMENT_SHADER);
 
     shaderProgram = gl.createProgram();

@@ -374,41 +374,41 @@ function initBuffers()
 function initShaders()
 {
     var vertexShader = getShader(gl,
-                                 "attribute highp vec3 aVertexNormal;
-                                  attribute highp vec3 aVertexPosition;
-                                  attribute mediump vec4 aVertexColor;
-                                  attribute highp vec2 aTextureCoord;
+                                 "attribute highp vec3 aVertexNormal;   \
+                                  attribute highp vec3 aVertexPosition; \
+                                  attribute mediump vec4 aVertexColor;  \
+                                  attribute highp vec2 aTextureCoord;   \
 
-                                  uniform highp mat4 uNormalMatrix;
-                                  uniform mat4 uMVMatrix;
-                                  uniform mat4 uPMatrix;
+                                  uniform highp mat4 uNormalMatrix;     \
+                                  uniform mat4 uMVMatrix;               \
+                                  uniform mat4 uPMatrix;                \
 
-                                  varying mediump vec4 vColor;
-                                  varying highp vec2 vTextureCoord;
-                                  varying highp vec3 vLighting;
+                                  varying mediump vec4 vColor;          \
+                                  varying highp vec2 vTextureCoord;     \
+                                  varying highp vec3 vLighting;         \
 
-                                  void main(void) {
-                                      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                      vColor = aVertexColor;
-                                      vTextureCoord = aTextureCoord;
-                                      highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);
-                                      highp vec3 directionalLightColor = vec3(0.75, 0.75, 0.75);
-                                      highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);
-                                      highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
-                                      highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-                                      vLighting = ambientLight + (directionalLightColor * directional);
+                                  void main(void) {                     \
+                                      gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                      \
+                                      vColor = aVertexColor;                                                                \
+                                      vTextureCoord = aTextureCoord;                                                        \
+                                      highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);                                        \
+                                      highp vec3 directionalLightColor = vec3(0.75, 0.5, 0.75);                             \
+                                      highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);                                 \
+                                      highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);              \
+                                      highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);    \
+                                      vLighting = ambientLight + (directionalLightColor * directional);                     \
                                   }", gl.VERTEX_SHADER);
     var fragmentShader = getShader(gl,
-                                   "varying mediump vec4 vColor;
-                                    varying highp vec2 vTextureCoord;
-                                    varying highp vec3 vLighting;
+                                   "varying mediump vec4 vColor;        \
+                                    varying highp vec2 vTextureCoord;   \
+                                    varying highp vec3 vLighting;       \
 
-                                    uniform sampler2D uSampler;
+                                    uniform sampler2D uSampler;         \
 
-                                    void main(void) {
-                                        mediump vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));
-                                        mediump vec3 blendColor = mix(vColor.rgb, texelColor.rgb, texelColor.a);
-                                        gl_FragColor = vec4(blendColor * vLighting, 1.0);
+                                    void main(void) {                   \
+                                        mediump vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));  \
+                                        mediump vec3 blendColor = mix(vColor.rgb, texelColor.rgb, texelColor.a);                \
+                                        gl_FragColor = vec4(blendColor * vLighting, 1.0);                                       \
                                     }", gl.FRAGMENT_SHADER);
 
     var shaderProgram = gl.createProgram();

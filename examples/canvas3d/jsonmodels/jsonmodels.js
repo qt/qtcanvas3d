@@ -654,39 +654,39 @@ function initShaders()
     log("   initShaders...")
 
     vertexShader = getShader(gl,
-                             "attribute highp vec3 aVertexNormal;
-                              attribute highp vec3 aVertexPosition;
-                              attribute highp vec2 aTextureCoord;
+                             "attribute highp vec3 aVertexNormal;   \
+                              attribute highp vec3 aVertexPosition; \
+                              attribute highp vec2 aTextureCoord;   \
 
-                              uniform highp mat4 uNormalMatrix;
-                              uniform mat4 uMVMatrix;
-                              uniform mat4 uPMatrix;
-                              uniform vec3 eyePos;
+                              uniform highp mat4 uNormalMatrix;     \
+                              uniform mat4 uMVMatrix;               \
+                              uniform mat4 uPMatrix;                \
+                              uniform vec3 eyePos;                  \
 
-                              varying highp vec2 vTextureCoord;
-                              varying highp vec4 vLighting;
+                              varying highp vec2 vTextureCoord;     \
+                              varying highp vec4 vLighting;         \
 
-                              void main(void) {
-                                 gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);
-                                 vTextureCoord = aTextureCoord;
-                                 highp vec4 ambientLight = vec4(0.5, 0.5, 0.5, 1.0);
-                                 highp vec4 directionalLightColor = vec4(1.0, 1.0, 1.0, 1.0);
-                                 highp vec3 directionalVector = eyePos;
-                                 highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);
+                              void main(void) {                     \
+                                 gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                   \
+                                 vTextureCoord = aTextureCoord;                                                     \
+                                 highp vec4 ambientLight = vec4(0.5, 0.5, 0.5, 1.0);                                \
+                                 highp vec4 directionalLightColor = vec4(1.0, 1.0, 1.0, 1.0);                       \
+                                 highp vec3 directionalVector = eyePos;                                             \
+                                 highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);           \
 
-                                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);
-                                 vLighting = ambientLight + (directionalLightColor * directional);
+                                 highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0); \
+                                 vLighting = ambientLight + (directionalLightColor * directional);                  \
                              }", gl.VERTEX_SHADER);
 
     fragmentShader = getShader(gl,
-                               "varying highp vec2 vTextureCoord;
-                                varying highp vec4 vLighting;
+                               "varying highp vec2 vTextureCoord;   \
+                                varying highp vec4 vLighting;       \
 
-                                uniform sampler2D uSampler;
+                                uniform sampler2D uSampler;         \
 
-                                void main(void) {
-                                    mediump vec4 texelColor = texture2D(uSampler, vTextureCoord);
-                                    gl_FragColor = vec4(texelColor * vLighting);
+                                void main(void) {                   \
+                                    mediump vec4 texelColor = texture2D(uSampler, vTextureCoord);   \
+                                    gl_FragColor = vec4(texelColor * vLighting);                    \
                                 }", gl.FRAGMENT_SHADER);
 
     texturedShaderProgram = gl.createProgram();

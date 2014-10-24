@@ -73,12 +73,12 @@ function renderGL(canvas) {
 function initShaders()
 {
     // setup a GLSL program
-    vertexShader = compileShader("attribute vec2 a_position; \
-                                  void main() { \
-                                      gl_Position = vec4(a_position, 0.0, 1.0); \
+    vertexShader = compileShader("attribute vec2 a_position;                        \
+                                  void main() {                                     \
+                                      gl_Position = vec4(a_position, 0.0, 1.0);     \
                                  }", gl.VERTEX_SHADER);
-    fragmentShader = compileShader("void main() { \
-                                        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0); \
+    fragmentShader = compileShader("void main() {                                   \
+                                        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0);    \
                                    }", gl.FRAGMENT_SHADER);
 
     shaderProgram = gl.createProgram();
