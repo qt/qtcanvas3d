@@ -59,18 +59,6 @@ Item {
     }
 
     Canvas3D {
-        id: animated
-        animated: true
-    }
-
-    Canvas3D {
-        id: imageloader
-        imageLoader: TextureImageLoader {
-            id: loader
-        }
-    }
-
-    Canvas3D {
         id: basic_context
         anchors.fill: parent
         function initGL() {}
@@ -100,8 +88,6 @@ Item {
             compare(empty.height, 0)
             compare(empty.logAllCalls, false)
             compare(empty.logAllErrors, true)
-            compare(empty.animated, false)
-            compare(empty.imageLoader, null)
             compare(empty.context, null)
         }
 
@@ -114,14 +100,6 @@ Item {
         function test_no_logs() {
             compare(no_logs.logAllCalls, false)
             compare(no_logs.logAllErrors, false)
-        }
-
-        function test_animated() {
-            compare(animated.animated, true)
-        }
-
-        function test_imageloader() {
-            compare(imageloader.imageLoader, loader)
         }
 
         function test_basic_context() {
