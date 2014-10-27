@@ -2786,6 +2786,9 @@ void CanvasContext::uniform1fva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform1fv(location->id(), array.count(), arrayData);
@@ -2805,6 +2808,9 @@ void CanvasContext::uniform2fva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform2fv(location->id(), array.count() / 2, arrayData);
@@ -2824,6 +2830,9 @@ void CanvasContext::uniform3fva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform3fv(location->id(), array.count() / 3, arrayData);
@@ -2843,6 +2852,9 @@ void CanvasContext::uniform4fva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     float *arrayData = new float[array.count()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform4fv(location->id(), array.count() / 4, arrayData);
@@ -2862,6 +2874,9 @@ void CanvasContext::uniform1iva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform1iv(location->id(), array.count(), arrayData);
@@ -2882,6 +2897,9 @@ void CanvasContext::uniform2iva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform2iv(location->id(), array.count() / 2, arrayData);
@@ -2902,6 +2920,9 @@ void CanvasContext::uniform3iva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform3iv(location->id(), array.count() / 3, arrayData);
@@ -2922,6 +2943,9 @@ void CanvasContext::uniform4iva(CanvasUniformLocation *location, QVariantList ar
                                 << "(location:" << location
                                 << ", array:" << array
                                 << ")";
+    if (!location)
+        return;
+
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform4iv(location->id(), array.length() / 4, arrayData);
