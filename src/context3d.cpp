@@ -1480,10 +1480,11 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
     }
 
     if (attachment != COLOR_ATTACHMENT0 && attachment != DEPTH_ATTACHMENT
-            && attachment != STENCIL_ATTACHMENT) {
+            && attachment != STENCIL_ATTACHMENT && attachment != DEPTH_STENCIL_ATTACHMENT) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                      << "(): INVALID_OPERATION attachment must be one of "
-                                     << "COLOR_ATTACHMENT0, DEPTH_ATTACHMENT or STENCIL_ATTACHMENT";
+                                     << "COLOR_ATTACHMENT0, DEPTH_ATTACHMENT, STENCIL_ATTACHMENT "
+                                     << "or DEPTH_STENCIL_ATTACHMENT";
         m_error = INVALID_OPERATION;
         return;
     }
