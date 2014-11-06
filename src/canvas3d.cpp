@@ -90,12 +90,9 @@ Canvas::Canvas(QQuickItem *parent):
     m_glContext(0),
     m_glContextQt(0),
     m_contextWindow(0),
-    #if defined(QT_OPENGL_ES_2)
     m_maxSamples(0),
-    #else
-    m_maxSamples(4),
-    #endif
     m_devicePixelRatio(1.0f),
+    m_isOpenGLES2(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
     m_antialiasFbo(0),
@@ -320,12 +317,13 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         }
 
         QSurfaceFormat surfaceFormat = m_glContextQt->format();
-#if defined(QT_OPENGL_ES_2)
-        surfaceFormat.setMajorVersion(2);
-        surfaceFormat.setMinorVersion(0);
-#endif
-        surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
-        surfaceFormat.setSwapInterval(0);
+        if (m_isOpenGLES2) {
+            surfaceFormat.setMajorVersion(2);
+            surfaceFormat.setMinorVersion(0);
+        } else {
+            surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
+            surfaceFormat.setSwapInterval(0);
+        }
 
         if (m_contextAttribs.antialias() && !m_isSoftwareRendered)
             surfaceFormat.setSamples(m_maxSamples);
@@ -382,8 +380,10 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
             m_antialiasFbo = new QOpenGLFramebufferObject(m_initialisedSize, antialiasFboFormat);
         }
 
-        m_context3D = new CanvasContext(m_glContext, m_offscreenSurface, m_initialisedSize.width() * m_devicePixelRatio,
-                                        m_initialisedSize.height() * m_devicePixelRatio);
+        m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,
+                                        m_initialisedSize.width() * m_devicePixelRatio,
+                                        m_initialisedSize.height() * m_devicePixelRatio,
+                                        m_isOpenGLES2);
         m_context3D->setCanvas(this);
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
         m_context3D->setContextAttributes(m_contextAttribs);
@@ -513,6 +513,9 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 
     if (!m_glContextQt) {
         m_glContextQt = window()->openglContext();
+        m_isOpenGLES2 = m_glContextQt->isOpenGLES();
+        if (!m_isOpenGLES2)
+            m_maxSamples = 4;
         ready();
         return 0;
     }

@@ -77,7 +77,7 @@
 
 // Owned by the SG Render Thread!
 CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
-                             int width, int height, QObject *parent) :
+                             int width, int height, bool isES2, QObject *parent) :
     CanvasAbstractObject(parent),
     QOpenGLFunctions(context),
     m_unpackFlipYEnabled(false),
@@ -95,7 +95,8 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     m_currentFramebuffer(0),
     m_map(EnumToStringMap::newInstance()),
     m_canvas(0),
-    m_maxVertexAttribs(0)
+    m_maxVertexAttribs(0),
+    m_isOpenGLES2(isES2)
 {
     int value = 0;
     glGetIntegerv(MAX_VERTEX_ATTRIBS, &value);
@@ -2390,11 +2391,11 @@ void CanvasContext::deleteShader(CanvasShader *shader)
  */
 void CanvasContext::shaderSource(CanvasShader *shader, const QString &shaderSource)
 {
-#if defined(QT_OPENGL_ES_2)
-    QString modSource = shaderSource;
-#else
     QString modSource = "#version 120 \n#define precision \n"+ shaderSource;
-#endif
+
+    if (m_isOpenGLES2)
+        modSource = shaderSource;
+
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(shader:" << shader
                                 << ", shaderSource"

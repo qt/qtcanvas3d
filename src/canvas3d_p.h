@@ -127,6 +127,7 @@ private:
     int m_maxSamples;
     float m_devicePixelRatio;
 
+    bool m_isOpenGLES2;
     bool m_isSoftwareRendered;
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;

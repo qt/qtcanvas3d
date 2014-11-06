@@ -940,7 +940,7 @@ public:
     ENUM_AS_PROPERTY(BROWSER_DEFAULT_WEBGL)
 
     CanvasContext(QOpenGLContext *context, QSurface *surface,
-                  int width, int height, QObject *parent = 0);
+                  int width, int height, bool isES2, QObject *parent = 0);
     ~CanvasContext();
 
     void setCanvas(Canvas *canvas);
@@ -1231,6 +1231,7 @@ private:
     Canvas *m_canvas;
     uint m_maxVertexAttribs;
     float **m_vertexAttribPointers;
+    bool m_isOpenGLES2;
 };
 
 #endif // CONTEXT3D_P_H
