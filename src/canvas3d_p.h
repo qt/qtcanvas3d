@@ -125,9 +125,9 @@ private:
     QQuickWindow *m_contextWindow;
 
     int m_maxSamples;
-    int m_samples;
     float m_devicePixelRatio;
 
+    bool m_isSoftwareRendered;
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;

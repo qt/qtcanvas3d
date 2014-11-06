@@ -95,8 +95,8 @@ Canvas::Canvas(QQuickItem *parent):
     #else
     m_maxSamples(4),
     #endif
-    m_samples(0),
     m_devicePixelRatio(1.0f),
+    m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
     m_antialiasFbo(0),
     m_renderFbo(0),
@@ -111,6 +111,10 @@ Canvas::Canvas(QQuickItem *parent):
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
     setFlag(ItemHasContents, !m_runningInDesigner);
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
+    if (QCoreApplication::testAttribute(Qt::AA_UseSoftwareOpenGL))
+        m_isSoftwareRendered = true;
+#endif
 }
 
 /*!
@@ -323,7 +327,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
         surfaceFormat.setSwapInterval(0);
 
-        if (m_contextAttribs.antialias())
+        if (m_contextAttribs.antialias() && !m_isSoftwareRendered)
             surfaceFormat.setSamples(m_maxSamples);
         else
             surfaceFormat.setSamples(0);
