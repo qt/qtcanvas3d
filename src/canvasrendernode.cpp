@@ -59,7 +59,6 @@ CanvasRenderNode::CanvasRenderNode(Canvas *canvas, QQuickWindow *window) :
 
 CanvasRenderNode::~CanvasRenderNode()
 {
-    if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__;
     delete m_texture;
 }
 

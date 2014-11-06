@@ -76,7 +76,7 @@ CanvasArrayBuffer::CanvasArrayBuffer(unsigned long length, QObject *parent) :
  */
 CanvasArrayBuffer::~CanvasArrayBuffer()
 {
-    delete m_rawData;
+    delete[] m_rawData;
 }
 
 /*!

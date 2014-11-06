@@ -155,15 +155,14 @@ void Canvas::shutDown()
 
     if (m_logAllCalls) qDebug() << m_contextThread << m_mainThread;
 
-    if (m_contextThread && m_contextThread != m_mainThread)
+    if (m_contextThread && m_contextThread != m_mainThread) {
         m_glContext->deleteLater();
-    else
+        m_offscreenSurface->deleteLater();
+    } else {
         delete m_glContext;
+        delete m_offscreenSurface;
+    }
     m_glContext = 0;
-
-    // schedule this to be deleted only after we're done cleaning up
-    m_offscreenSurface->deleteLater();
-
     m_glContextQt = 0;
 }
 

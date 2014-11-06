@@ -38,8 +38,20 @@
 #include "canvas3dcommon_p.h"
 
 #include <QJSValueIterator>
+#include <QtQml/QQmlEngine>
 
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
+
+class StaticFactoryMapDeleter
+{
+public:
+    StaticFactoryMapDeleter() {}
+    ~StaticFactoryMapDeleter() {
+        foreach (CanvasTextureImageFactory *factory, m_qmlEngineToImageFactoryMap)
+            delete factory;
+    }
+};
+static StaticFactoryMapDeleter staticFactoryMapDeleter;
 
 /*!
  * \internal
@@ -48,6 +60,9 @@ CanvasTextureImageFactory::CanvasTextureImageFactory(QQmlEngine *engine, QObject
     QObject(parent)
 {
     m_qmlEngine = engine;
+
+    QObject::connect(engine, &QObject::destroyed,
+                     this, &CanvasTextureImageFactory::deleteLater);
 }
 
 /*!
