@@ -53,7 +53,7 @@ int main(int argc, char *argv[])
     QString extraImportPath(QStringLiteral("%1/../../../%2"));
 #endif
     viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
-                                      QString::fromLatin1("qml")));
+                                                       QString::fromLatin1("qml")));
 
     viewer.setSource(QUrl("qrc:/qml/textureandlight/main.qml"));
 

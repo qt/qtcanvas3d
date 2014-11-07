@@ -249,7 +249,7 @@ function initShaders()
 {
     log("    initShaders ENTER {")
     var vertexShader = getShader(gl,
-                              "attribute highp vec3 aVertexPosition;                 \
+                                 "attribute highp vec3 aVertexPosition;                 \
                               attribute mediump vec4 aVertexColor;                   \
                               attribute highp vec2 aTextureCoord;                    \
                                                                                      \
@@ -267,7 +267,7 @@ function initShaders()
                                   vTextureCoord = aTextureCoord;                     \
                               }", gl.VERTEX_SHADER);
     var fragmentShader = getShader(gl,
-                               "varying mediump vec4 vColor;                   \
+                                   "varying mediump vec4 vColor;                   \
                                varying highp vec2 vTextureCoord;               \
                                varying highp vec4 vPos;                        \
                                                                                \

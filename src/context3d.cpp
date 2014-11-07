@@ -4821,25 +4821,25 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
 
             return QVariant::fromValue(m_idToCanvasBufferMap[value]);
         }
-        break;
+            break;
         case VERTEX_ATTRIB_ARRAY_ENABLED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             return QVariant::fromValue( bool(value));
         }
-        break;
+            break;
         case VERTEX_ATTRIB_ARRAY_SIZE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             return QVariant::fromValue(value);
         }
-        break;
+            break;
         case VERTEX_ATTRIB_ARRAY_STRIDE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             return QVariant::fromValue(value);
         }
-        break;
+            break;
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
@@ -4861,7 +4861,7 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
             floatList.push_back(values[2]);
             floatList.push_back(values[3]);
             return QVariant::fromValue(floatList);
-            }
+        }
         default:
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                          << ":INVALID_ENUM index must be smaller than "
