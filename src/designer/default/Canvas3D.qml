@@ -42,6 +42,4 @@ Canvas3D {
     anchors.fill: parent
     logAllCalls: false
     logAllErrors: false
-    imageLoader: TextureImageLoader {
-    }
 }
