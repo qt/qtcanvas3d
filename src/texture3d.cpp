@@ -113,7 +113,7 @@ void CanvasTexture::del()
 QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
 {
     if (texture)
-        dbg.nospace() << "Texture3D("<< ((void*) texture) << texture->name() << ")";
+        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ")";
     else
         dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
     return dbg.maybeSpace();

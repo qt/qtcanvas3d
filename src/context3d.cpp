@@ -3530,13 +3530,6 @@ void CanvasContext::bufferData(glEnums target, long size, glEnums usage)
 }
 
 /*!
- * \qmlmethod TypedArray Context3D::createTypedArray(glEnums dataType, long size)
- * Returns a new TypedArray of the given \a dataType with the given \a size. Type must be one of
- * \c{Context3D.BYTE}, \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.SHORT},
- * \c{Context3D.UNSIGNED_SHORT}, \c{Context3D.INT}, \c{Context3D.UNSIGNED_INT},
- * or \c{Context3D.FLOAT}.
- */
-/*!
  * \internal
  */
 CanvasTypedArray *CanvasContext::createTypedArray(glEnums dataType, long size)

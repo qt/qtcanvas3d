@@ -129,12 +129,6 @@ function initGL(canvas) {
 }
 
 function renderGL(canvas) {
-    // draw only when we have the meshes and textures
-    if (modelOne.count <= 0 || modelTwo.count <= 0 || modelThree.count <= 0 || modelFour.count <= 0
-            || modelFive.count <= 0 || modelOneTexture == 0 || modelTwoTexture == 0
-            || modelThreeTexture == 0 || modelFourTexture == 0 || modelFiveTexture == 0)
-        return;
-
     // draw
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -163,343 +157,365 @@ function renderGL(canvas) {
     else
         drawMode = gl.TRIANGLES;
 
-    // Draw model one
-    // Bind the correct buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.verticesVBO);
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+    if (modelOne.count > 0 && modelOneTexture !== 0 ) {
+        // Draw model one
+        log("   model one count:"+modelOne.count+" texture:"+modelOneTexture.name);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.normalsVBO);
-    gl.enableVertexAttribArray(vertexNormalAttribute);
-    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Bind the correct buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.verticesVBO);
+        gl.enableVertexAttribArray(vertexPositionAttribute);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.texCoordVBO);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.normalsVBO);
+        gl.enableVertexAttribArray(vertexNormalAttribute);
+        gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
-    gl.uniform1i(textureSamplerUniform, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelOne.texCoordVBO);
+        gl.enableVertexAttribArray(textureCoordAttribute);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posOne);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
+        gl.uniform1i(textureSamplerUniform, 0);
 
-    // Draw the model
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
-    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posOne);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posTwo);
-    mat4.rotateY(mMatrix, mMatrix, rotTwo);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Draw the model
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
+        gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posTwo);
+        mat4.rotateY(mMatrix, mMatrix, rotTwo);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posThree);
-    mat4.rotateY(mMatrix, mMatrix, rotThree);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Draw the model
+        gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posThree);
+        mat4.rotateY(mMatrix, mMatrix, rotThree);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Draw model two
-    // Bind the correct buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.verticesVBO);
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
+    }
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.normalsVBO);
-    gl.enableVertexAttribArray(vertexNormalAttribute);
-    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.texCoordVBO);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+    if (modelTwo.count > 0 && modelTwoTexture !== 0 ) {
+        // Draw model two
+        log("   model two count:"+modelTwo.count+" texture:"+modelTwoTexture.name);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
-    gl.uniform1i(textureSamplerUniform, 0);
+        // Bind the correct buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.verticesVBO);
+        gl.enableVertexAttribArray(vertexPositionAttribute);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posOne);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.normalsVBO);
+        gl.enableVertexAttribArray(vertexNormalAttribute);
+        gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Draw the model
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelTwo.indexVBO);
-    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelTwo.texCoordVBO);
+        gl.enableVertexAttribArray(textureCoordAttribute);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posTwo);
-    mat4.rotateY(mMatrix, mMatrix, rotTwo);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
+        gl.uniform1i(textureSamplerUniform, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posOne);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posThree);
-    mat4.rotateY(mMatrix, mMatrix, rotThree);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Draw the model
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelTwo.indexVBO);
+        gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posTwo);
+        mat4.rotateY(mMatrix, mMatrix, rotTwo);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Draw model four
-    // Bind the correct buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.verticesVBO);
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.normalsVBO);
-    gl.enableVertexAttribArray(vertexNormalAttribute);
-    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posThree);
+        mat4.rotateY(mMatrix, mMatrix, rotThree);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.texCoordVBO);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
+    }
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
-    gl.uniform1i(textureSamplerUniform, 0);
+    if (modelFour.count > 0 && modelFourTexture !== 0 ) {
+        // Draw model four
+        log("   model four count:"+modelFour.count+" texture:"+modelFourTexture.name);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posFive);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Bind the correct buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.verticesVBO);
+        gl.enableVertexAttribArray(vertexPositionAttribute);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Draw the model
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFour.indexVBO);
-    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.normalsVBO);
+        gl.enableVertexAttribArray(vertexNormalAttribute);
+        gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posSix);
-    mat4.rotateY(mMatrix, mMatrix, rotFour);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFour.texCoordVBO);
+        gl.enableVertexAttribArray(textureCoordAttribute);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
+        gl.uniform1i(textureSamplerUniform, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posSeven);
-    mat4.rotateY(mMatrix, mMatrix, rotOne);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posFive);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+        // Draw the model
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFour.indexVBO);
+        gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posEight);
-    mat4.rotateY(mMatrix, mMatrix, rotFive);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posSix);
+        mat4.rotateY(mMatrix, mMatrix, rotFour);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
 
-    // Draw model five
-    // Bind the correct buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.verticesVBO);
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posSeven);
+        mat4.rotateY(mMatrix, mMatrix, rotOne);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.normalsVBO);
-    gl.enableVertexAttribArray(vertexNormalAttribute);
-    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.texCoordVBO);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posEight);
+        mat4.rotateY(mMatrix, mMatrix, rotFive);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
-    gl.uniform1i(textureSamplerUniform, 0);
+        // Draw the model
+        gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
+    }
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posNine);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    if (modelFive.count > 0 && modelFiveTexture !== 0 ) {
+        // Draw model five
+        log("   model five count:"+modelFive.count+" texture:"+modelFiveTexture.name);
 
-    // Draw the model
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFive.indexVBO);
-    gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
+        // Bind the correct buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.verticesVBO);
+        gl.enableVertexAttribArray(vertexPositionAttribute);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posTen);
-    mat4.rotateX(mMatrix, mMatrix, rotFour);
-    mat4.rotateY(mMatrix, mMatrix, rotFive);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.normalsVBO);
+        gl.enableVertexAttribArray(vertexNormalAttribute);
+        gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    // Draw the model
-    gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelFive.texCoordVBO);
+        gl.enableVertexAttribArray(textureCoordAttribute);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
-    // Draw model three (Includes transparency, must be drawn last)
-    // Bind the correct buffers
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.verticesVBO);
-    gl.enableVertexAttribArray(vertexPositionAttribute);
-    gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
+        gl.uniform1i(textureSamplerUniform, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.normalsVBO);
-    gl.enableVertexAttribArray(vertexNormalAttribute);
-    gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posNine);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.texCoordVBO);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+        // Draw the model
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFive.indexVBO);
+        gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
 
-    gl.activeTexture(gl.TEXTURE0);
-    gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
-    gl.uniform1i(textureSamplerUniform, 0);
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posTen);
+        mat4.rotateX(mMatrix, mMatrix, rotFour);
+        mat4.rotateY(mMatrix, mMatrix, rotFive);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
 
-    // Calculate the modelview matrix
-    mat4.identity(mMatrix);
-    mat4.translate(mMatrix, mMatrix, posFour);
-    // Calculate normal matrix before scaling, to keep lighting in order
-    // Scale normal matrix with distance instead
-    mat4.copy(nMatrix, mMatrix);
-    mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
-    mat4.invert(nMatrix, nMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
-    // Scale the modelview matrix, and apply the matrix
-    mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
-    mat4.multiply(mvMatrix, vMatrix, mMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        // Draw the model
+        gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
+    }
 
-    // Draw the model
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelThree.indexVBO);
-    gl.drawElements(drawMode, modelThree.count, gl.UNSIGNED_SHORT, 0);
+
+    if (modelThree.count > 0 && modelThreeTexture !== 0 ) {
+        // Draw model three (Includes transparency, must be drawn last)
+        log("   model three count:"+modelThree.count+" texture:"+modelThreeTexture.name);
+
+        // Bind the correct buffers
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.verticesVBO);
+        gl.enableVertexAttribArray(vertexPositionAttribute);
+        gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.normalsVBO);
+        gl.enableVertexAttribArray(vertexNormalAttribute);
+        gl.vertexAttribPointer(vertexNormalAttribute, 3, gl.FLOAT, false, 0, 0);
+
+        gl.bindBuffer(gl.ARRAY_BUFFER, modelThree.texCoordVBO);
+        gl.enableVertexAttribArray(textureCoordAttribute);
+        gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
+
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
+        gl.uniform1i(textureSamplerUniform, 0);
+
+        // Calculate the modelview matrix
+        mat4.identity(mMatrix);
+        mat4.translate(mMatrix, mMatrix, posFour);
+        // Calculate normal matrix before scaling, to keep lighting in order
+        // Scale normal matrix with distance instead
+        mat4.copy(nMatrix, mMatrix);
+        mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
+        mat4.invert(nMatrix, nMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        // Scale the modelview matrix, and apply the matrix
+        mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
+        mat4.multiply(mvMatrix, vMatrix, mMatrix);
+        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+
+        // Draw the model
+        gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelThree.indexVBO);
+        gl.drawElements(drawMode, modelThree.count, gl.UNSIGNED_SHORT, 0);
+    }
 }
 
 //! [8]
@@ -538,25 +554,25 @@ function handleLoadedModel(jsonObj) {
 //! [4]
 function fillModel(modelData, model) {
     log("   fillModel...");
-    log("   "+model.verticesVBO);
+    log("   "+model.verticesVBO.name);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.verticesVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
                   Arrays.newFloat32Array(modelData.vertices),
                   gl.STATIC_DRAW);
 
-    log("   "+model.normalsVBO);
+    log("   "+model.normalsVBO.name);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalsVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
                   Arrays.newFloat32Array(modelData.normals),
                   gl.STATIC_DRAW);
 
-    log("   "+model.texCoordVBO);
+    log("   "+model.texCoordVBO.name);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.texCoordVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
                   Arrays.newFloat32Array(modelData.texCoords[0]),
                   gl.STATIC_DRAW);
 
-    log("   "+model.indexVBO);
+    log("   "+model.indexVBO.name);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexVBO);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
                   Arrays.newUint16Array(modelData.indices),
@@ -612,6 +628,7 @@ function initShaders()
                                 }", gl.FRAGMENT_SHADER);
 
     texturedShaderProgram = gl.createProgram();
+    texturedShaderProgram.name = "texturedShaderProgram";
     gl.attachShader(texturedShaderProgram, vertexShader);
     gl.attachShader(texturedShaderProgram, fragmentShader);
     gl.linkProgram(texturedShaderProgram);
@@ -625,52 +642,86 @@ function initShaders()
 
     // look up where the vertex data needs to go.
     vertexPositionAttribute = gl.getAttribLocation(texturedShaderProgram, "aVertexPosition");
+    vertexPositionAttribute.name = "aVertexPosition";
     gl.enableVertexAttribArray(vertexPositionAttribute);
     vertexNormalAttribute = gl.getAttribLocation(texturedShaderProgram, "aVertexNormal");
+    vertexNormalAttribute.name = "aVertexNormal";
     gl.enableVertexAttribArray(vertexNormalAttribute);
     textureCoordAttribute = gl.getAttribLocation(texturedShaderProgram, "aTextureCoord");
+    textureCoordAttribute.name = "aTextureCoord";
     gl.enableVertexAttribArray(textureCoordAttribute);
 
     pMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uPMatrix");
+    pMatrixUniform.name = "uPMatrix";
     mvMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uMVMatrix");
+    mvMatrixUniform.name = "uMVMatrix";
     textureSamplerUniform = gl.getUniformLocation(texturedShaderProgram, "uSampler")
+    textureSamplerUniform.name = "uSampler";
     nMatrixUniform = gl.getUniformLocation(texturedShaderProgram, "uNormalMatrix");
+    nMatrixUniform.name = "uNormalMatrix";
     eyeUniform = gl.getUniformLocation(texturedShaderProgram, "eyePos");
+    eyeUniform.name = "eyePos";
     log("   ...initShaders");
 }
 
 //! [1]
 function initBuffers() {
     modelOne.verticesVBO = gl.createBuffer();
+    modelOne.verticesVBO.name = "modelOne.verticesVBO";
     modelOne.normalsVBO  = gl.createBuffer();
+    modelOne.normalsVBO.name = "modelOne.normalsVBO";
     modelOne.texCoordVBO = gl.createBuffer();
+    modelOne.texCoordVBO.name = "modelOne.texCoordVBO";
     modelOne.indexVBO    = gl.createBuffer();
+    modelOne.indexVBO.name = "modelOne.indexVBO";
+
     modelTwo.verticesVBO = gl.createBuffer();
+    modelTwo.verticesVBO.name = "modelTwo.verticesVBO";
     modelTwo.normalsVBO  = gl.createBuffer();
+    modelTwo.normalsVBO.name = "modelTwo.normalsVBO";
     modelTwo.texCoordVBO = gl.createBuffer();
+    modelTwo.texCoordVBO.name = "modelTwo.texCoordVBO";
     modelTwo.indexVBO    = gl.createBuffer();
+    modelTwo.indexVBO.name = "modelTwo.indexVBO";
+
     //! [1]
     modelThree.verticesVBO = gl.createBuffer();
+    modelThree.verticesVBO.name = "modelThree.verticesVBO";
     modelThree.normalsVBO  = gl.createBuffer();
+    modelThree.normalsVBO.name = "modelThree.normalsVBO";
     modelThree.texCoordVBO = gl.createBuffer();
+    modelThree.texCoordVBO.name = "modelThree.texCoordVBO";
     modelThree.indexVBO    = gl.createBuffer();
+    modelThree.indexVBO.name = "modelThree.indexVBO";
+
     modelFour.verticesVBO = gl.createBuffer();
+    modelFour.verticesVBO.name = "modelFour.verticesVBO";
     modelFour.normalsVBO  = gl.createBuffer();
+    modelFour.normalsVBO.name = "modelFour.normalsVBO";
     modelFour.texCoordVBO = gl.createBuffer();
+    modelFour.texCoordVBO.name = "modelFour.texCoordVBO";
     modelFour.indexVBO    = gl.createBuffer();
+    modelFour.indexVBO.name = "modelFour.indexVBO";
+
     modelFive.verticesVBO = gl.createBuffer();
+    modelFive.verticesVBO.name = "modelFive.verticesVBO";
     modelFive.normalsVBO  = gl.createBuffer();
+    modelFive.normalsVBO.name = "modelFive.normalsVBO";
     modelFive.texCoordVBO = gl.createBuffer();
+    modelFive.texCoordVBO.name = "modelFive.texCoordVBO";
     modelFive.indexVBO    = gl.createBuffer();
+    modelFive.indexVBO.name = "modelFive.indexVBO";
 }
 
 //! [5]
 function loadTextures() {
     // Load the first texture
     var goldImage = TextureImageFactory.newTexImage();
+    goldImage.name = "goldImage";
     goldImage.imageLoaded.connect(function() {
         log("    creating model one texture");
         modelOneTexture = gl.createTexture();
+        modelOneTexture.name = "modelOneTexture";
         gl.bindTexture(gl.TEXTURE_2D, modelOneTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
                       0,                // level
@@ -690,9 +741,11 @@ function loadTextures() {
 
     // Load the second texture
     var woodBoxImage = TextureImageFactory.newTexImage();
+    woodBoxImage.name = "woodBoxImage";
     woodBoxImage.imageLoaded.connect(function() {
         log("    creating model two texture");
         modelTwoTexture = gl.createTexture();
+        modelTwoTexture.name = "modelTwoTexture";
         gl.bindTexture(gl.TEXTURE_2D, modelTwoTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
                       0,                // level
@@ -713,9 +766,11 @@ function loadTextures() {
 
     // Load the third texture
     var bushImage = TextureImageFactory.newTexImage();
+    bushImage.name = "bushImage";
     bushImage.imageLoaded.connect(function() {
         log("    creating model three texture");
         modelThreeTexture = gl.createTexture();
+        modelThreeTexture.name = "modelThreeTexture";
         gl.bindTexture(gl.TEXTURE_2D, modelThreeTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
                       0,                // level
@@ -735,9 +790,11 @@ function loadTextures() {
 
     // Load the fourth texture
     var palletImage = TextureImageFactory.newTexImage();
+    palletImage.name = "palletImage";
     palletImage.imageLoaded.connect(function() {
         log("    creating model four texture");
         modelFourTexture = gl.createTexture();
+        modelFourTexture.name = "modelFourTexture";
         gl.bindTexture(gl.TEXTURE_2D, modelFourTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
                       0,                // level
@@ -757,9 +814,11 @@ function loadTextures() {
 
     // Load the fifth texture
     var rockImage = TextureImageFactory.newTexImage();
+    rockImage.name = "rockImage";
     rockImage.imageLoaded.connect(function() {
         log("    creating model five texture");
         modelFiveTexture = gl.createTexture();
+        modelFiveTexture.name = "modelFiveTexture";
         gl.bindTexture(gl.TEXTURE_2D, modelFiveTexture);
         gl.texImage2D(gl.TEXTURE_2D,    // target
                       0,                // level
