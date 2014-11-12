@@ -34,6 +34,7 @@
 **
 ****************************************************************************/
 
+#include "canvasglstatedump_p.h"
 #include "activeinfo3d_p.h"
 #include "canvas3d_p.h"
 #include "context3d_p.h"
@@ -75,7 +76,6 @@
  * \sa Canvas3D
  */
 
-// Owned by the SG Render Thread!
 CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
                              int width, int height, bool isES2, QObject *parent) :
     CanvasAbstractObject(parent),
@@ -96,7 +96,8 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     m_map(EnumToStringMap::newInstance()),
     m_canvas(0),
     m_maxVertexAttribs(0),
-    m_isOpenGLES2(isES2)
+    m_isOpenGLES2(isES2),
+    m_stateDumpExt(0)
 {
     int value = 0;
     glGetIntegerv(MAX_VERTEX_ATTRIBS, &value);
@@ -320,40 +321,6 @@ CanvasShaderPrecisionFormat *CanvasContext::getShaderPrecisionFormat(glEnums sha
     format->setRangeMin(int(range[0]));
     format->setRangeMax(int(range[1]));
     return format;
-}
-
-/*!
- * \qmlmethod list<variant> Context3D::getSupportedExtensions()
- * Returns an array of the extension strings supported by this implementation
- */
-/*!
- * \internal
- */
-QVariantList CanvasContext::getSupportedExtensions()
-{
-    if (m_logAllCalls) qDebug() << Q_FUNC_INFO;
-
-    // No extensions supported at the moment
-    return QVariantList();
-}
-
-/*!
- * \qmlmethod variant Context3D::getExtension(string name)
- * Returns an object if given \a name matches a supported extension.
- * Otherwise returns \c{null}. The returned object may contain constants and/or functions provided
- * by the extension, but at minimum a unique object is returned.
- * \a name is the case-insensitive name of the extension to be returned.
- */
-/*!
- * \internal
- */
-QVariant CanvasContext::getExtension(const QString &name)
-{
-    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(name:" << name
-                                << ")";
-
-    return QVariant();
 }
 
 /*!
@@ -4014,8 +3981,20 @@ void CanvasContext::useProgram(CanvasProgram *program)
  */
 void CanvasContext::clear(glEnums flags)
 {
-    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(flags:" << glEnumToString(flags) << ")";
+    if (m_logAllCalls) {
+        QString flagStr;
+        if (flags && COLOR_BUFFER_BIT != 0)
+            flagStr.append(" COLOR_BUFFER_BIT ");
+
+        if (flags && DEPTH_BUFFER_BIT != 0)
+            flagStr.append(" DEPTH_BUFFER_BIT ");
+
+        if (flags && STENCIL_BUFFER_BIT != 0)
+            flagStr.append(" STENCIL_BUFFER_BIT ");
+
+        qDebug() << "Context3D::" << __FUNCTION__ << "(flags:" << flagStr << ")";
+    }
+
     glClear(flags);
 }
 
@@ -5051,4 +5030,48 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
     }
 
     return QVariant();
+}
+
+/*!
+ * \qmlmethod list<variant> Context3D::getSupportedExtensions()
+ * Returns an array of the extension strings supported by this implementation
+ */
+/*!
+ * \internal
+ */
+QVariantList CanvasContext::getSupportedExtensions()
+{
+    if (m_logAllCalls) qDebug() << Q_FUNC_INFO;
+
+    // No extensions supported at the moment
+    QVariantList list;
+    list.append(QVariant::fromValue(QStringLiteral(QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME)));
+    return list;
+}
+
+/*!
+ * \qmlmethod variant Context3D::getExtension(string name)
+ * \return object if given \a name matches a supported extension.
+ * Otherwise returns \c{null}. The returned object may contain constants and/or functions provided
+ * by the extension, but at minimum a unique object is returned.
+ * Case-insensitive \a name of the extension to be returned.
+ */
+/*!
+ * \internal
+ */
+QVariant CanvasContext::getExtension(const QString &name)
+{
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << "(name:" << name
+                                << ")";
+
+    QString upperCaseName = name.toUpper();
+
+    if (upperCaseName == QStringLiteral(QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME).toUpper()) {
+        if (!m_stateDumpExt)
+            m_stateDumpExt = new CanvasGLStateDump(m_context, this);
+        return QVariant::fromValue(m_stateDumpExt);
+    }
+
+    return QVariant(QVariant::Int);
 }

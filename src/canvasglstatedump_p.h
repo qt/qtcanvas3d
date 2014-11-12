@@ -24,8 +24,8 @@
 **
 ** GNU General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or later as published by the Free 
-** Software Foundation and appearing in the file LICENSE.GPL included in 
+** General Public License version 2.0 or later as published by the Free
+** Software Foundation and appearing in the file LICENSE.GPL included in
 ** the packaging of this file.  Please review the following information to
 ** ensure the GNU General Public License version 2.0 requirements will be
 ** met: http://www.gnu.org/licenses/gpl-2.0.html.
@@ -44,13 +44,48 @@
 //
 // We mean it.
 
-#ifndef CANVAS3DCOMMON_P_H
-#define CANVAS3DCOMMON_P_H
+#ifndef CANVASGLSTATEDUMP_P_H
+#define CANVASGLSTATEDUMP_P_H
 
-#define QT_CANVAS3D_EXPORT Q_DECL_EXPORT
+#include "canvas3dcommon_p.h"
 
-#define VERBOSE_ALL_TYPED_ARRAY_CALLS false
+#include <QObject>
+#include <QtGui/QOpenGLFunctions>
 
-#define QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "QTCANVAS3D_gl_state_dump"
+#define DUMP_ENUM_AS_PROPERTY(A,B,C) Q_PROPERTY(A::B C READ C ## _read); inline A::B C ## _read() { return A::C; }
 
-#endif // CANVAS3DCOMMON_P_H
+class EnumToStringMap;
+
+class CanvasGLStateDump : public QObject, protected QOpenGLFunctions
+{
+    Q_OBJECT
+
+    Q_ENUMS(stateDumpEnums)
+
+public:
+    enum stateDumpEnums {
+        DUMP_BASIC_ONLY                        = 0x00,
+        DUMP_VERTEX_ATTRIB_ARRAYS_BIT          = 0x01,
+        DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT  = 0x02,
+        DUMP_FULL                              = 0x03
+    };
+
+    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_BASIC_ONLY)
+    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BIT)
+    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT)
+    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_FULL)
+
+    CanvasGLStateDump(QOpenGLContext *context, QObject *parent = 0);
+    ~CanvasGLStateDump();
+
+    Q_INVOKABLE QString getGLStateDump(stateDumpEnums options = DUMP_BASIC_ONLY);
+
+    QString getGLArrayObjectDump(int target, int arrayObject, int type);
+
+private:
+    GLint m_maxVertexAttribs;
+    EnumToStringMap *m_map;
+    bool m_isOpenGLES2;
+};
+
+#endif // CANVASGLSTATEDUMP_P_H

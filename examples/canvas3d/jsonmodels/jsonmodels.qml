@@ -24,6 +24,7 @@ Window {
             Layout.fillWidth: true
             Canvas3D {
                 id: canvas3d
+
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 //! [1]

@@ -81,7 +81,7 @@ void CanvasTexture::bind(CanvasContext::glEnums target)
 /*!
  * \internal
  */
-GLuint CanvasTexture::textureId()
+GLuint CanvasTexture::textureId() const
 {
     if (!m_isAlive)
         return 0;
@@ -92,7 +92,7 @@ GLuint CanvasTexture::textureId()
 /*!
  * \internal
  */
-bool CanvasTexture::isAlive()
+bool CanvasTexture::isAlive() const
 {
     return bool(m_textureId);
 }
@@ -113,7 +113,7 @@ void CanvasTexture::del()
 QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
 {
     if (texture)
-        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ")";
+        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ", id:" << texture->textureId() << ")";
     else
         dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
     return dbg.maybeSpace();

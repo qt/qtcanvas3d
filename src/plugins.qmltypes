@@ -462,8 +462,6 @@ Module {
         Property { name: "canvas"; type: "Canvas"; isReadonly: true; isPointer: true }
         Property { name: "drawingBufferWidth"; type: "uint"; isReadonly: true }
         Property { name: "drawingBufferHeight"; type: "uint"; isReadonly: true }
-        Property { name: "logAllCalls"; type: "bool" }
-        Property { name: "logAllErrors"; type: "bool" }
         Property { name: "DEPTH_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
         Property { name: "STENCIL_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
         Property { name: "COLOR_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
@@ -1836,6 +1834,44 @@ Module {
         exports: ["QtCanvas3D/FrameBuffer3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
+    }
+    Component {
+        name: "CanvasGLStateDump"
+        prototype: "QObject"
+        exports: ["QtCanvas3D/GLStateDumpExt 1.0"]
+        isCreatable: false
+        exportMetaObjectRevisions: [0]
+        Enum {
+            name: "stateDumpEnums"
+            values: {
+                "DUMP_BASIC_ONLY_BIT": 0,
+                "DUMP_VERTEX_ATTRIB_ARRAYS_BIT": 1,
+                "DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT": 2,
+                "DUMP_FULL": 3
+            }
+        }
+        Property {
+            name: "DUMP_BASIC_ONLY_BIT"
+            type: "CanvasGLStateDump::stateDumpEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "DUMP_VERTEX_ATTRIB_ARRAYS_BIT"
+            type: "CanvasGLStateDump::stateDumpEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT"
+            type: "CanvasGLStateDump::stateDumpEnums"
+            isReadonly: true
+        }
+        Property { name: "DUMP_FULL"; type: "CanvasGLStateDump::stateDumpEnums"; isReadonly: true }
+        Method {
+            name: "getGLStateDump"
+            type: "string"
+            Parameter { name: "options"; type: "stateDumpEnums" }
+        }
+        Method { name: "getGLStateDump"; type: "string" }
     }
     Component {
         name: "CanvasInt16Array"

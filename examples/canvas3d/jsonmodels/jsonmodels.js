@@ -74,6 +74,7 @@ var modelTwo = new Model();
 var modelThree = new Model();
 var modelFour = new Model();
 var modelFive = new Model();
+var stateDumpExt;
 
 function initGL(canvas) {
     canvas3d = canvas
@@ -81,6 +82,12 @@ function initGL(canvas) {
     try {
         gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
         log("   Received context: "+gl);
+
+        stateDumpExt = gl.getExtension("QTCANVAS3D_gl_state_dump");
+        if (stateDumpExt)
+            log("QTCANVAS3D_gl_state_dump extension found");
+        else
+            log("QTCANVAS3D_gl_state_dump extension NOT found");
 
         var contextConfig = gl.getContextAttributes();
         log("   Depth: "+contextConfig.alpha);
@@ -95,7 +102,7 @@ function initGL(canvas) {
         gl.enable(gl.DEPTH_TEST);
         gl.disable(gl.CULL_FACE);
         gl.enable(gl.BLEND);
-        gl.enable(gl.DEPTH_WRITE);
+        gl.enable(gl.DEPTH_TEST);
         gl.depthMask(true);
         gl.blendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA);
 
@@ -181,6 +188,7 @@ function renderGL(canvas) {
         // Calculate the modelview matrix
         mat4.identity(mMatrix);
         mat4.translate(mMatrix, mMatrix, posOne);
+
         // Calculate normal matrix before scaling, to keep lighting in order
         // Scale normal matrix with distance instead
         mat4.copy(nMatrix, mMatrix);
@@ -188,6 +196,7 @@ function renderGL(canvas) {
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
         gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
@@ -195,6 +204,10 @@ function renderGL(canvas) {
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
+
+        if (stateDumpExt)
+            log("GL STATE DUMP:\n"+stateDumpExt.getGLStateDump(stateDumpExt.DUMP_FULL));
+
         gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
 
         // Calculate the modelview matrix
@@ -559,8 +572,10 @@ function fillModel(modelData, model) {
     gl.bufferData(gl.ARRAY_BUFFER,
                   Arrays.newFloat32Array(modelData.vertices),
                   gl.STATIC_DRAW);
-
     log("   "+model.normalsVBO.name);
+    if (stateDumpExt)
+        log("GL STATE DUMP:\n"+stateDumpExt.getGLStateDump(stateDumpExt.DUMP_VERTEX_ATTRIB_ARRAYS_BIT || stateDumpExt.DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT));
+
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalsVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
                   Arrays.newFloat32Array(modelData.normals),

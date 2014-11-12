@@ -678,7 +678,6 @@ void Canvas::renderNext()
 
     // Rebind default FBO
     QOpenGLFramebufferObject::bindDefault();
-    m_glContext->doneCurrent();
 
     // Notify the render node of new texture
     emit textureReady(m_displayFbo->texture(), m_initialisedSize, m_devicePixelRatio);

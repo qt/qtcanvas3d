@@ -46,7 +46,7 @@
  * \brief Attribute set for Context3D
  *
  * ContextAttributes is an attribute set that can be given as parameter on first call to
- * Canvas3D object's \l{Canvas3D::getContext()}{getContext(string type, ContextAttributes options)}
+ * Canvas3D object's \l{Canvas3D::getContext}{getContext(string type, ContextAttributes options)}
  * method call. It can also be requested from the Context3D later on to verify what exact
  * attributes are in fact enabled/disabled in the created context.
  *

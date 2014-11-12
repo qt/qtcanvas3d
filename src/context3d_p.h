@@ -50,6 +50,7 @@
 #include "canvas3dcommon_p.h"
 #include "contextattributes_p.h"
 #include "abstractobject3d_p.h"
+#include "canvasglstatedump_p.h"
 
 #include <QtGui/QOpenGLFunctions>
 #include <QString>
@@ -94,9 +95,6 @@ class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected 
     Q_PROPERTY(Canvas *canvas READ canvas NOTIFY canvasChanged)
     Q_PROPERTY(uint drawingBufferWidth READ drawingBufferWidth NOTIFY drawingBufferWidthChanged)
     Q_PROPERTY(uint drawingBufferHeight READ drawingBufferHeight NOTIFY drawingBufferHeightChanged)
-
-    Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
-    Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
 
 public:
     enum glEnums {
@@ -1232,6 +1230,9 @@ private:
     uint m_maxVertexAttribs;
     float **m_vertexAttribPointers;
     bool m_isOpenGLES2;
+
+    // EXTENSIONS
+    CanvasGLStateDump *m_stateDumpExt;
 };
 
 #endif // CONTEXT3D_P_H

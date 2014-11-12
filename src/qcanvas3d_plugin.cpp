@@ -148,6 +148,12 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                       1, 0,
                                                       "UniformLocation",
                                                       QLatin1String("Trying to create uncreatable: UniformLocation, use Context3D.getUniformLocation() instead."));
+
+    // EXTENSIONS
+    qmlRegisterUncreatableType<CanvasGLStateDump>(uri,
+                                                  1, 0,
+                                                  "GLStateDumpExt",
+                                                  QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"" QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "\") instead."));
 }
 
 

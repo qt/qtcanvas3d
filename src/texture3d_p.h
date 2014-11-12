@@ -64,8 +64,8 @@ public:
     void bind(CanvasContext::glEnums target);
 
     void del();
-    bool isAlive();
-    GLuint textureId();
+    bool isAlive() const;
+    GLuint textureId() const;
 
     friend QDebug operator<< (QDebug d, const CanvasTexture *texture);
 
