@@ -170,7 +170,6 @@
     \list
         \li QObject based TypedArray implementation is a temporary stop gap solution and will be removed from QtCanvas3D later on.
         \li Texturing does not work perfectly in all of the examples.
-        \li \l{Interaction Example} and \l{JSON Models Example} crash on some Macs on startup.
         \li Using Qt Quick Enterprise Controls buttons cause a crash on application exit
             on Windows in certain circumstances (try \l{JSON Models Example} for reference).
         \li Resizing window works incorrectly if viewport is updated during rendering to match

@@ -1,0 +1,81 @@
+---------------------------------------
+Qt Canvas 3D 1.0.0 Technology Preview 1
+---------------------------------------
+
+Qt Canvas 3D 1.0 module provides a QtQuick canvas component that can be used to render
+with WebGL-like API from QtQuick JavaScript environment
+
+
+System Requirements
+===================
+
+- Qt 5.3 or newer
+- OpenGL 2.1 (or newer) or OpenGL ES2
+
+Building
+========
+Configure the project with qmake:
+    qmake
+
+After running qmake, build the project with make:
+    (Linux) make
+    (Windows with MinGw) mingw32-make
+    (Windows with Visual Studio) nmake
+    (OSX) make
+
+The above generates the default makefiles for your configuration, which is typically
+the release build if you are using precompiled binary Qt distribution. To build both
+debug and release, or one specifically, use one of the following qmake lines instead.
+
+For debug builds:
+    qmake CONFIG+=debug
+    make
+  or
+    qmake CONFIG+=debug_and_release
+    make debug
+
+For release builds:
+    qmake CONFIG+=release
+    make
+  or
+    qmake CONFIG+=debug_and_release
+    make release
+
+For both builds (Windows/Mac only):
+    qmake CONFIG+="debug_and_release build_all"
+    make
+
+After building, install the module to your Qt directory:
+    make install
+
+If you want to uninstall the module:
+    make uninstall
+
+Building as a statically linked library
+=======================================
+
+The same as above applies, you will just have to add static to the CONFIG:
+    qmake CONFIG+=static
+
+Documentation
+=============
+
+The documentation can be generated with:
+    make docs
+
+The documentation is generated into the doc folder under the build folder.
+Both Qt Assistant (qtcanvas3d.qch) and in HTML format
+(qtcanvas3d subfolder) documentation is generated.
+
+Please refer to the generated documentation for more information:
+    doc/qtcanvas3d/index.html
+
+Known Issues
+============
+- QObject based TypedArray implementation is a temporary stop gap solution
+  and will be removed from QtCanvas3D later on.
+- Texturing does not work perfectly in all of the examples.
+- Using Qt Quick Enterprise Controls buttons cause a crash on application exit
+  on Windows in certain circumstances (try JSON Models Example for reference).
+- Resizing window works incorrectly if viewport is updated during rendering to match
+  the window size (try Framebuffer Example for reference).
