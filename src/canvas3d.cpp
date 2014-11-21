@@ -36,12 +36,13 @@
 
 #include "canvas3d_p.h"
 #include "context3d_p.h"
-#include "typedarray_p.h"
-#include "uint32array_p.h"
-#include "arraybuffer_p.h"
 #include "canvas3dcommon_p.h"
 #include "canvasrendernode_p.h"
 #include "teximage3d_p.h"
+
+#include "typedarray/typedarray_p.h"
+#include "typedarray/uint32array_p.h"
+#include "typedarray/arraybuffer_p.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOffscreenSurface>
@@ -49,10 +50,6 @@
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
-
-static QList<const QQuickWindow *> staticClearList;
-static QHash<Canvas *, QQuickWindow *> canvasWindowList;
-static QHash<QQuickWindow *, bool> windowClearList;
 
 /*!
  * \qmltype Canvas3D
@@ -97,7 +94,8 @@ Canvas::Canvas(QQuickItem *parent):
     m_isContextAttribsSet(false),
     m_antialiasFbo(0),
     m_renderFbo(0),
-    m_displayFbo(0)
+    m_displayFbo(0),
+    m_offscreenSurface(0)
 {
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
@@ -235,6 +233,7 @@ float Canvas::devicePixelRatio()
     else
         return 1.0f;
 }
+
 
 /*!
  * \qmlmethod Context3D Canvas3D::getContext(string type)

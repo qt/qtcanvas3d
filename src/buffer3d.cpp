@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 #include "buffer3d_p.h"
-#include "typedarray_p.h"
+#include "typedarray/typedarray_p.h"
 
 #include <QDebug>
 #include <QString>

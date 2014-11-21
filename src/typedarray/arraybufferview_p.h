@@ -47,8 +47,8 @@
 #ifndef ARRAYBUFFERVIEW_P_H
 #define ARRAYBUFFERVIEW_P_H
 
-#include "context3d_p.h"
-#include "abstractobject3d_p.h"
+#include "../context3d_p.h"
+#include "../abstractobject3d_p.h"
 
 class CanvasArrayBuffer;
 

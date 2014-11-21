@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 #include "float32array_p.h"
-#include "arrayutils_p.h"
+#include "../arrayutils_p.h"
 #include "arraybuffer_p.h"
 
 /*!

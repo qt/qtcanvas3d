@@ -14,22 +14,22 @@ include($$PWD/designer/designer.pri)
 
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
-SOURCES += qcanvas3d_plugin.cpp \
-    arraybuffer.cpp \
-    arraybufferview.cpp \
-    float32array.cpp \
-    uint8array.cpp \
-    uint16array.cpp \
-    int8array.cpp \
-    int16array.cpp \
-    int32array.cpp \
-    uint32array.cpp \
-    float64array.cpp \
-    typedarrayfactory.cpp \
-    typedarray.cpp \
+SOURCES += typedarray/arraybuffer.cpp \
+    typedarray/arraybufferview.cpp \
+    typedarray/float32array.cpp \
+    typedarray/uint8array.cpp \
+    typedarray/uint16array.cpp \
+    typedarray/int8array.cpp \
+    typedarray/int16array.cpp \
+    typedarray/int32array.cpp \
+    typedarray/uint32array.cpp \
+    typedarray/float64array.cpp \
+    typedarray/typedarrayfactory.cpp \
+    typedarray/typedarray.cpp \
+    typedarray/uint8clampedarray.cpp \
+    qcanvas3d_plugin.cpp \
     arrayutils.cpp \
     enumtostringmap.cpp \
-    uint8clampedarray.cpp \
     abstractobject3d.cpp \
     canvas3d.cpp \
     buffer3d.cpp \
@@ -48,22 +48,22 @@ SOURCES += qcanvas3d_plugin.cpp \
     activeinfo3d.cpp \
     canvasglstatedump.cpp
 
-HEADERS += qcanvas3d_plugin.h \
-    arraybuffer_p.h \
-    arraybufferview_p.h \
-    float32array_p.h \
-    uint8array_p.h \
-    uint16array_p.h \
-    int8array_p.h \
-    int16array_p.h \
-    int32array_p.h \
-    uint32array_p.h \
-    float64array_p.h \
-    typedarrayfactory_p.h \
-    typedarray_p.h \
-    arrayutils_p.h \
+HEADERS += typedarray/arraybuffer_p.h \
+    typedarray/arraybufferview_p.h \
+    typedarray/float32array_p.h \
+    typedarray/uint8array_p.h \
+    typedarray/uint16array_p.h \
+    typedarray/int8array_p.h \
+    typedarray/int16array_p.h \
+    typedarray/int32array_p.h \
+    typedarray/uint32array_p.h \
+    typedarray/float64array_p.h \
+    typedarray/typedarrayfactory_p.h \
+    typedarray/typedarray_p.h \
+    typedarray/arrayutils_p.h \
+    typedarray/uint8clampedarray_p.h \
+    qcanvas3d_plugin.h \
     enumtostringmap_p.h \
-    uint8clampedarray_p.h \
     abstractobject3d_p.h \
     canvas3d_p.h \
     buffer3d_p.h \

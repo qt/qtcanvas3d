@@ -79,3 +79,18 @@ Known Issues
   on Windows in certain circumstances (try JSON Models Example for reference).
 - Resizing window works incorrectly if viewport is updated during rendering to match
   the window size (try Framebuffer Example for reference).
+- These methods are named for Tech Preview with “a” postfix to denote “array” versions taking a JavaScript array instead of TypedArray.
+  This is to resolve method overloading problems with the current QObject based TypedArray implementation and will be rectified before final release:
+    void uniform1fva(CanvasUniformLocation *location, QVariantList array)
+    void uniform2fva(CanvasUniformLocation *location, QVariantList array)
+    void uniform3fva(CanvasUniformLocation *location, QVariantList array)
+    void uniform4fva(CanvasUniformLocation *location, QVariantList array)
+    void uniform1iva(CanvasUniformLocation *location, QVariantList array)
+    void uniform2iva(CanvasUniformLocation *location, QVariantList array)
+    void uniform3iva(CanvasUniformLocation *location, QVariantList array)
+    void uniform4iva(CanvasUniformLocation *location, QVariantList array)
+    void vertexAttrib1fva(uint indx, QVariantList values)
+    void vertexAttrib2fva(uint indx, QVariantList values)
+    void vertexAttrib3fva(uint indx, QVariantList values)
+    void vertexAttrib4fva(uint indx, QVariantList values)
+

@@ -34,67 +34,67 @@
 **
 ****************************************************************************/
 
-#include "int8array_p.h"
-#include "arrayutils_p.h"
+#include "uint8clampedarray_p.h"
+#include "../arrayutils_p.h"
 #include "arraybuffer_p.h"
 
 /*!
- * \qmltype Int8Array
+ * \qmltype Uint8ClampedArray
  * \since QtCanvas3D 1.0
  * \ingroup qtcanvas3d-qml-types
- * \brief Contains a typed array of 8 bit ints.
+ * \brief Contains a typed array of clamped 8 bit unsigned ints.
  *
- * An uncreatable QML type that contains a typed array of 8 bit ints.
- * Use \l Arrays::newInt8Array() for getting an array of this type.
+ * An uncreatable QML type that contains a typed array of clamped 8 bit unsigned ints.
+ * Use \l Arrays::newUint8ClampedArray() for getting an array of this type.
  */
 
 /*!
- * \fn virtual inline int CanvasInt8Array::bytesPerElement();
+ * \fn virtual inline int CanvasUint8ClampedArray::bytesPerElement();
  * \internal
  */
 
 /*!
- * \fn virtual inline CanvasContext3D::glEnums CanvasInt8Array::dataType();
+ * \fn virtual inline CanvasContext3D::glEnums CanvasUint8ClampedArray::dataType();
  * \internal
  */
 
 /*!
  * \internal
  */
-CanvasInt8Array::CanvasInt8Array(QObject *parent) :
+CanvasUint8ClampedArray::CanvasUint8ClampedArray(QObject *parent) :
     CanvasTypedArray(0, 0, parent),
     m_typedBuffer(0)
 {
-    //qDebug() << "Int8Array(QObject *parent)";
     setLength(0);
+    //qDebug() << "Uint8ClampedArray(QObject *parent)";
 }
 
 /*!
  * \internal
  */
-CanvasInt8Array::CanvasInt8Array(unsigned long length, QObject *parent) :
+CanvasUint8ClampedArray::CanvasUint8ClampedArray(unsigned long length, QObject *parent) :
     CanvasTypedArray(0, 0, parent),
     m_typedBuffer(0)
 {
-    //qDebug() << "Int8Array(unsigned long length, QObject *parent)";
     setLength(length);
+    //qDebug() << "Uint8ClampedArray(unsigned long length, QObject *parent)";
     if (length > 0) {
-        m_buffer = new CanvasArrayBuffer(sizeof(signed char) * CanvasTypedArray::length());
-        m_typedBuffer = (signed char *)m_buffer->m_rawData;
+        m_buffer = new CanvasArrayBuffer(sizeof(unsigned char) * CanvasTypedArray::length());
+        m_typedBuffer = (unsigned char *)m_buffer->m_rawData;
     }
 }
 
 /*!
  * \internal
  */
-CanvasInt8Array::CanvasInt8Array(CanvasTypedArray *array, QObject *parent) :
+CanvasUint8ClampedArray::CanvasUint8ClampedArray(CanvasTypedArray *array, QObject *parent) :
     CanvasTypedArray(0, 0, parent)
 {
     setLength(array->length());
     m_buffer = new CanvasArrayBuffer(CanvasTypedArray::length() * this->bytesPerElement());
-    m_typedBuffer = (signed char *)m_buffer->m_rawData;
+    m_typedBuffer = (unsigned char *)m_buffer->m_rawData;
 
-    if (!ArrayUtils::copyToTarget<signed char>(m_typedBuffer, array, CanvasTypedArray::length())) {
+    if (!ArrayUtils::copyToTargetClampedByte(m_typedBuffer, array, CanvasTypedArray::length())) {
         // Conversion failed, make this an empty buffer
         delete m_buffer;
         setLength(0);
@@ -104,21 +104,21 @@ CanvasInt8Array::CanvasInt8Array(CanvasTypedArray *array, QObject *parent) :
 /*!
  * \internal
  */
-CanvasInt8Array::CanvasInt8Array(QVariantList *array, QObject *parent) :
+CanvasUint8ClampedArray::CanvasUint8ClampedArray(QVariantList *array, QObject *parent) :
     CanvasTypedArray(0, 0, parent)
 {
-    //qDebug() << "Int8Array(const QVariantList *array[" << array->count() << "], QObject *parent)";
+    //qDebug() << "Uint8ClampedArray(const QVariantList *array[" << array->count() << "], QObject *parent)";
     setLength(array->count());
-    m_buffer = new CanvasArrayBuffer(CanvasTypedArray::length() * sizeof(signed char), this);
-    m_typedBuffer = (signed char *)m_buffer->m_rawData;
+    m_buffer = new CanvasArrayBuffer(CanvasTypedArray::length() * sizeof(unsigned char), this);
+    m_typedBuffer = (unsigned char *)m_buffer->m_rawData;
     int idx = 0;
     for (QVariantList::const_iterator it = array->begin(); it != array->end(); ++it) {
         QVariant element = *it;
-        if (element.canConvert<signed char>()) {
-            m_typedBuffer[idx] = (signed char)(element.toInt());
+        if (element.canConvert<unsigned char>()) {
+            m_typedBuffer[idx] = (unsigned char)(element.toInt());
         } else {
             //qDebug() << "Failed conversion to unsigned byte of "<<element;
-            m_typedBuffer[idx] = (signed char)0;
+            m_typedBuffer[idx] = (unsigned char)0;
         }
         idx++;
     }
@@ -127,70 +127,70 @@ CanvasInt8Array::CanvasInt8Array(QVariantList *array, QObject *parent) :
 /*!
  * \internal
  */
-CanvasInt8Array::CanvasInt8Array(CanvasArrayBuffer *buffer, unsigned long byteOffset,
-                                 QObject *parent) :
+CanvasUint8ClampedArray::CanvasUint8ClampedArray(CanvasArrayBuffer *buffer,
+                                                 unsigned long byteOffset, QObject *parent) :
     CanvasTypedArray(buffer, byteOffset, parent)
 {
-    //qDebug() << "Int8Array(ArrayBuffer *buffer, unsigned long byteOffset, QObject *parent)";
-    m_typedBuffer = (signed char *)(m_buffer->m_rawData + byteOffset);
+    //qDebug() << "Uint8ClampedArray(ArrayBuffer *buffer, unsigned long byteOffset, QObject *parent)";
+    m_typedBuffer = (unsigned char *)(m_buffer->m_rawData + byteOffset);
     setLength((byteLength() - byteOffset) / bytesPerElement());
 }
 
 /*!
- * \qmlmethod int Int8Array::operator [] (int index)
+ * \qmlmethod int Uint8ClampedArray::operator [] (int index)
  * Returns the array value at \a index.
  */
 /*!
  * \internal
  */
-signed char CanvasInt8Array::operator [] (unsigned long index)
+unsigned char CanvasUint8ClampedArray::operator [] (unsigned long index)
 {
     if (index < length())
         return m_typedBuffer[index];
-    return char(0);
+    return uchar(0);
 }
 
 /*!
- * \qmlmethod int Int8Array::get(int index)
+ * \qmlmethod int Uint8ClampedArray::get(int index)
  * Returns the array value at \a index.
  */
 /*!
  * \internal
  */
-signed char CanvasInt8Array::get(unsigned long index)
+unsigned char CanvasUint8ClampedArray::get(unsigned long index)
 {
     return m_typedBuffer[index];
 }
 
 /*!
- * \qmlmethod void Int8Array::set(int index, int value)
+ * \qmlmethod void Uint8ClampedArray::set(int index, int value)
  * Sets the \a value to \a index in the array.
  */
 /*!
  * \internal
  */
-void CanvasInt8Array::set(unsigned long index, signed char value)
+void CanvasUint8ClampedArray::set(unsigned long index, unsigned char value)
 {
     m_typedBuffer[index] = value;
 }
 
 /*
-void Int8Array::set(TypedArray *array, unsigned long offset)
+void Uint8ClampedArray::set(TypedArray *array, unsigned long offset)
 {
 
 }
 
-void Int8Array::set(float *array, unsigned long offset)
+void Uint8ClampedArray::set(float *array, unsigned long offset)
 {
 
 }
 
-Int8Array *Int8Array::subarray(long begin)
+TypedArray *Uint8ClampedArray::subarray(long begin)
 {
 
 }
 
-Int8Array *Int8Array::subarray(long begin, long end)
+TypedArray *Uint8ClampedArray::subarray(long begin, long end)
 {
 
 }

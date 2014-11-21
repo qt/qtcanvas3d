@@ -34,68 +34,67 @@
 **
 ****************************************************************************/
 
-#include "uint16array_p.h"
-#include "arrayutils_p.h"
+#include "int32array_p.h"
+#include "../arrayutils_p.h"
 #include "arraybuffer_p.h"
 
 /*!
- * \qmltype Uint16Array
+ * \qmltype Int32Array
  * \since QtCanvas3D 1.0
  * \ingroup qtcanvas3d-qml-types
- * \brief Contains a typed array of 16 bit unsigned ints.
+ * \brief Contains a typed array of ints.
  *
- * An uncreatable QML type that contains a typed array of 16 bit unsigned ints.
- * Use \l Arrays::newUint16Array() for getting an array of this type.
+ * An uncreatable QML type that contains a typed array of ints.
+ * Use \l Arrays::newInt32Array() for getting an array of this type.
  */
 
 /*!
- * \fn virtual inline int CanvasUint16Array::bytesPerElement();
+ * \fn virtual inline int CanvasInt32Array::bytesPerElement();
  * \internal
  */
 
 /*!
- * \fn virtual inline CanvasContext3D::glEnums CanvasUint16Array::dataType();
+ * \fn virtual inline CanvasContext3D::glEnums CanvasInt32Array::dataType();
  * \internal
  */
 
 /*!
  * \internal
  */
-CanvasUint16Array::CanvasUint16Array(QObject *parent) :
+CanvasInt32Array::CanvasInt32Array(QObject *parent) :
     CanvasTypedArray(0, 0, parent),
     m_typedBuffer(0)
 {
-    //qDebug() << "Uint16Array(QObject *parent)";
+    //qDebug() << "Int32Array(QObject *parent)";
     setLength(0);
 }
 
 /*!
  * \internal
  */
-CanvasUint16Array::CanvasUint16Array(unsigned long length, QObject *parent) :
+CanvasInt32Array::CanvasInt32Array(unsigned long length, QObject *parent) :
     CanvasTypedArray(0, 0, parent),
     m_typedBuffer(0)
 {
-    //qDebug() << "Uint16Array(unsigned long length, QObject *parent)";
+    //qDebug() << "Int32Array(unsigned long length, QObject *parent)";
     setLength(length);
     if (length > 0) {
         m_buffer = new CanvasArrayBuffer(sizeof(float) * CanvasTypedArray::length());
-        m_typedBuffer = (unsigned short *)m_buffer->m_rawData;
+        m_typedBuffer = (int *)m_buffer->m_rawData;
     }
 }
 
 /*!
  * \internal
  */
-CanvasUint16Array::CanvasUint16Array(CanvasTypedArray *array, QObject *parent) :
+CanvasInt32Array::CanvasInt32Array(CanvasTypedArray *array, QObject *parent) :
     CanvasTypedArray(0, 0, parent)
 {
     setLength(array->length());
     m_buffer = new CanvasArrayBuffer(CanvasTypedArray::length() * this->bytesPerElement());
-    m_typedBuffer = (unsigned short *)m_buffer->m_rawData;
+    m_typedBuffer = (int *)m_buffer->m_rawData;
 
-    if (!ArrayUtils::copyToTarget<unsigned short>(m_typedBuffer, array,
-                                                  CanvasTypedArray::length())) {
+    if (!ArrayUtils::copyToTarget<int>(m_typedBuffer, array, CanvasTypedArray::length())) {
         // Conversion failed, make this an empty buffer
         delete m_buffer;
         setLength(0);
@@ -105,21 +104,21 @@ CanvasUint16Array::CanvasUint16Array(CanvasTypedArray *array, QObject *parent) :
 /*!
  * \internal
  */
-CanvasUint16Array::CanvasUint16Array(QVariantList *array, QObject *parent) :
+CanvasInt32Array::CanvasInt32Array(QVariantList *array, QObject *parent) :
     CanvasTypedArray(0, 0, parent)
 {
-    //qDebug() << "Uint16Array(const QVariantList *array[" << array->count() << "], QObject *parent)";
+    //qDebug() << "Int32Array(const QVariantList *array[" << array->count() << "], QObject *parent)";
     setLength(array->count());
-    m_buffer = new CanvasArrayBuffer(sizeof(unsigned short) * CanvasTypedArray::length(), this);
-    m_typedBuffer = (unsigned short *)m_buffer->m_rawData;
+    m_buffer = new CanvasArrayBuffer(sizeof(int) * CanvasTypedArray::length(), this);
+    m_typedBuffer = (int *)m_buffer->m_rawData;
     int idx = 0;
     for (QVariantList::const_iterator it = array->begin(); it != array->end(); ++it) {
         QVariant element = *it;
-        if (element.canConvert<unsigned short>()) {
-            m_typedBuffer[idx] = (unsigned short)(element.toInt());
+        if (element.canConvert<int>()) {
+            m_typedBuffer[idx] = (int)(element.toInt());
         } else {
             //qDebug() << "Failed conversion to unsigned byte of "<<element;
-            m_typedBuffer[idx] = (unsigned short)0;
+            m_typedBuffer[idx] = (int)0;
         }
         idx++;
     }
@@ -128,74 +127,72 @@ CanvasUint16Array::CanvasUint16Array(QVariantList *array, QObject *parent) :
 /*!
  * \internal
  */
-CanvasUint16Array::CanvasUint16Array(CanvasArrayBuffer *buffer, unsigned long byteOffset,
-                                     QObject *parent) :
+CanvasInt32Array::CanvasInt32Array(CanvasArrayBuffer *buffer, unsigned long byteOffset,
+                                   QObject *parent) :
     CanvasTypedArray(buffer, byteOffset, parent)
 {
-    //qDebug() << "Uint16Array(ArrayBuffer *buffer, unsigned long byteOffset, QObject *parent)";
-    m_typedBuffer = (unsigned short *)(m_buffer->m_rawData + byteOffset);
+    //qDebug() << "Int32Array(ArrayBuffer *buffer, unsigned long byteOffset, QObject *parent)";
+    m_typedBuffer = (int *)(m_buffer->m_rawData + byteOffset);
     setLength((byteLength() - byteOffset) / bytesPerElement());
 }
 
 /*!
- * \qmlmethod int Uint16Array::operator [] (int index)
+ * \qmlmethod int Int32Array::operator [] (int index)
  * Returns the array value at \a index.
  */
 /*!
  * \internal
  */
-unsigned short CanvasUint16Array::operator [] (unsigned long index)
+int CanvasInt32Array::operator [] (unsigned long index)
 {
     if (index < length())
         return m_typedBuffer[index];
-    return ushort(0);
+    return 0;
 }
 
 /*!
- * \qmlmethod int Uint16Array::get(int index)
+ * \qmlmethod int Int32Array::get(int index)
  * Returns the array value at \a index.
  */
 /*!
  * \internal
  */
-unsigned short CanvasUint16Array::get(unsigned long index)
+int CanvasInt32Array::get(unsigned long index)
 {
-    if (index < length())
-        return m_typedBuffer[index];
-    return ushort(0);
+    return m_typedBuffer[index];
 }
 
 /*!
- * \qmlmethod void Uint16Array::set(int index, int value)
+ * \qmlmethod void Int32Array::set(int index, int value)
  * Sets the \a value to \a index in the array.
  */
 /*!
  * \internal
  */
-void CanvasUint16Array::set(unsigned long index, unsigned short value)
+void CanvasInt32Array::set(unsigned long index, int value)
 {
-    if (index < length())
-        m_typedBuffer[index] = value;
+    m_typedBuffer[index] = value;
 }
 
 /*
-void Uint16Array::set(TypedArray *array, unsigned long offset)
+void Int32Array::set(TypedArray *array, unsigned long offset)
 {
 
 }
 
-void Uint16Array::set(float *array, unsigned long offset)
+void Int32Array::set(float *array, unsigned long offset)
 {
 
 }
 
-TypedArray *Uint16Array::subarray(long begin)
+TypedArray *Int32Array::subarray(long begin)
 {
 
 }
 
-TypedArray *Uint16Array::subarray(long begin, long end)
+TypedArray *Int32Array::subarray(long begin, long end)
 {
 
 }
 */
+

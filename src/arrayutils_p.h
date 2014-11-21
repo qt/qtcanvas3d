@@ -47,16 +47,16 @@
 #ifndef ARRAYUTILS_P_H
 #define ARRAYUTILS_P_H
 
-#include "typedarray_p.h"
-#include "int8array_p.h"
-#include "uint8array_p.h"
-#include "int16array_p.h"
-#include "uint16array_p.h"
-#include "int32array_p.h"
-#include "uint32array_p.h"
-#include "float32array_p.h"
-#include "float64array_p.h"
-#include "uint8clampedarray_p.h"
+#include "typedarray/typedarray_p.h"
+#include "typedarray/int8array_p.h"
+#include "typedarray/uint8array_p.h"
+#include "typedarray/int16array_p.h"
+#include "typedarray/uint16array_p.h"
+#include "typedarray/int32array_p.h"
+#include "typedarray/uint32array_p.h"
+#include "typedarray/float32array_p.h"
+#include "typedarray/float64array_p.h"
+#include "typedarray/uint8clampedarray_p.h"
 
 // Contains static template functions used by the TypedArray classes.
 class ArrayUtils

@@ -45,8 +45,8 @@
 #include "float32array_p.h"
 #include "float64array_p.h"
 #include "uint8clampedarray_p.h"
-#include "canvas3dcommon_p.h"
-#include "teximage3d_p.h"
+#include "../canvas3dcommon_p.h"
+#include "../teximage3d_p.h"
 
 #include <QDebug>
 
