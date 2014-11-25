@@ -1,4 +1,4 @@
-//#define NO_ENTERPRISE
+#define NO_ENTERPRISE
 
 #include <QGuiApplication>
 #include <QQmlApplicationEngine>

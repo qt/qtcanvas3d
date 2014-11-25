@@ -96,65 +96,77 @@ Window {
 
             ColumnLayout {
                 CircularGauge {
+                    Layout.fillHeight: true
                     minimumValue: -180
                     maximumValue: 180
                     value: canvas3d.xRot
                     style: CircularGaugeStyle {
                         labelStepSize: 30
                         tickmarkStepSize: 15
-                        background: Canvas {
-                            Text {
-                                font.pixelSize: 20
-                                text: "x angle: " + angle
-                                color: "lightgray"
-                                horizontalAlignment: Text.AlignHCenter
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.verticalCenter
-                                anchors.topMargin: parent.height / 8
-                                readonly property int angle: canvas3d.xRot
-                            }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#00000000"
+                        z: parent.z - 1
+                        Text {
+                            font.pixelSize: 20
+                            text: "x angle: " + angle
+                            color: "darkgray"
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.verticalCenter
+                            anchors.topMargin: parent.height / 8
+                            readonly property int angle: canvas3d.xRot
                         }
                     }
                 }
                 CircularGauge {
+                    Layout.fillHeight: true
                     minimumValue: -90
                     maximumValue: 90
                     value: canvas3d.yRot
                     style: CircularGaugeStyle {
                         labelStepSize: 30
                         tickmarkStepSize: 15
-                        background: Canvas {
-                            Text {
-                                font.pixelSize: 20
-                                text: "y angle: " + angle
-                                color: "lightgray"
-                                horizontalAlignment: Text.AlignHCenter
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.verticalCenter
-                                anchors.topMargin: parent.height / 8
-                                readonly property int angle: canvas3d.yRot
-                            }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#00000000"
+                        z: parent.z - 1
+                        Text {
+                            font.pixelSize: 20
+                            text: "y angle: " + angle
+                            color: "darkgray"
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.verticalCenter
+                            anchors.topMargin: parent.height / 8
+                            readonly property int angle: canvas3d.yRot
                         }
                     }
                 }
                 CircularGauge {
+                    Layout.fillHeight: true
                     minimumValue: 0
                     maximumValue: 100
                     value: canvas3d.distance * 10
                     style: CircularGaugeStyle {
                         labelStepSize: 20
                         tickmarkStepSize: 10
-                        background: Canvas {
-                            Text {
-                                font.pixelSize: 20
-                                text: "distance: " + distance
-                                color: "lightgray"
-                                horizontalAlignment: Text.AlignHCenter
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                anchors.top: parent.verticalCenter
-                                anchors.topMargin: parent.height / 8
-                                readonly property int distance: canvas3d.distance * 10
-                            }
+                    }
+                    Rectangle {
+                        anchors.fill: parent
+                        color: "#00000000"
+                        z: parent.z - 1
+                        Text {
+                            font.pixelSize: 20
+                            text: "distance: " + distance
+                            color: "darkgray"
+                            horizontalAlignment: Text.AlignHCenter
+                            anchors.horizontalCenter: parent.horizontalCenter
+                            anchors.top: parent.verticalCenter
+                            anchors.topMargin: parent.height / 8
+                            readonly property int distance: canvas3d.distance * 10
                         }
                     }
                 }

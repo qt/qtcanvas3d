@@ -107,23 +107,27 @@ Window {
             Layout.fillWidth: true
             Button {
                 id: lightButton
+                Layout.fillWidth: true
                 text: "Animate Light"
                 checkable: true
                 onCheckedChanged: canvas3d.animatingLight = checked
             }
             Button {
                 id: cameraButton
+                Layout.fillWidth: true
                 text: "Animate Camera"
                 checkable: true
                 onCheckedChanged: canvas3d.animatingCamera = checked
             }
             Button {
                 id: drawButton
+                Layout.fillWidth: true
                 text: "Wireframe"
                 checkable: true
                 onCheckedChanged: canvas3d.drawWireframe = checked
             }
             Button {
+                Layout.fillWidth: true
                 text: "Reset"
                 onClicked: {
                     canvas3d.xRot = 0.0
@@ -139,6 +143,7 @@ Window {
                 }
             }
             Button {
+                Layout.fillWidth: true
                 text: "Quit"
                 onClicked: Qt.quit()
             }
