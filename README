@@ -75,8 +75,6 @@ Known Issues
 - QObject based TypedArray implementation is a temporary stop gap solution
   and will be removed from QtCanvas3D later on.
 - Texturing does not work perfectly in all of the examples.
-- Using Qt Quick Enterprise Controls buttons cause a crash on application exit
-  on Windows in certain circumstances (try JSON Models Example for reference).
 - Resizing window works incorrectly if viewport is updated during rendering to match
   the window size (try Framebuffer Example for reference).
 - These methods are named for Tech Preview with “a” postfix to denote “array” versions taking a JavaScript array instead of TypedArray.
