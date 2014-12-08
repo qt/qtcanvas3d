@@ -36,6 +36,8 @@
 
 #include "enumtostringmap_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 static EnumToStringMap *theInstance = 0;
 static unsigned int theInstanceCount = 0;
 
@@ -69,8 +71,8 @@ EnumToStringMap::EnumToStringMap() :
     m_map[CanvasContext::STENCIL_BUFFER_BIT] = "STENCIL_BUFFER_BIT";
     m_map[CanvasContext::COLOR_BUFFER_BIT] = "COLOR_BUFFER_BIT";
 
-    m_map[(CanvasContext::DEPTH_AND_COLOR_BUFFER_BIT )] = "DEPTH_BUFFER_BIT | COLOR_BUFFER_BIT";
-    m_map[(CanvasContext::DEPTH_AND_STENCIL_AND_COLOR_BUFFER_BIT )] = "DEPTH_BUFFER_BIT | STENCIL_BUFFER_BIT | COLOR_BUFFER_BIT";
+    m_map[(CanvasContext::DEPTH_AND_COLOR_BUFFER_BIT)] = "DEPTH_BUFFER_BIT | COLOR_BUFFER_BIT";
+    m_map[(CanvasContext::DEPTH_AND_STENCIL_AND_COLOR_BUFFER_BIT)] = "DEPTH_BUFFER_BIT | STENCIL_BUFFER_BIT | COLOR_BUFFER_BIT";
     m_map[CanvasContext::STENCIL_BUFFER_BIT] = "STENCIL_BUFFER_BIT";
     m_map[CanvasContext::COLOR_BUFFER_BIT] = "COLOR_BUFFER_BIT";
 
@@ -424,3 +426,4 @@ QString EnumToStringMap::lookUp(const GLuint value) const
     return lookUp((CanvasContext::glEnums)value);
 }
 
+QT_CANVAS3D_END_NAMESPACE

@@ -51,6 +51,8 @@
 
 #include <QObject>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasContextAttributes : public CanvasAbstractObject
 {
     Q_OBJECT
@@ -110,5 +112,7 @@ private:
     bool m_preferLowPowerToHighPerformance;
     bool m_failIfMajorPerformanceCaveat;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // QCONTEXTATTRIBUTES_P_H

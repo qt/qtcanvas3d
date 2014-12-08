@@ -36,6 +36,8 @@
 
 #include "abstractobject3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \internal
  */
@@ -72,3 +74,5 @@ const QString &CanvasAbstractObject::name() const
 {
     return m_name;
 }
+
+QT_CANVAS3D_END_NAMESPACE

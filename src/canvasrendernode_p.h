@@ -47,9 +47,12 @@
 #ifndef CANVASRENDERNODE_P_H
 #define CANVASRENDERNODE_P_H
 
+#include "canvas3dcommon_p.h"
 #include <QtQuick/QSGSimpleTextureNode>
 #include <QtQuick/QQuickWindow>
 #include <QtCore/QMutex>
+
+QT_CANVAS3D_BEGIN_NAMESPACE
 
 class Canvas;
 
@@ -77,5 +80,7 @@ private:
     QSGTexture *m_texture;
     QQuickWindow *m_window;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CANVASRENDERNODE_P_H

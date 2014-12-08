@@ -55,6 +55,8 @@
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasTextureImageFactory : public QObject
 {
     Q_OBJECT
@@ -150,5 +152,7 @@ private:
     QVariant *m_anyValue;
     CanvasTextureImageFactory *m_parentFactory;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // TEXIMAGE3D_P_H

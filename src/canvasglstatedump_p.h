@@ -52,6 +52,8 @@
 #include <QObject>
 #include <QtGui/QOpenGLFunctions>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 #define DUMP_ENUM_AS_PROPERTY(A,B,C) Q_PROPERTY(A::B C READ C ## _read); inline A::B C ## _read() { return A::C; }
 
 class EnumToStringMap;
@@ -70,10 +72,10 @@ public:
         DUMP_FULL                              = 0x03
     };
 
-    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_BASIC_ONLY)
-    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BIT)
-    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT)
-    DUMP_ENUM_AS_PROPERTY(CanvasGLStateDump,stateDumpEnums,DUMP_FULL)
+    DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_BASIC_ONLY)
+    DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BIT)
+    DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT)
+    DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_FULL)
 
     CanvasGLStateDump(QOpenGLContext *context, QObject *parent = 0);
     ~CanvasGLStateDump();
@@ -87,5 +89,7 @@ private:
     EnumToStringMap *m_map;
     bool m_isOpenGLES2;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CANVASGLSTATEDUMP_P_H

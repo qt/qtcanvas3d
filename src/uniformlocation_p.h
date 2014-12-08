@@ -51,6 +51,8 @@
 
 #include <QDebug>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasUniformLocation : public CanvasAbstractObject
 {
     Q_OBJECT
@@ -66,5 +68,7 @@ public:
 private:
     int m_location;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // UNIFORMLOCATION_P_H

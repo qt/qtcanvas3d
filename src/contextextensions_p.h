@@ -50,6 +50,8 @@
 #include "context3d_p.h"
 #include "canvas3dcommon_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class WEBGL_debug_renderer_info : public QObject
 {
     Q_OBJECT
@@ -60,5 +62,7 @@ class WEBGL_debug_renderer_info : public QObject
     public:
         explicit WEBGL_debug_renderer_info(QObject *parent = 0);
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CONTEXTEXTENSIONS_P_H

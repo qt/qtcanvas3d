@@ -38,6 +38,8 @@
 #include "../arrayutils_p.h"
 #include "arraybuffer_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Float32Array
  * \since QtCanvas3D 1.0
@@ -257,3 +259,5 @@ QDebug operator<<(QDebug dbg, const CanvasFloat32Array *array)
         dbg.nospace() << "Float32Array (null)";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE

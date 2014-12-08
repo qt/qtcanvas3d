@@ -50,6 +50,8 @@
 
 #include <QDebug>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Arrays
  * \since QtCanvas3D 1.0
@@ -574,3 +576,4 @@ CanvasUint8ClampedArray *CanvasTypedArrayFactory::newUint8ClampedArray(CanvasArr
     return new CanvasUint8ClampedArray(buffer, byteOffset);
 }
 
+QT_CANVAS3D_END_NAMESPACE

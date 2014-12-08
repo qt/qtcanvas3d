@@ -37,6 +37,8 @@
 #include "typedarray_p.h"
 #include "arraybuffer_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype TypedArray
  * \since QtCanvas3D 1.0
@@ -120,3 +122,5 @@ QDebug operator<<(QDebug dbg, const CanvasTypedArray *array)
         dbg.nospace() << "TypedArray (null)";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE

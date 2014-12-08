@@ -36,6 +36,8 @@
 
 #include "arraybuffer_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype ArrayBuffer
  * \since QtCanvas3D 1.0
@@ -175,3 +177,5 @@ bool CanvasArrayBuffer::isView(const QObject &value)
             className == "CanvasFloat32Array" ||
             className == "CanvasFloat64Array");
 }
+
+QT_CANVAS3D_END_NAMESPACE

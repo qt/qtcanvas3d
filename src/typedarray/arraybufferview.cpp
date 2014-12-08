@@ -37,6 +37,8 @@
 #include "arraybufferview_p.h"
 #include "arraybuffer_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype ArrayBufferView
  * \since QtCanvas3D 1.0
@@ -119,3 +121,5 @@ CanvasArrayBuffer *CanvasArrayBufferView::buffer()
 {
     return m_buffer;
 }
+
+QT_CANVAS3D_END_NAMESPACE

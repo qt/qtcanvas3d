@@ -36,6 +36,8 @@
 
 #include "framebuffer3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype FrameBuffer3D
  * \since QtCanvas3D 1.0
@@ -103,3 +105,5 @@ QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
         dbg.nospace() << "FrameBuffer3D("<< ((void*) buffer) <<")";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE

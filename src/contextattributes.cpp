@@ -39,6 +39,8 @@
 #include <QVariantMap>
 #include <QDebug>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype ContextAttributes
  * \since QtCanvas3D 1.0
@@ -280,3 +282,5 @@ QDebug operator<<(QDebug dbg, const CanvasContextAttributes &attribs)
                      "\n    failIfMajorPerformanceCaveat:" << attribs.m_failIfMajorPerformanceCaveat << ")";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE

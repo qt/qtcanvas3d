@@ -36,6 +36,8 @@
 
 #include "program3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Program3D
  * \since QtCanvas3D 1.0
@@ -222,3 +224,4 @@ QDebug operator<<(QDebug dbg, const CanvasProgram *program)
     return dbg.maybeSpace();
 }
 
+QT_CANVAS3D_END_NAMESPACE

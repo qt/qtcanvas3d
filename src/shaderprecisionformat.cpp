@@ -36,6 +36,8 @@
 
 #include "shaderprecisionformat_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype ShaderPrecisionFormat
  * \since QtCanvas3D 1.0
@@ -85,3 +87,5 @@ CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
  * \qmlproperty int ShaderPrecisionFormat::precision
  * The number of bits of precision that can be represented. 0 for integer formats.
  */
+
+QT_CANVAS3D_END_NAMESPACE

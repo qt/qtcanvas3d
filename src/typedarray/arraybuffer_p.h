@@ -47,7 +47,10 @@
 #ifndef ARRAYBUFFER_P_H
 #define ARRAYBUFFER_P_H
 
+#include "../canvas3dcommon_p.h"
 #include <QObject>
+
+QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasArrayBuffer : public QObject
 {
@@ -92,5 +95,7 @@ private:
     friend class CanvasTypedArray;
     friend class CanvasContext;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // ARRAYBUFFER_P_H

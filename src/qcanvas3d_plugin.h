@@ -67,10 +67,11 @@
 
 #include <QQmlExtensionPlugin>
 
+using namespace QtCanvas3D;
+
 Q_DECLARE_METATYPE(CanvasBuffer)
 
 QML_DECLARE_TYPE(Canvas)
-//QML_DECLARE_TYPE(QFBOCanvas3D)
 QML_DECLARE_TYPE(CanvasContext)
 QML_DECLARE_TYPE(CanvasTexture)
 QML_DECLARE_TYPE(CanvasShader)
@@ -99,6 +100,8 @@ QML_DECLARE_TYPE(CanvasShaderPrecisionFormat)
 QML_DECLARE_TYPE(CanvasActiveInfo)
 QML_DECLARE_TYPE(CanvasGLStateDump)
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class QtCanvas3DPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
@@ -107,6 +110,8 @@ class QtCanvas3DPlugin : public QQmlExtensionPlugin
 public:
     void registerTypes(const char *uri);
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // QCANVAS3D_PLUGIN_H
 

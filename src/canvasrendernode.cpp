@@ -39,6 +39,8 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFramebufferObject>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 CanvasRenderNode::CanvasRenderNode(Canvas *canvas, QQuickWindow *window) :
     QObject(),
     QSGSimpleTextureNode(),
@@ -99,3 +101,5 @@ void CanvasRenderNode::prepareNode()
         if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__ << " showing previous texture";
     }
 }
+
+QT_CANVAS3D_END_NAMESPACE

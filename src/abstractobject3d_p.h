@@ -47,8 +47,11 @@
 #ifndef ABSTRACTOBJECT3D_P_H
 #define ABSTRACTOBJECT3D_P_H
 
+#include "canvas3dcommon_p.h"
 #include <QObject>
 #include <QThread>
+
+QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasAbstractObject : public QObject
 {
@@ -69,5 +72,6 @@ private:
     QString m_name;
 };
 
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // ABSTRACTOBJECT3D_P_H

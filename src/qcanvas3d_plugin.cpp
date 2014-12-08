@@ -38,6 +38,8 @@
 
 #include <QtQml/qqml.h>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 void QtCanvas3DPlugin::registerTypes(const char *uri)
 {
     // @uri com.digia.qtcanvas3d
@@ -160,4 +162,4 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                   QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"" QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "\") instead."));
 }
 
-
+QT_CANVAS3D_END_NAMESPACE

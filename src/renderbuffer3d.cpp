@@ -36,6 +36,8 @@
 
 #include "renderbuffer3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype RenderBuffer3D
  * \since QtCanvas3D 1.0
@@ -91,3 +93,5 @@ GLuint CanvasRenderBuffer::id()
 {
     return m_renderbufferId;
 }
+
+QT_CANVAS3D_END_NAMESPACE

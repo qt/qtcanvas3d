@@ -36,6 +36,8 @@
 
 #include "shader3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Shader3D
  * \since QtCanvas3D 1.0
@@ -104,3 +106,5 @@ void CanvasShader::setSourceCode(const QString &source)
 {
     m_sourceCode = source;
 }
+
+QT_CANVAS3D_END_NAMESPACE

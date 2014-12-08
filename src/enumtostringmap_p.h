@@ -51,6 +51,8 @@
 
 #include <QMap>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class EnumToStringMap
 {
 public:
@@ -64,5 +66,7 @@ private:
     QMap<CanvasContext::glEnums, QString> m_map;
     QString m_unknown;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // ENUMTOSTRINGMAP_P_H

@@ -49,6 +49,8 @@
 
 #include "typedarray_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasInt8Array : public CanvasTypedArray
 {
     Q_OBJECT
@@ -75,5 +77,7 @@ public:
 private:
     signed char *m_typedBuffer;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // INT8ARRAY_P_H

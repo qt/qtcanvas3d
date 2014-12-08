@@ -49,6 +49,8 @@
 
 #include "arraybufferview_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasArrayBuffer;
 
 class CanvasTypedArray : public CanvasArrayBufferView
@@ -78,5 +80,7 @@ protected:
 private:
     unsigned long m_length;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // TYPEDARRAY_P_H

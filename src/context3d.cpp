@@ -64,6 +64,8 @@
 
 #include <QtGui/QOpenGLShader>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Context3D
  * \since QtCanvas3D 1.0
@@ -551,7 +553,7 @@ bool CanvasContext::isTexture(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasTexture")
+    if (className != "QtCanvas3D::CanvasTexture")
         return false;
 
     CanvasTexture *texture = static_cast<CanvasTexture *>(anyObject);
@@ -824,7 +826,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     uchar *unpackedData = 0;
     switch (type) {
     case UNSIGNED_BYTE: {
-        if (className != "CanvasUint8Array") {
+        if (className != "QtCanvas3D::CanvasUint8Array") {
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                          << ":INVALID_OPERATION Expected Uint8Array, received "
                                          << pixels->metaObject()->className();
@@ -869,7 +871,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
-        if (className != "CanvasUint16Array") {
+        if (className != "QtCanvas3D::CanvasUint16Array") {
             if (m_logAllErrors) qDebug() << "Context3D::"
                                          << __FUNCTION__
                                          << ":INVALID_OPERATION Expected Uint16Array, received "
@@ -967,7 +969,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     int bytesPerPixel = 0;
     switch (type) {
     case UNSIGNED_BYTE: {
-        if (className != "CanvasUint8Array") {
+        if (className != "QtCanvas3D::CanvasUint8Array") {
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                          << ":INVALID_OPERATION Expected Uint8Array, received "
                                          << pixels->metaObject()->className();
@@ -1010,7 +1012,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
-        if (className != "CanvasUint16Array") {
+        if (className != "QtCanvas3D::CanvasUint16Array") {
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                          << ":INVALID_OPERATION Expected Uint16Array, received "
                                          << pixels->metaObject()->className();
@@ -1573,7 +1575,7 @@ bool CanvasContext::isFramebuffer(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasFrameBuffer")
+    if (className != "QtCanvas3D::CanvasFrameBuffer")
         return false;
 
     CanvasFrameBuffer *fbo = static_cast<CanvasFrameBuffer *>(anyObject);
@@ -1708,7 +1710,7 @@ bool CanvasContext::isRenderbuffer(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasRenderBuffer")
+    if (className != "QtCanvas3D::CanvasRenderBuffer")
         return false;
 
     CanvasRenderBuffer *rbo = static_cast<CanvasRenderBuffer *>(anyObject);
@@ -1797,7 +1799,7 @@ bool CanvasContext::isProgram(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasProgram")
+    if (className != "QtCanvas3D::CanvasProgram")
         return false;
 
     CanvasProgram *program = static_cast<CanvasProgram *>(anyObject);
@@ -2316,7 +2318,7 @@ bool CanvasContext::isShader(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasShader")
+    if (className != "QtCanvas3D::CanvasShader")
         return false;
 
     CanvasShader *shader = static_cast<CanvasShader *>(anyObject);
@@ -3707,7 +3709,7 @@ bool CanvasContext::isBuffer(QObject *anyObject)
         return false;
 
     QString className = QString(anyObject->metaObject()->className());
-    if (className != "CanvasBuffer")
+    if (className != "QtCanvas3D::CanvasBuffer")
         return false;
 
     CanvasBuffer *buffer = static_cast<CanvasBuffer *>(anyObject);
@@ -5076,3 +5078,5 @@ QVariant CanvasContext::getExtension(const QString &name)
 
     return QVariant(QVariant::Int);
 }
+
+QT_CANVAS3D_END_NAMESPACE

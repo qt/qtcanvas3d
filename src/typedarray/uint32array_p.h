@@ -51,6 +51,8 @@
 
 #include <QObject>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasUint32Array : public CanvasTypedArray
 {
     Q_OBJECT
@@ -78,5 +80,7 @@ public:
 private:
     unsigned int *m_typedBuffer;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // UINT32ARRAY_P_H

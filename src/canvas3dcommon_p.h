@@ -53,4 +53,7 @@
 
 #define QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "QTCANVAS3D_gl_state_dump"
 
+#define QT_CANVAS3D_BEGIN_NAMESPACE namespace QtCanvas3D {
+#define QT_CANVAS3D_END_NAMESPACE }
+
 #endif // CANVAS3DCOMMON_P_H

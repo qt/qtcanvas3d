@@ -55,6 +55,8 @@
 
 class QOffscreenSurface;
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
 {
     Q_OBJECT
@@ -139,6 +141,8 @@ private:
 
     QOffscreenSurface *m_offscreenSurface;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CANVAS3D_P_H
 

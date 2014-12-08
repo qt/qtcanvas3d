@@ -52,6 +52,8 @@
 #include <QObject>
 #include <QOpenGLFunctions>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasRenderBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -65,5 +67,7 @@ public:
 private:
     GLuint m_renderbufferId;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // RENDERBUFFER3D_P_H

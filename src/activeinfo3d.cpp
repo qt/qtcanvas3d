@@ -36,6 +36,8 @@
 
 #include "activeinfo3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype ActiveInfo3D
  * \since QtCanvas3D 1.0
@@ -80,3 +82,5 @@ CanvasContext::glEnums CanvasActiveInfo::type() const
 {
     return m_type;
 }
+
+QT_CANVAS3D_END_NAMESPACE

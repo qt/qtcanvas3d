@@ -49,6 +49,8 @@
 
 #include "typedarray_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasFloat32Array : public CanvasTypedArray
 {
     Q_OBJECT
@@ -78,5 +80,7 @@ public:
 private:
     float *m_typedBuffer;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // FLOAT32ARRAY_P_H

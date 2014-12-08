@@ -40,6 +40,8 @@
 #include <QDebug>
 #include <QString>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Buffer3D
  * \since QtCanvas3D 1.0
@@ -139,3 +141,5 @@ QDebug operator<<(QDebug dbg, const CanvasBuffer *buffer)
         dbg.nospace() << "Buffer3D("<< ((void*) buffer) <<")";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE

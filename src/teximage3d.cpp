@@ -40,6 +40,8 @@
 #include <QJSValueIterator>
 #include <QtQml/QQmlEngine>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
 
 class StaticFactoryMapDeleter
@@ -528,3 +530,4 @@ QDebug operator<<(QDebug dbg, const CanvasTextureImage *texImage)
     return dbg.maybeSpace();
 }
 
+QT_CANVAS3D_END_NAMESPACE

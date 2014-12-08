@@ -58,6 +58,8 @@
 #include "typedarray/float64array_p.h"
 #include "typedarray/uint8clampedarray_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 // Contains static template functions used by the TypedArray classes.
 class ArrayUtils
 {
@@ -228,5 +230,7 @@ public:
         }
     }
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // ARRAYUTILS_P_H

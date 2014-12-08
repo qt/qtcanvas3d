@@ -51,6 +51,8 @@
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Canvas3D
  * \since QtCanvas3D 1.0
@@ -681,3 +683,5 @@ void Canvas::renderNext()
     // Notify the render node of new texture
     emit textureReady(m_displayFbo->texture(), m_initialisedSize, m_devicePixelRatio);
 }
+
+QT_CANVAS3D_END_NAMESPACE

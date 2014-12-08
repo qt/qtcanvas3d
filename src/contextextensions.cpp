@@ -36,7 +36,11 @@
 
 #include "contextextensions_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 WEBGL_debug_renderer_info::WEBGL_debug_renderer_info(QObject *parent) :
     QObject(parent)
 {
 }
+
+QT_CANVAS3D_END_NAMESPACE

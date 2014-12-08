@@ -53,6 +53,8 @@
 #include <QtGui/QOpenGLTexture>
 #include <QtGui/QOpenGLFunctions>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasTexture : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -72,5 +74,7 @@ public:
     GLuint m_textureId;
     bool m_isAlive;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // TEXTURE3D_P_H

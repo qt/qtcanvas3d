@@ -8,7 +8,7 @@ import QtQuick.tooling 1.1
 
 Module {
     Component {
-        name: "Canvas"
+        name: "QtCanvas3D::Canvas"
         defaultProperty: "data"
         prototype: "QQuickItem"
         exports: ["QtCanvas3D/Canvas3D 1.0"]
@@ -62,7 +62,7 @@ Module {
         }
     }
     Component {
-        name: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasAbstractObject"
         prototype: "QObject"
         Property { name: "name"; type: "string" }
         Signal {
@@ -71,13 +71,13 @@ Module {
         }
     }
     Component {
-        name: "CanvasActiveInfo"
+        name: "QtCanvas3D::CanvasActiveInfo"
         prototype: "QObject"
         exports: ["QtCanvas3D/ActiveInfo3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
         Property { name: "size"; type: "int"; isReadonly: true }
-        Property { name: "type"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "type"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
         Property { name: "name"; type: "string"; isReadonly: true }
         Signal {
             name: "sizeChanged"
@@ -93,7 +93,7 @@ Module {
         }
     }
     Component {
-        name: "CanvasArrayBuffer"
+        name: "QtCanvas3D::CanvasArrayBuffer"
         prototype: "QObject"
         exports: ["QtCanvas3D/ArrayBuffer 1.0"]
         isCreatable: false
@@ -121,8 +121,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasArrayBufferView"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasArrayBufferView"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/ArrayBufferView 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -143,15 +143,15 @@ Module {
         }
     }
     Component {
-        name: "CanvasBuffer"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasBuffer"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/Buffer3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }
     Component {
-        name: "CanvasContext"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasContext"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/Context3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -462,421 +462,857 @@ Module {
         Property { name: "canvas"; type: "Canvas"; isReadonly: true; isPointer: true }
         Property { name: "drawingBufferWidth"; type: "uint"; isReadonly: true }
         Property { name: "drawingBufferHeight"; type: "uint"; isReadonly: true }
-        Property { name: "DEPTH_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "COLOR_BUFFER_BIT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "POINTS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINES"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINE_LOOP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINE_STRIP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TRIANGLES"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TRIANGLE_STRIP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TRIANGLE_FAN"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ZERO"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SRC_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_SRC_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SRC_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_SRC_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DST_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_DST_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DST_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_DST_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SRC_ALPHA_SATURATE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FUNC_ADD"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_EQUATION"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_EQUATION_RGB"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_EQUATION_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FUNC_SUBTRACT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FUNC_REVERSE_SUBTRACT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_DST_RGB"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_SRC_RGB"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_DST_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_SRC_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CONSTANT_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_CONSTANT_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CONSTANT_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ONE_MINUS_CONSTANT_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND_COLOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ARRAY_BUFFER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ELEMENT_ARRAY_BUFFER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ARRAY_BUFFER_BINDING"; type: "CanvasContext::glEnums"; isReadonly: true }
         Property {
-            name: "ELEMENT_ARRAY_BUFFER_BINDING"
-            type: "CanvasContext::glEnums"
+            name: "DEPTH_BUFFER_BIT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "STREAM_DRAW"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STATIC_DRAW"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DYNAMIC_DRAW"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BUFFER_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BUFFER_USAGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CURRENT_VERTEX_ATTRIB"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRONT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BACK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRONT_AND_BACK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CULL_FACE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLEND"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DITHER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_TEST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_TEST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SCISSOR_TEST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "POLYGON_OFFSET_FILL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLE_ALPHA_TO_COVERAGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLE_COVERAGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NO_ERROR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INVALID_ENUM"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INVALID_VALUE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INVALID_OPERATION"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "OUT_OF_MEMORY"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CW"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CCW"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINE_WIDTH"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ALIASED_POINT_SIZE_RANGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ALIASED_LINE_WIDTH_RANGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CULL_FACE_MODE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRONT_FACE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_RANGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_WRITEMASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_CLEAR_VALUE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_FUNC"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_CLEAR_VALUE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_FUNC"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_FAIL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_PASS_DEPTH_FAIL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_PASS_DEPTH_PASS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_REF"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_VALUE_MASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_WRITEMASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BACK_FUNC"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BACK_FAIL"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_BUFFER_BIT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "COLOR_BUFFER_BIT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "POINTS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINES"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINE_LOOP"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINE_STRIP"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TRIANGLES"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "TRIANGLE_STRIP"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "TRIANGLE_FAN"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "ZERO"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "ONE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SRC_COLOR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ONE_MINUS_SRC_COLOR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "SRC_ALPHA"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ONE_MINUS_SRC_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "DST_ALPHA"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ONE_MINUS_DST_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "DST_COLOR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ONE_MINUS_DST_COLOR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SRC_ALPHA_SATURATE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "FUNC_ADD"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "BLEND_EQUATION"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "BLEND_EQUATION_RGB"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "BLEND_EQUATION_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "FUNC_SUBTRACT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "FUNC_REVERSE_SUBTRACT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "BLEND_DST_RGB"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BLEND_SRC_RGB"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "BLEND_DST_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "BLEND_SRC_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "CONSTANT_COLOR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ONE_MINUS_CONSTANT_COLOR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "CONSTANT_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ONE_MINUS_CONSTANT_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "BLEND_COLOR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "ARRAY_BUFFER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ELEMENT_ARRAY_BUFFER"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ARRAY_BUFFER_BINDING"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ELEMENT_ARRAY_BUFFER_BINDING"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "STREAM_DRAW"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "STATIC_DRAW"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DYNAMIC_DRAW"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BUFFER_SIZE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BUFFER_USAGE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "CURRENT_VERTEX_ATTRIB"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "FRONT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BACK"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "FRONT_AND_BACK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "CULL_FACE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BLEND"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DITHER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "STENCIL_TEST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DEPTH_TEST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SCISSOR_TEST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "POLYGON_OFFSET_FILL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SAMPLE_ALPHA_TO_COVERAGE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SAMPLE_COVERAGE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "NO_ERROR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INVALID_ENUM"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INVALID_VALUE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "INVALID_OPERATION"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "OUT_OF_MEMORY"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "CW"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "CCW"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINE_WIDTH"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ALIASED_POINT_SIZE_RANGE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ALIASED_LINE_WIDTH_RANGE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "CULL_FACE_MODE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "FRONT_FACE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DEPTH_RANGE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "DEPTH_WRITEMASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "DEPTH_CLEAR_VALUE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "DEPTH_FUNC"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_CLEAR_VALUE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "STENCIL_FUNC"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "STENCIL_FAIL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_PASS_DEPTH_FAIL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_PASS_DEPTH_PASS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "STENCIL_REF"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_VALUE_MASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_WRITEMASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_BACK_FUNC"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_BACK_FAIL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "STENCIL_BACK_PASS_DEPTH_FAIL"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "STENCIL_BACK_PASS_DEPTH_PASS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "STENCIL_BACK_REF"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BACK_VALUE_MASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BACK_WRITEMASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "VIEWPORT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SCISSOR_BOX"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "COLOR_CLEAR_VALUE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "COLOR_WRITEMASK"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNPACK_ALIGNMENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "PACK_ALIGNMENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MAX_TEXTURE_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MAX_VIEWPORT_DIMS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SUBPIXEL_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RED_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "GREEN_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BLUE_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ALPHA_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_BITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "POLYGON_OFFSET_UNITS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "POLYGON_OFFSET_FACTOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_BINDING_2D"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLE_BUFFERS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLES"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLE_COVERAGE_VALUE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLE_COVERAGE_INVERT"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_BACK_REF"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_BACK_VALUE_MASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_BACK_WRITEMASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "VIEWPORT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SCISSOR_BOX"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "COLOR_CLEAR_VALUE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "COLOR_WRITEMASK"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "UNPACK_ALIGNMENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "PACK_ALIGNMENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "MAX_TEXTURE_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "MAX_VIEWPORT_DIMS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "SUBPIXEL_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RED_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "GREEN_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BLUE_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "ALPHA_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DEPTH_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "STENCIL_BITS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "POLYGON_OFFSET_UNITS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "POLYGON_OFFSET_FACTOR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_BINDING_2D"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SAMPLE_BUFFERS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "SAMPLES"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "SAMPLE_COVERAGE_VALUE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SAMPLE_COVERAGE_INVERT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "COMPRESSED_TEXTURE_FORMATS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "DONT_CARE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FASTEST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NICEST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "GENERATE_MIPMAP_HINT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BYTE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_BYTE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SHORT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_SHORT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_INT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_COMPONENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RGB"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RGBA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LUMINANCE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LUMINANCE_ALPHA"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_SHORT_4_4_4_4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_SHORT_5_5_5_1"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "UNSIGNED_SHORT_5_6_5"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRAGMENT_SHADER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "VERTEX_SHADER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MAX_VERTEX_ATTRIBS"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DONT_CARE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FASTEST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "NICEST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "GENERATE_MIPMAP_HINT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "BYTE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "UNSIGNED_BYTE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SHORT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "UNSIGNED_SHORT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "INT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "UNSIGNED_INT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "DEPTH_COMPONENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "ALPHA"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RGB"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RGBA"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LUMINANCE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "LUMINANCE_ALPHA"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "UNSIGNED_SHORT_4_4_4_4"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "UNSIGNED_SHORT_5_5_5_1"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "UNSIGNED_SHORT_5_6_5"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "FRAGMENT_SHADER"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "VERTEX_SHADER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "MAX_VERTEX_ATTRIBS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "MAX_VERTEX_UNIFORM_VECTORS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "MAX_VARYING_VECTORS"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "MAX_VARYING_VECTORS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "MAX_COMBINED_TEXTURE_IMAGE_UNITS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "MAX_VERTEX_TEXTURE_IMAGE_UNITS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "MAX_TEXTURE_IMAGE_UNITS"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "MAX_TEXTURE_IMAGE_UNITS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "MAX_FRAGMENT_UNIFORM_VECTORS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "SHADER_TYPE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DELETE_STATUS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINK_STATUS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "VALIDATE_STATUS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ATTACHED_SHADERS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ACTIVE_UNIFORMS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ACTIVE_ATTRIBUTES"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SHADING_LANGUAGE_VERSION"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CURRENT_PROGRAM"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NEVER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LESS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "EQUAL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LEQUAL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "GREATER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NOTEQUAL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "GEQUAL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ALWAYS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "KEEP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "REPLACE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INCR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DECR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INVERT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INCR_WRAP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DECR_WRAP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "VENDOR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "VERSION"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NEAREST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINEAR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NEAREST_MIPMAP_NEAREST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINEAR_MIPMAP_NEAREST"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NEAREST_MIPMAP_LINEAR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LINEAR_MIPMAP_LINEAR"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_MAG_FILTER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_MIN_FILTER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_WRAP_S"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_WRAP_T"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_2D"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_CUBE_MAP"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE_BINDING_CUBE_MAP"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SHADER_TYPE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DELETE_STATUS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINK_STATUS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "VALIDATE_STATUS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ATTACHED_SHADERS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ACTIVE_UNIFORMS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "ACTIVE_ATTRIBUTES"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "SHADING_LANGUAGE_VERSION"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "CURRENT_PROGRAM"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "NEVER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LESS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "EQUAL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LEQUAL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "GREATER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "NOTEQUAL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "GEQUAL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "ALWAYS"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "KEEP"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "REPLACE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INCR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DECR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INVERT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INCR_WRAP"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "DECR_WRAP"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "VENDOR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RENDERER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "VERSION"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "NEAREST"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LINEAR"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "NEAREST_MIPMAP_NEAREST"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "LINEAR_MIPMAP_NEAREST"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "NEAREST_MIPMAP_LINEAR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "LINEAR_MIPMAP_LINEAR"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_MAG_FILTER"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_MIN_FILTER"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_WRAP_S"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_WRAP_T"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "TEXTURE_2D"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "TEXTURE_CUBE_MAP"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "TEXTURE_BINDING_CUBE_MAP"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "TEXTURE_CUBE_MAP_POSITIVE_X"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "TEXTURE_CUBE_MAP_NEGATIVE_X"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "TEXTURE_CUBE_MAP_POSITIVE_Y"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "TEXTURE_CUBE_MAP_NEGATIVE_Y"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "TEXTURE_CUBE_MAP_POSITIVE_Z"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "TEXTURE_CUBE_MAP_NEGATIVE_Z"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "MAX_CUBE_MAP_TEXTURE_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE0"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE1"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE2"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE3"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE5"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE6"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE7"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE8"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE9"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE10"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE11"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE12"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE13"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE14"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE15"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE16"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE17"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE18"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE19"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE20"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE21"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE22"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE23"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE24"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE25"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE26"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE27"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE28"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE29"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE30"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "TEXTURE31"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "ACTIVE_TEXTURE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "REPEAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "CLAMP_TO_EDGE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MIRRORED_REPEAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_VEC2"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_VEC3"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_VEC4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INT_VEC2"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INT_VEC3"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "INT_VEC4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BOOL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BOOL_VEC2"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BOOL_VEC3"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "BOOL_VEC4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_MAT2"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_MAT3"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FLOAT_MAT4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLER_2D"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "SAMPLER_CUBE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "MAX_CUBE_MAP_TEXTURE_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "TEXTURE0"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE1"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE2"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE3"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE5"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE6"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE7"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE8"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE9"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE10"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE11"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE12"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE13"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE14"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE15"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE16"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE17"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE18"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE19"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE20"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE21"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE22"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE23"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE24"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE25"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE26"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE27"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE28"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE29"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE30"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "TEXTURE31"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "ACTIVE_TEXTURE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "REPEAT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "CLAMP_TO_EDGE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "MIRRORED_REPEAT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "FLOAT_VEC2"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT_VEC3"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT_VEC4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INT_VEC2"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INT_VEC3"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "INT_VEC4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BOOL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BOOL_VEC2"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BOOL_VEC3"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "BOOL_VEC4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT_MAT2"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT_MAT3"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FLOAT_MAT4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SAMPLER_2D"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "SAMPLER_CUBE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_ENABLED"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "VERTEX_ATTRIB_ARRAY_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "VERTEX_ATTRIB_ARRAY_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_STRIDE"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "VERTEX_ATTRIB_ARRAY_TYPE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "VERTEX_ATTRIB_ARRAY_TYPE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_NORMALIZED"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_POINTER"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "COMPILE_STATUS"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LOW_FLOAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MEDIUM_FLOAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "HIGH_FLOAT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "LOW_INT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MEDIUM_INT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "HIGH_INT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRAMEBUFFER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RGBA4"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RGB5_A1"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RGB565"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_COMPONENT16"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_INDEX"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_INDEX8"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_STENCIL"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_WIDTH"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_HEIGHT"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "COMPILE_STATUS"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "LOW_FLOAT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "MEDIUM_FLOAT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "HIGH_FLOAT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "LOW_INT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "MEDIUM_INT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "HIGH_INT"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "FRAMEBUFFER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RENDERBUFFER"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RGBA4"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RGB5_A1"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property { name: "RGB565"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "DEPTH_COMPONENT16"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "STENCIL_INDEX"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "STENCIL_INDEX8"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "DEPTH_STENCIL"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "RENDERBUFFER_WIDTH"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_HEIGHT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "RENDERBUFFER_INTERNAL_FORMAT"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "RENDERBUFFER_RED_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_GREEN_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_BLUE_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_ALPHA_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_DEPTH_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_STENCIL_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "RENDERBUFFER_RED_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_GREEN_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_BLUE_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_ALPHA_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_DEPTH_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_STENCIL_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "FRAMEBUFFER_ATTACHMENT_OBJECT_NAME"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "COLOR_ATTACHMENT0"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_ATTACHMENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "STENCIL_ATTACHMENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "DEPTH_STENCIL_ATTACHMENT"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "NONE"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRAMEBUFFER_COMPLETE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "COLOR_ATTACHMENT0"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "DEPTH_ATTACHMENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "STENCIL_ATTACHMENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "DEPTH_STENCIL_ATTACHMENT"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property { name: "NONE"; type: "QtCanvas3D::CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "FRAMEBUFFER_COMPLETE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "FRAMEBUFFER_INCOMPLETE_ATTACHMENT"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
         Property {
             name: "FRAMEBUFFER_INCOMPLETE_DIMENSIONS"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "FRAMEBUFFER_UNSUPPORTED"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "FRAMEBUFFER_BINDING"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "RENDERBUFFER_BINDING"; type: "CanvasContext::glEnums"; isReadonly: true }
-        Property { name: "MAX_RENDERBUFFER_SIZE"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "FRAMEBUFFER_UNSUPPORTED"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "FRAMEBUFFER_BINDING"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "RENDERBUFFER_BINDING"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "MAX_RENDERBUFFER_SIZE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "INVALID_FRAMEBUFFER_OPERATION"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "UNPACK_FLIP_Y_WEBGL"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "UNPACK_FLIP_Y_WEBGL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "UNPACK_PREMULTIPLY_ALPHA_WEBGL"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "CONTEXT_LOST_WEBGL"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "CONTEXT_LOST_WEBGL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Property {
             name: "UNPACK_COLORSPACE_CONVERSION_WEBGL"
-            type: "CanvasContext::glEnums"
+            type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
-        Property { name: "BROWSER_DEFAULT_WEBGL"; type: "CanvasContext::glEnums"; isReadonly: true }
+        Property {
+            name: "BROWSER_DEFAULT_WEBGL"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
         Signal {
             name: "canvasChanged"
             Parameter { name: "canvas"; type: "Canvas"; isPointer: true }
@@ -1731,8 +2167,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasContextAttributes"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasContextAttributes"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/ContextAttributes 1.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "alpha"; type: "bool" }
@@ -1777,8 +2213,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasFloat32Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasFloat32Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Float32Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1812,8 +2248,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasFloat64Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasFloat64Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Float64Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1829,14 +2265,14 @@ Module {
         }
     }
     Component {
-        name: "CanvasFrameBuffer"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasFrameBuffer"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/FrameBuffer3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }
     Component {
-        name: "CanvasGLStateDump"
+        name: "QtCanvas3D::CanvasGLStateDump"
         prototype: "QObject"
         exports: ["QtCanvas3D/GLStateDumpExt 1.0"]
         isCreatable: false
@@ -1844,14 +2280,14 @@ Module {
         Enum {
             name: "stateDumpEnums"
             values: {
-                "DUMP_BASIC_ONLY_BIT": 0,
+                "DUMP_BASIC_ONLY": 0,
                 "DUMP_VERTEX_ATTRIB_ARRAYS_BIT": 1,
-                "DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT": 2,
+                "DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT": 2,
                 "DUMP_FULL": 3
             }
         }
         Property {
-            name: "DUMP_BASIC_ONLY_BIT"
+            name: "DUMP_BASIC_ONLY"
             type: "CanvasGLStateDump::stateDumpEnums"
             isReadonly: true
         }
@@ -1861,7 +2297,7 @@ Module {
             isReadonly: true
         }
         Property {
-            name: "DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT"
+            name: "DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT"
             type: "CanvasGLStateDump::stateDumpEnums"
             isReadonly: true
         }
@@ -1874,8 +2310,8 @@ Module {
         Method { name: "getGLStateDump"; type: "string" }
     }
     Component {
-        name: "CanvasInt16Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasInt16Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Int16Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1891,8 +2327,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasInt32Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasInt32Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Int32Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1908,8 +2344,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasInt8Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasInt8Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Int8Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1925,8 +2361,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasProgram"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasProgram"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/Program3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1937,22 +2373,22 @@ Module {
         }
     }
     Component {
-        name: "CanvasRenderBuffer"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasRenderBuffer"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/RenderBuffer3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }
     Component {
-        name: "CanvasShader"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasShader"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/Shader3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }
     Component {
-        name: "CanvasShaderPrecisionFormat"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasShaderPrecisionFormat"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/ShaderPrecisionFormat 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -1973,15 +2409,15 @@ Module {
         }
     }
     Component {
-        name: "CanvasTexture"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasTexture"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/Texture3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }
     Component {
-        name: "CanvasTextureImage"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasTextureImage"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/TextureImage 1.0"]
         exportMetaObjectRevisions: [0]
         Enum {
@@ -2045,7 +2481,7 @@ Module {
         }
     }
     Component {
-        name: "CanvasTextureImageFactory"
+        name: "QtCanvas3D::CanvasTextureImageFactory"
         prototype: "QObject"
         exports: ["QtCanvas3D/TextureImageFactory 1.0"]
         isCreatable: false
@@ -2054,8 +2490,8 @@ Module {
         Method { name: "newTexImage"; type: "CanvasTextureImage*" }
     }
     Component {
-        name: "CanvasTypedArray"
-        prototype: "CanvasArrayBufferView"
+        name: "QtCanvas3D::CanvasTypedArray"
+        prototype: "QtCanvas3D::CanvasArrayBufferView"
         exports: ["QtCanvas3D/TypedArray 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -2066,7 +2502,7 @@ Module {
         }
     }
     Component {
-        name: "CanvasTypedArrayFactory"
+        name: "QtCanvas3D::CanvasTypedArrayFactory"
         prototype: "QObject"
         exports: ["QtCanvas3D/Arrays 1.0"]
         isCreatable: false
@@ -2263,8 +2699,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasUint16Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasUint16Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Uint16Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -2280,8 +2716,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasUint32Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasUint32Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Uint32Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -2297,8 +2733,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasUint8Array"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasUint8Array"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Uint8Array 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -2314,8 +2750,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasUint8ClampedArray"
-        prototype: "CanvasTypedArray"
+        name: "QtCanvas3D::CanvasUint8ClampedArray"
+        prototype: "QtCanvas3D::CanvasTypedArray"
         exports: ["QtCanvas3D/Uint8ClampedArray 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
@@ -2331,8 +2767,8 @@ Module {
         }
     }
     Component {
-        name: "CanvasUniformLocation"
-        prototype: "CanvasAbstractObject"
+        name: "QtCanvas3D::CanvasUniformLocation"
+        prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/UniformLocation 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]

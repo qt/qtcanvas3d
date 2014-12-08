@@ -47,10 +47,13 @@
 #ifndef TYPEDARRAYFACTORY_P_H
 #define TYPEDARRAYFACTORY_P_H
 
+#include "../canvas3dcommon_p.h"
 #include <QObject>
 #include <QVariantList>
 #include <QQmlEngine>
 #include <QJSEngine>
+
+QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasInt8Array;
 class CanvasUint8Array;
@@ -131,5 +134,7 @@ public:
     Q_INVOKABLE CanvasUint8ClampedArray* newUint8ClampedArray(CanvasArrayBuffer *buffer,
                                                               unsigned long byteOffset);
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // TYPEDARRAYFACTORY_P_H

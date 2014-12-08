@@ -50,6 +50,8 @@
 #include "../context3d_p.h"
 #include "../abstractobject3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasArrayBuffer;
 
 class CanvasArrayBufferView : public CanvasAbstractObject
@@ -93,5 +95,7 @@ protected:
     CanvasArrayBuffer *m_buffer;
     unsigned long m_byteOffset;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // ARRAYBUFFERVIEW_P_H

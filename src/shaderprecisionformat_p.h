@@ -51,6 +51,8 @@
 
 #include <QObject>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasShaderPrecisionFormat : public CanvasAbstractObject
 {
     Q_OBJECT
@@ -79,5 +81,7 @@ private:
     int m_rangeMax;
     int m_precision;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // SHADERPRECISIONFORMAT_P_H

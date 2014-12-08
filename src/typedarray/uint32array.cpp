@@ -38,6 +38,8 @@
 #include "../arrayutils_p.h"
 #include "arraybuffer_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Uint32Array
  * \since QtCanvas3D 1.0
@@ -192,3 +194,5 @@ TypedArray *Uint32Array::subarray(long begin, long end)
 
 }
 */
+
+QT_CANVAS3D_END_NAMESPACE

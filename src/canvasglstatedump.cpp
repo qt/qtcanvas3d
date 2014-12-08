@@ -42,6 +42,8 @@
 
 #define BOOL_TO_STR(a) a ? "true" : "false"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
    \qmltype GLStateDumpExt
    \since QtCanvas3D 1.0
@@ -421,3 +423,5 @@ QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums opti
 
     return stateDumpStr;
 }
+
+QT_CANVAS3D_END_NAMESPACE

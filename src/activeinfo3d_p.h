@@ -47,15 +47,17 @@
 #ifndef CANVASACTIVEINFO_P_H
 #define CANVASACTIVEINFO_P_H
 
-#include <QObject>
 #include "context3d_p.h"
+#include <QObject>
+
+QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasActiveInfo : public QObject
 {
     Q_OBJECT
 
     Q_PROPERTY(int size READ size NOTIFY sizeChanged)
-    Q_PROPERTY(CanvasContext::glEnums type READ type NOTIFY typeChanged)
+    Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums type READ type NOTIFY typeChanged)
     Q_PROPERTY(QString name READ name NOTIFY nameChanged)
 
 public:
@@ -76,5 +78,7 @@ private:
     CanvasContext::glEnums m_type;
     QString m_name;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CANVASACTIVEINFO_P_H

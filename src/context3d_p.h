@@ -63,7 +63,9 @@
 #undef NO_ERROR
 #endif
 
-#define ENUM_AS_PROPERTY(A) Q_PROPERTY(CanvasContext::glEnums A READ A ## _read); inline CanvasContext::glEnums A ## _read() { return CanvasContext::A; }
+QT_CANVAS3D_BEGIN_NAMESPACE
+
+#define ENUM_AS_PROPERTY(A) Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums A READ A ## _read); inline QtCanvas3D::CanvasContext::glEnums A ## _read() { return CanvasContext::A; }
 
 class Canvas;
 class CanvasActiveInfo;
@@ -1234,5 +1236,7 @@ private:
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // CONTEXT3D_P_H

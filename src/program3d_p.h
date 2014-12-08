@@ -56,6 +56,8 @@
 #include <QDebug>
 #include <QList>
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 class CanvasProgram : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
@@ -91,5 +93,7 @@ private:
 signals:
     void idChanged(int id);
 };
+
+QT_CANVAS3D_END_NAMESPACE
 
 #endif // PROGRAM3D_P_H

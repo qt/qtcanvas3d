@@ -36,6 +36,8 @@
 
 #include "texture3d_p.h"
 
+QT_CANVAS3D_BEGIN_NAMESPACE
+
 /*!
  * \qmltype Texture3D
  * \since QtCanvas3D 1.0
@@ -118,3 +120,5 @@ QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
         dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
     return dbg.maybeSpace();
 }
+
+QT_CANVAS3D_END_NAMESPACE
