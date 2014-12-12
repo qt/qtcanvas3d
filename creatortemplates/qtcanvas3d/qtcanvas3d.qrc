@@ -1,0 +1,6 @@
+<RCC>
+    <qresource prefix="/">
+        <file>qml/%ProjectName%/%ProjectName%.qml</file>
+        <file>qml/%ProjectName%/cube.js</file>
+    </qresource>
+</RCC>
