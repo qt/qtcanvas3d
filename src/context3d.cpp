@@ -1127,6 +1127,11 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
                                      << ":INVALID_OPERATION Currently bound texture is deleted";
         m_error = INVALID_OPERATION;
         return;
+    } else if (image == 0) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ":INVALID_OPERATION Given image was null";
+        m_error = INVALID_OPERATION;
+        return;
     }
 
     uchar *pixels = 0;
@@ -1150,6 +1155,10 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                      << ":Conversion of pixels to format failed.";
         return;
+    }
+
+    if (!m_currentTexture->hasSpecificName()) {
+        m_currentTexture->setName("ImageTexture_"+image->name());
     }
 
     glTexImage2D(target, level, internalformat, image->width(), image->height(), 0, format, type,

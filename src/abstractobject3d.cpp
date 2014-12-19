@@ -42,7 +42,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \internal
  */
 CanvasAbstractObject::CanvasAbstractObject(QObject *parent) :
-    QObject(parent)
+    QObject(parent),
+    m_hasName(false)
 {
     m_name = QString("0x%1").arg((long long) this, 0, 16);
 }
@@ -63,6 +64,7 @@ void CanvasAbstractObject::setName(const QString &name)
         return;
 
     m_name = name;
+    m_hasName = true;
 
     emit nameChanged(m_name);
 }
@@ -74,5 +76,14 @@ const QString &CanvasAbstractObject::name() const
 {
     return m_name;
 }
+
+/*!
+ * \internal
+ */
+bool CanvasAbstractObject::hasSpecificName() const
+{
+    return m_hasName;
+}
+
 
 QT_CANVAS3D_END_NAMESPACE

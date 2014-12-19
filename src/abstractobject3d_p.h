@@ -64,12 +64,14 @@ public:
 
     void setName(const QString &name);
     const QString &name() const;
+    bool hasSpecificName() const;
 
 signals:
     void nameChanged(const QString &name);
 
 private:
     QString m_name;
+    bool m_hasName;
 };
 
 QT_CANVAS3D_END_NAMESPACE
