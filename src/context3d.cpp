@@ -3929,7 +3929,6 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
                 return;
             }
             m_currentArrayBuffer = buffer;
-            glBindBuffer(GLenum(target), buffer->id());
         } else {
             if (buffer->target() == CanvasBuffer::UNINITIALIZED)
                 buffer->setTarget(CanvasBuffer::ELEMENT_ARRAY_BUFFER);
@@ -3941,8 +3940,8 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
                 return;
             }
             m_currentElementArrayBuffer = buffer;
-            glBindBuffer(GLenum(target), buffer->id());
         }
+        glBindBuffer(GLenum(target), buffer->id());
     } else {
         glBindBuffer(GLenum(target), 0);
     }

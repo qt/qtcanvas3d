@@ -281,7 +281,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
                                     << " Attribs:" << m_contextAttribs;
 
         // If we can't do antialiasing, ensure we don't even try to enable it
-        if (m_maxSamples == 0)
+        if (m_maxSamples == 0 || m_isSoftwareRendered)
             m_contextAttribs.setAntialias(false);
 
         // Ensure ignored attributes are left to their default state
@@ -295,8 +295,10 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
     if (!m_context3D) {
         updateWindowParameters();
 
-        // Initialize the swap buffer chain
         QOpenGLFramebufferObjectFormat format;
+        QOpenGLFramebufferObjectFormat antialiasFboFormat;
+
+        // Initialize the swap buffer chain
         if (m_contextAttribs.depth() && m_contextAttribs.stencil() && !m_contextAttribs.antialias())
             format.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
         else if (m_contextAttribs.depth() && !m_contextAttribs.antialias())
@@ -306,7 +308,6 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         else
             format.setAttachment(QOpenGLFramebufferObject::NoAttachment);
 
-        QOpenGLFramebufferObjectFormat antialiasFboFormat;
         if (m_contextAttribs.antialias()) {
             antialiasFboFormat.setSamples(m_maxSamples);
 
@@ -328,11 +329,6 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
             surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
             surfaceFormat.setSwapInterval(0);
         }
-
-        if (m_contextAttribs.antialias() && !m_isSoftwareRendered)
-            surfaceFormat.setSamples(m_maxSamples);
-        else
-            surfaceFormat.setSamples(0);
 
         if (m_contextAttribs.alpha())
             surfaceFormat.setAlphaBufferSize(8);
@@ -664,7 +660,7 @@ void Canvas::renderNext()
     // Resolve MSAA
     if (m_contextAttribs.antialias()) {
         if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << " Resolving MSAA";
-        QOpenGLFramebufferObject::blitFramebuffer(m_displayFbo, m_antialiasFbo);
+        QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
     }
 
     // We need to flush the contents to the FBO before posting
