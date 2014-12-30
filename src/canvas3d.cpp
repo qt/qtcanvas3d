@@ -275,6 +275,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
                                 << ")";
 
     if (!m_isContextAttribsSet) {
+        // Accept passed attributes only from first call and ignore for subsequent calls
         m_isContextAttribsSet = true;
         m_contextAttribs.setFrom(options);
         if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
@@ -283,6 +284,11 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         // If we can't do antialiasing, ensure we don't even try to enable it
         if (m_maxSamples == 0 || m_isSoftwareRendered)
             m_contextAttribs.setAntialias(false);
+
+        // Reflect the fact that creation of stencil attachment
+        // causes the creation of depth attachment as well
+        if (m_contextAttribs.stencil())
+            m_contextAttribs.setDepth(true);
 
         // Ensure ignored attributes are left to their default state
         m_contextAttribs.setAlpha(false);
@@ -293,6 +299,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
     }
 
     if (!m_context3D) {
+        // Create the context using current context attributes
         updateWindowParameters();
 
         QOpenGLFramebufferObjectFormat format;
@@ -311,12 +318,14 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         if (m_contextAttribs.antialias()) {
             antialiasFboFormat.setSamples(m_maxSamples);
 
+            if (antialiasFboFormat.samples() != m_maxSamples) {
+                qDebug() << "Failed to use " << m_maxSamples << " will use " << antialiasFboFormat.samples();
+            }
+
             if (m_contextAttribs.depth() && m_contextAttribs.stencil())
                 antialiasFboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             else if (m_contextAttribs.depth())
                 antialiasFboFormat.setAttachment(QOpenGLFramebufferObject::Depth);
-            else if (m_contextAttribs.stencil())
-                antialiasFboFormat.setAttachment(QOpenGLFramebufferObject::CombinedDepthStencil);
             else
                 antialiasFboFormat.setAttachment(QOpenGLFramebufferObject::NoAttachment);
         }
@@ -338,11 +347,13 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         if (m_contextAttribs.depth())
             surfaceFormat.setDepthBufferSize(24);
 
-        // Ensure
         if (m_contextAttribs.stencil())
             surfaceFormat.setStencilBufferSize(8);
         else
             surfaceFormat.setStencilBufferSize(-1);
+
+        if (m_contextAttribs.antialias())
+            surfaceFormat.setSamples(antialiasFboFormat.samples());
 
         if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
                                     << " Creating QOpenGLContext with surfaceFormat :"
@@ -412,20 +423,6 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
     glFinish();
 
     return m_context3D;
-}
-
-/*!
- * \internal
- */
-GLuint Canvas::drawFBOHandle()
-{
-    GLuint fbo = 0;
-    if (m_renderFbo)
-        fbo = m_renderFbo->handle();
-
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << "():" << fbo;
-
-    return fbo;
 }
 
 /*!
@@ -591,6 +588,32 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
     return node;
 }
 
+
+/*!
+ * \internal
+ */
+void Canvas::bindCurrentRenderTarget()
+{
+    if (m_context3D->currentFramebuffer() == 0) {
+        if (m_contextAttribs.antialias()) {
+            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                        << " Binding current FBO to antialias FBO of "
+                                        << m_antialiasFbo->handle();
+            m_antialiasFbo->bind();
+        } else {
+            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                        << " Binding current FBO to render FBO of "
+                                        << m_renderFbo->handle();
+            m_renderFbo->bind();
+        }
+    } else {
+        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                    << " Binding current FBO to current context FBO of "
+                                    << m_context3D->currentFramebuffer();
+        glBindFramebuffer(GL_FRAMEBUFFER, m_context3D->currentFramebuffer());
+    }
+}
+
 /*!
  * \internal
  */
@@ -630,14 +653,7 @@ void Canvas::renderNext()
     m_glContext->makeCurrent(m_offscreenSurface);
 
     // Bind the correct render target FBO
-    if (m_context3D->currentFramebuffer() == 0) {
-        if (m_contextAttribs.antialias())
-            m_antialiasFbo->bind();
-        else
-            m_renderFbo->bind();
-    } else {
-        glBindFramebuffer(GL_FRAMEBUFFER, m_context3D->currentFramebuffer());
-    }
+    bindCurrentRenderTarget();
 
     // Ensure we have correct clip rect set in the context
     QRect viewport = m_context3D->glViewportRect();

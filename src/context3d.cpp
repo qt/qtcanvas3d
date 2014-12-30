@@ -1384,13 +1384,12 @@ void CanvasContext::bindFramebuffer(glEnums target, CanvasFrameBuffer* framebuff
         return;
     }
 
-    if (framebuffer) {
+    if (framebuffer)
         m_currentFramebuffer = framebuffer;
-        glBindFramebuffer(GL_FRAMEBUFFER, framebuffer->id());
-    } else {
+    else
         m_currentFramebuffer = 0;
-        glBindFramebuffer(GL_FRAMEBUFFER, m_canvas->drawFBOHandle());
-    }
+
+    m_canvas->bindCurrentRenderTarget();
 }
 
 /*!

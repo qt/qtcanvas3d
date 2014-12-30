@@ -74,12 +74,12 @@ public:
     void handleWindowChanged(QQuickWindow *win);
     float devicePixelRatio();
 
+    void bindCurrentRenderTarget();
+
     void setLogAllCalls(bool logCalls);
     bool logAllCalls() const;
     void setLogAllErrors(bool logErrors);
     bool logAllErrors() const;
-
-    GLuint drawFBOHandle();
 
     Q_INVOKABLE CanvasContext *getContext(const QString &name);
     Q_INVOKABLE CanvasContext *getContext(const QString &name, const QVariantMap &options);
