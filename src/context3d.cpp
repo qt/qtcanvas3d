@@ -86,6 +86,7 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     m_unpackFlipYEnabled(false),
     m_logAllCalls(false),
     m_logAllErrors(true),
+    m_checkAllErrors(false),
     m_glViewportRect(0, 0, width, height),
     m_devicePixelRatio(1.0),
     m_currentProgram(0),
@@ -203,47 +204,47 @@ QString CanvasContext::glEnumToString(glEnums value) const
 }
 
 /*!
- * \qmlproperty bool Context3D::logAllCalls
- * Specifies if all Context3D method calls (including internal ones) are logged to the console.
- * Defaults to \c{false}.
- * Setting this to \c true may help in debugging your code as you get a full listing of the 3D calls
- * and parameters your code does.
- */
-/*!
  * \internal
  */
 void CanvasContext::setLogAllCalls(bool logCalls)
 {
     if (m_logAllCalls != logCalls) {
         m_logAllCalls = logCalls;
-        emit logAllCallsChanged(logCalls);
     }
 }
 
-bool CanvasContext::logAllCalls() const
-{
-    return m_logAllCalls;
-}
-
-/*!
- * \qmlproperty bool Context3D::logAllErrors
- * Specifies if all Context3D errors are logged to the console in addition to just setting the
- * getError() return value. Defaults to \c{true}.
- */
 /*!
  * \internal
  */
-void CanvasContext::setLogAllErrors(bool logErrors)
+void CanvasContext::setLogAllErrors(bool checkErrors)
 {
-    if (m_logAllErrors != logErrors) {
-        m_logAllErrors = logErrors;
-        emit logAllErrorsChanged(logErrors);
+    if (m_checkAllErrors != checkErrors) {
+        m_checkAllErrors = checkErrors;
     }
 }
 
-bool CanvasContext::logAllErrors() const
+/*!
+ * \internal
+ */
+void CanvasContext::setCheckAllErrors(bool logErrors)
 {
-    return m_logAllErrors;
+    if (m_logAllErrors != logErrors) {
+        m_logAllErrors = logErrors;
+    }
+}
+
+/*!
+ * \internal
+ */
+void CanvasContext::printAllGLErrors()
+{
+    if (!m_checkAllErrors)
+        return;
+
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        qDebug() << "  OPENGL ERROR: " << glEnumToString(CanvasContext::glEnums(err));
+    }
 }
 
 /*!
@@ -319,6 +320,9 @@ CanvasShaderPrecisionFormat *CanvasContext::getShaderPrecisionFormat(glEnums sha
     GLint precision = 1;
 
     glGetShaderPrecisionFormat((GLenum)(shadertype), (GLenum)(precisiontype), range, &precision);
+
+    printAllGLErrors();
+
     CanvasShaderPrecisionFormat *format = new CanvasShaderPrecisionFormat();
     format->setPrecision(int(precision));
     format->setRangeMin(int(range[0]));
@@ -381,6 +385,7 @@ void CanvasContext::flush()
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "()";
     glFlush();
+    printAllGLErrors();
 }
 
 /*!
@@ -395,6 +400,7 @@ void CanvasContext::finish()
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "()";
     glFinish();
+    printAllGLErrors();
 }
 
 /*!
@@ -409,6 +415,7 @@ CanvasTexture *CanvasContext::createTexture()
     CanvasTexture *texture = new CanvasTexture(this);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "():" << texture;
+    printAllGLErrors();
 
     // Returning a pointer to QObject that has parent set
     // -> V4VM should respect this and ownership should remain with this class
@@ -431,6 +438,7 @@ void CanvasContext::deleteTexture(CanvasTexture *texture)
                                 << ")";
     if (texture) {
         texture->del();
+        printAllGLErrors();
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -459,6 +467,7 @@ void CanvasContext::scissor(int x, int y, int width, int height)
                                 << ")";
 
     glScissor(x, y, width, height);
+    printAllGLErrors();
 }
 
 /*!
@@ -477,6 +486,7 @@ void CanvasContext::activeTexture(glEnums texture)
                                 << "(texture:" << glEnumToString(texture)
                                 << ")";
     glActiveTexture(GLenum(texture));
+    printAllGLErrors();
 }
 
 /*!
@@ -506,6 +516,7 @@ void CanvasContext::bindTexture(glEnums target, CanvasTexture *texture)
     } else {
         glBindTexture(GLenum(target), 0);
     }
+    printAllGLErrors();
 }
 
 /*!
@@ -532,6 +543,7 @@ void CanvasContext::generateMipmap(glEnums target)
         m_error = INVALID_OPERATION;
     } else {
         glGenerateMipmap(target);
+        printAllGLErrors();
     }
 }
 
@@ -697,6 +709,7 @@ void CanvasContext::copyTexImage2D(glEnums target, int level, glEnums internalfo
         m_error = INVALID_OPERATION;
     } else {
         glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
+        printAllGLErrors();
     }
 }
 
@@ -748,6 +761,7 @@ void CanvasContext::copyTexSubImage2D(glEnums target, int level,
         m_error = INVALID_OPERATION;
     } else {
         copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+        printAllGLErrors();
     }
 }
 
@@ -866,6 +880,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         unpackedData = unpackPixels(srcData, false, bytesPerPixel, width, height);
         glTexImage2D(target, level, internalformat, width, height,
                      border, format, type, unpackedData);
+        printAllGLErrors();
     }
         break;
     case UNSIGNED_SHORT_4_4_4_4:
@@ -883,6 +898,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         unpackedData = unpackPixels(srcData, false, 2, width, height);
         glTexImage2D(target, level, internalformat, width, height,
                      border, format, type, unpackedData);
+        printAllGLErrors();
     }
         break;
     default:
@@ -1007,6 +1023,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         srcData = static_cast<CanvasUint8Array *>(pixels)->rawDataCptr();
         unpackedData = unpackPixels(srcData, false, bytesPerPixel, width, height);
         glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, unpackedData);
+        printAllGLErrors();
     }
         break;
     case UNSIGNED_SHORT_4_4_4_4:
@@ -1023,6 +1040,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         srcData = static_cast<CanvasUint16Array *>(pixels)->rawDataCptr();
         unpackedData = unpackPixels(srcData, false, 2, width, height);
         glTexSubImage2D(target, level, xoffset, yoffset, width, height, format, type, unpackedData);
+        printAllGLErrors();
     }
         break;
     default:
@@ -1163,6 +1181,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
 
     glTexImage2D(target, level, internalformat, image->width(), image->height(), 0, format, type,
                  pixels);
+    printAllGLErrors();
 }
 
 /*!
@@ -1244,6 +1263,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
 
     glTexSubImage2D(target, level, xoffset, yoffset, image->width(), image->height(), format,
                     type, pixels);
+    printAllGLErrors();
 }
 
 /*!
@@ -1280,6 +1300,7 @@ void CanvasContext::texParameterf(glEnums target, glEnums pname, float param)
     }
 
     glTexParameterf(GLenum(target), GLenum(pname), GLfloat(param));
+    printAllGLErrors();
 }
 
 /*!
@@ -1315,6 +1336,7 @@ void CanvasContext::texParameteri(glEnums target, glEnums pname, int param)
     }
 
     glTexParameteri(GLenum(target), GLenum(pname), GLint(param));
+    printAllGLErrors();
 }
 
 /*!
@@ -1358,6 +1380,7 @@ CanvasFrameBuffer *CanvasContext::createFramebuffer()
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << ":" << framebuffer;
 
+    printAllGLErrors();
     // Returning a pointer to QObject that has parent set
     // -> V4VM should respect this and ownership should remain with this class
     return framebuffer;
@@ -1389,7 +1412,9 @@ void CanvasContext::bindFramebuffer(glEnums target, CanvasFrameBuffer* framebuff
     else
         m_currentFramebuffer = 0;
 
+    // Let canvas component figure out the exact frame buffer id to use
     m_canvas->bindCurrentRenderTarget();
+    printAllGLErrors();
 }
 
 /*!
@@ -1453,13 +1478,15 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
 
     if (!m_currentFramebuffer) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << "(): INVALID_OPERATION no current framebuffer bound";
+                                     << "(): INVALID_OPERATION no framebuffer bound";
         m_error = INVALID_OPERATION;
         return;
     }
 
-    if (attachment != COLOR_ATTACHMENT0 && attachment != DEPTH_ATTACHMENT
-            && attachment != STENCIL_ATTACHMENT && attachment != DEPTH_STENCIL_ATTACHMENT) {
+    if (attachment != COLOR_ATTACHMENT0
+            && attachment != DEPTH_ATTACHMENT
+            && attachment != STENCIL_ATTACHMENT
+            && attachment != DEPTH_STENCIL_ATTACHMENT) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                      << "(): INVALID_OPERATION attachment must be one of "
                                      << "COLOR_ATTACHMENT0, DEPTH_ATTACHMENT, STENCIL_ATTACHMENT "
@@ -1478,8 +1505,11 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
 
     GLuint renderbufferId = renderbuffer ? renderbuffer->id() : 0;
 
-    glFramebufferRenderbuffer(GLenum(target), GLenum(attachment), GLenum(renderbuffertarget),
+    glFramebufferRenderbuffer(GLenum(target),
+                              GLenum(attachment),
+                              GLenum(renderbuffertarget),
                               renderbufferId);
+    printAllGLErrors();
 }
 
 /*!
@@ -1563,6 +1593,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
 
     GLuint textureId = texture ? texture->textureId() : 0;
     glFramebufferTexture2D(GLenum(target), GLenum(attachment), GLenum(textarget), textureId, level);
+    printAllGLErrors();
 }
 
 /*!
@@ -1610,6 +1641,7 @@ void CanvasContext::deleteFramebuffer(CanvasFrameBuffer *buffer)
 
     if (buffer) {
         buffer->del();
+        printAllGLErrors();
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -1630,6 +1662,7 @@ CanvasRenderBuffer *CanvasContext::createRenderbuffer()
     CanvasRenderBuffer *renderbuffer = new CanvasRenderBuffer(this);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "():" << renderbuffer;
+    printAllGLErrors();
 
     // Returning a pointer to QObject that has parent set
     // -> V4VM should respect this and ownership should remain with this class
@@ -1660,11 +1693,12 @@ void CanvasContext::bindRenderbuffer(glEnums target, CanvasRenderBuffer *renderb
 
     if (renderbuffer) {
         m_currentRenderbuffer = renderbuffer;
-        glBindRenderbuffer(GL_FRAMEBUFFER, renderbuffer->id());
+        glBindRenderbuffer(GL_RENDERBUFFER, renderbuffer->id());
     } else {
         m_currentRenderbuffer = 0;
-        glBindFramebuffer(GL_FRAMEBUFFER, 0);
+        glBindRenderbuffer(GL_RENDERBUFFER, 0);
     }
+    printAllGLErrors();
 }
 
 /*!
@@ -1698,6 +1732,7 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
     }
 
     glRenderbufferStorage(GLenum(target), GLenum(internalformat), width, height);
+    printAllGLErrors();
 }
 
 /*!
@@ -1744,6 +1779,7 @@ void CanvasContext::deleteRenderbuffer(CanvasRenderBuffer *renderbuffer)
 
     if (renderbuffer) {
         renderbuffer->del();
+        printAllGLErrors();
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -1768,6 +1804,7 @@ void CanvasContext::sampleCoverage(float value, bool invert)
                                 << ", invert:" << invert
                                 << ")";
     glSampleCoverage(value, invert);
+    printAllGLErrors();
 }
 
 /*!
@@ -1783,6 +1820,8 @@ CanvasProgram *CanvasContext::createProgram()
     CanvasProgram *program = new CanvasProgram(this);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "():" << program;
+
+    printAllGLErrors();
 
     // Returning a pointer to QObject that has parent set
     // -> V4VM should respect this and ownership should remain with this class
@@ -1831,6 +1870,7 @@ void CanvasContext::deleteProgram(CanvasProgram *program)
 
     if (program) {
         program->del();
+        printAllGLErrors();
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "deleteProgram(): INVALID_VALUE program handle:" << program;
@@ -1856,6 +1896,7 @@ void CanvasContext::attachShader(CanvasProgram *program, CanvasShader *shader)
         return;
 
     program->attach(shader);
+    printAllGLErrors();
 }
 
 /*!
@@ -1906,6 +1947,7 @@ void CanvasContext::detachShader(CanvasProgram *program, CanvasShader *shader)
         return;
 
     program->detach(shader);
+    printAllGLErrors();
 }
 
 /*!
@@ -1925,6 +1967,7 @@ void CanvasContext::linkProgram(CanvasProgram *program)
         return;
 
     program->link();
+    printAllGLErrors();
 }
 
 /*!
@@ -1941,6 +1984,7 @@ void CanvasContext::lineWidth(float width)
                                 << "(width:" << width
                                 << ")";
     glLineWidth(width);
+    printAllGLErrors();
 }
 
 /*!
@@ -1961,6 +2005,7 @@ void CanvasContext::polygonOffset(float factor, float units)
                                 << ", units:" << units
                                 << ")";
     glPolygonOffset(factor, units);
+    printAllGLErrors();
 }
 
 /*!
@@ -1993,6 +2038,7 @@ void CanvasContext::pixelStorei(glEnums pname, int param)
         break;
     default:
         glPixelStorei(GLenum(pname), param);
+        printAllGLErrors();
         break;
     }
 }
@@ -2012,6 +2058,7 @@ void CanvasContext::hint(glEnums target, glEnums mode)
                                 << "(target:" << glEnumToString(target)
                                 << ",mode:" << glEnumToString(mode) << ")";
     glHint(GLenum(target), GLenum(mode));
+    printAllGLErrors();
 }
 
 /*!
@@ -2028,6 +2075,7 @@ void CanvasContext::enable(glEnums cap)
                                 << "(cap:" << glEnumToString(cap)
                                 << ")";
     glEnable(cap);
+    printAllGLErrors();
 }
 
 /*!
@@ -2060,6 +2108,7 @@ void CanvasContext::disable(glEnums cap)
                                 << "(cap:" << glEnumToString(cap)
                                 << ")";
     glDisable(cap);
+    printAllGLErrors();
 }
 
 /*!
@@ -2079,6 +2128,7 @@ void CanvasContext::blendColor(float red, float green, float blue, float alpha)
                                  << ", alpha:" << alpha
                                  << ")";
     glBlendColor(red, green, blue, alpha);
+    printAllGLErrors();
 }
 
 /*!
@@ -2096,6 +2146,7 @@ void CanvasContext::blendEquation(glEnums mode)
                                 << "(mode:" << glEnumToString(mode)
                                 << ")";
     glBlendEquation(GLenum(mode));
+    printAllGLErrors();
 }
 
 /*!
@@ -2118,6 +2169,7 @@ void CanvasContext::blendEquationSeparate(glEnums modeRGB, glEnums modeAlpha)
                                 << ", modeAlpha:" << glEnumToString(modeAlpha)
                                 << ")";
     glBlendEquationSeparate(GLenum(modeRGB), GLenum(modeAlpha));
+    printAllGLErrors();
 }
 
 /*!
@@ -2162,6 +2214,7 @@ void CanvasContext::blendFunc(glEnums sfactor, glEnums dfactor)
     }
 
     glBlendFunc(GLenum(sfactor), GLenum(dfactor));
+    printAllGLErrors();
 }
 
 /*!
@@ -2224,6 +2277,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
     }
 
     glBlendFuncSeparate(GLenum(srcRGB), GLenum(dstRGB), GLenum(srcAlpha), GLenum(dstAlpha));
+    printAllGLErrors();
 }
 
 /*!
@@ -2255,6 +2309,7 @@ QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums para
     case VALIDATE_STATUS: {
         GLint value = 0;
         glGetProgramiv(program->id(), GLenum(paramName), &value);
+        printAllGLErrors();
         if (m_logAllCalls) qDebug() << "    getProgramParameter returns " << value;
         return QVariant::fromValue(value == GL_TRUE);
     }
@@ -2265,6 +2320,7 @@ QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums para
     case ACTIVE_UNIFORMS: {
         GLint value = 0;
         glGetProgramiv(program->id(), GLenum(paramName), &value);
+        printAllGLErrors();
         if (m_logAllCalls) qDebug() << "    getProgramParameter returns " << value;
         return QVariant::fromValue(value);
     }
@@ -2351,6 +2407,7 @@ void CanvasContext::deleteShader(CanvasShader *shader)
 
     if (shader) {
         shader->del();
+        printAllGLErrors();
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -2385,6 +2442,7 @@ void CanvasContext::shaderSource(CanvasShader *shader, const QString &shaderSour
         return;
     }
     shader->setSourceCode(modSource);
+    printAllGLErrors();
 }
 
 
@@ -2430,6 +2488,7 @@ void CanvasContext::compileShader(CanvasShader *shader)
         return;
     }
     shader->qOGLShader()->compileSourceCode(shader->sourceCode());
+    printAllGLErrors();
 }
 
 /*!
@@ -2449,6 +2508,7 @@ void CanvasContext::uniform1i(CanvasUniformLocation *location, int x)
         return;
 
     glUniform1i(location->id(), x);
+    printAllGLErrors();
 }
 
 /*!
@@ -2468,6 +2528,7 @@ void CanvasContext::uniform1iv(CanvasUniformLocation *location, CanvasInt32Array
         return;
 
     glUniform1iv(location->id(), array->length(), (int *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2487,6 +2548,7 @@ void CanvasContext::uniform1f(CanvasUniformLocation *location, float x)
         return;
 
     glUniform1f(location->id(), x);
+    printAllGLErrors();
 }
 
 /*!
@@ -2506,6 +2568,7 @@ void CanvasContext::uniform1fv(CanvasUniformLocation *location, CanvasFloat32Arr
         return;
 
     glUniform1fv(location->id(), array->length(), (float *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2526,6 +2589,7 @@ void CanvasContext::uniform2f(CanvasUniformLocation *location, float x, float y)
         return;
 
     glUniform2f(location->id(), x, y);
+    printAllGLErrors();
 }
 
 /*!
@@ -2545,6 +2609,7 @@ void CanvasContext::uniform2fv(CanvasUniformLocation *location, CanvasFloat32Arr
         return;
 
     glUniform2fv(location->id(), array->length() / 2, (float *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2565,7 +2630,7 @@ void CanvasContext::uniform2i(CanvasUniformLocation *location, int x, int y)
         return;
 
     glUniform2i(location->id(), x, y);
-
+    printAllGLErrors();
 }
 
 /*!
@@ -2585,6 +2650,7 @@ void CanvasContext::uniform2iv(CanvasUniformLocation *location, CanvasInt32Array
         return;
 
     glUniform2iv(location->id(), array->length() / 2, (int *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2606,7 +2672,7 @@ void CanvasContext::uniform3f(CanvasUniformLocation *location, float x, float y,
         return;
 
     glUniform3f(location->id(), x, y, z);
-
+    printAllGLErrors();
 }
 
 /*!
@@ -2626,6 +2692,7 @@ void CanvasContext::uniform3fv(CanvasUniformLocation *location, CanvasFloat32Arr
         return;
 
     glUniform3fv(location->id(), array->length() / 3, (float *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2647,6 +2714,7 @@ void CanvasContext::uniform3i(CanvasUniformLocation *location, int x, int y, int
         return;
 
     glUniform3i(location->id(), x, y, z);
+    printAllGLErrors();
 }
 
 /*!
@@ -2666,6 +2734,7 @@ void CanvasContext::uniform3iv(CanvasUniformLocation *location, CanvasInt32Array
         return;
 
     glUniform3iv(location->id(), array->length() / 3, (int *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2688,7 +2757,7 @@ void CanvasContext::uniform4f(CanvasUniformLocation *location, float x, float y,
         return;
 
     glUniform4f(location->id(), x, y, z, w);
-
+    printAllGLErrors();
 }
 
 /*!
@@ -2708,6 +2777,7 @@ void CanvasContext::uniform4fv(CanvasUniformLocation *location, CanvasFloat32Arr
         return;
 
     glUniform4fv(location->id(), array->length() / 4, (float *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2731,7 +2801,7 @@ void CanvasContext::uniform4i(CanvasUniformLocation *location, int x, int y, int
         return;
 
     glUniform4i(location->id(), x, y, z, w);
-
+    printAllGLErrors();
 }
 
 /*!
@@ -2751,6 +2821,7 @@ void CanvasContext::uniform4iv(CanvasUniformLocation *location, CanvasInt32Array
         return;
 
     glUniform4iv(location->id(), array->length() / 4, (int *)array->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2772,6 +2843,7 @@ void CanvasContext::uniform1fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform1fv(location->id(), array.count(), arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 }
 
@@ -2794,6 +2866,7 @@ void CanvasContext::uniform2fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform2fv(location->id(), array.count() / 2, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 }
 
@@ -2816,6 +2889,7 @@ void CanvasContext::uniform3fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform3fv(location->id(), array.count() / 3, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 }
 
@@ -2838,6 +2912,7 @@ void CanvasContext::uniform4fva(CanvasUniformLocation *location, QVariantList ar
     float *arrayData = new float[array.count()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
     glUniform4fv(location->id(), array.count() / 4, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 }
 
@@ -2860,6 +2935,7 @@ void CanvasContext::uniform1iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform1iv(location->id(), array.count(), arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 
 }
@@ -2883,6 +2959,7 @@ void CanvasContext::uniform2iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform2iv(location->id(), array.count() / 2, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 
 }
@@ -2906,6 +2983,7 @@ void CanvasContext::uniform3iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform3iv(location->id(), array.count() / 3, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 
 }
@@ -2929,6 +3007,7 @@ void CanvasContext::uniform4iva(CanvasUniformLocation *location, QVariantList ar
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
     glUniform4iv(location->id(), array.length() / 4, arrayData);
+    printAllGLErrors();
     delete [] arrayData;
 }
 
@@ -2947,6 +3026,7 @@ void CanvasContext::vertexAttrib1f(unsigned int indx, float x)
                                 << ", x:" << x
                                 << ")";
     glVertexAttrib1f(indx, x);
+    printAllGLErrors();
 }
 
 /*!
@@ -2964,6 +3044,7 @@ void CanvasContext::vertexAttrib1fv(unsigned int indx, CanvasFloat32Array *value
                                 << ", values:" << values
                                 << ")";
     glVertexAttrib1fv(indx, (float *)values->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -2982,6 +3063,7 @@ void CanvasContext::vertexAttrib2f(unsigned int indx, float x, float y)
                                 << ", y:" << y
                                 << ")";
     glVertexAttrib2f(indx, x, y);
+    printAllGLErrors();
 }
 
 /*!
@@ -2999,6 +3081,7 @@ void CanvasContext::vertexAttrib2fv(unsigned int indx, CanvasFloat32Array *value
                                 << ", values:" << values
                                 << ")";
     glVertexAttrib2fv(indx, (float *)values->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -3018,6 +3101,7 @@ void CanvasContext::vertexAttrib3f(unsigned int indx, float x, float y, float z)
                                 << ", z:" << z
                                 << ")";
     glVertexAttrib3f(indx, x, y, z);
+    printAllGLErrors();
 }
 
 /*!
@@ -3035,6 +3119,7 @@ void CanvasContext::vertexAttrib3fv(unsigned int indx, CanvasFloat32Array *value
                                 << ", values:" << values
                                 << ")";
     glVertexAttrib3fv(indx, (float *)values->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -3055,6 +3140,7 @@ void CanvasContext::vertexAttrib4f(unsigned int indx, float x, float y, float z,
                                 << ", w:" << w
                                 << ")";
     glVertexAttrib4f(indx, x, y, z, w);
+    printAllGLErrors();
 }
 
 /*!
@@ -3072,6 +3158,7 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, CanvasFloat32Array *value
                                 << ", values:" << values
                                 << ")";
     glVertexAttrib4fv(indx, (float *)values->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -3096,6 +3183,7 @@ int CanvasContext::getShaderParameter(CanvasShader *shader, glEnums pname)
     case SHADER_TYPE: {
         GLint shaderType = 0;
         glGetShaderiv( shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
+        printAllGLErrors();
         return shaderType;
     }
     case DELETE_STATUS: {
@@ -3127,6 +3215,7 @@ int CanvasContext::getShaderParameter(CanvasShader *shader, glEnums pname)
 CanvasBuffer *CanvasContext::createBuffer()
 {
     CanvasBuffer *newBuffer = new CanvasBuffer(this);
+    printAllGLErrors();
     m_idToCanvasBufferMap[newBuffer->id()] = newBuffer;
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << ":" << newBuffer;
 
@@ -3158,6 +3247,7 @@ CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
     }
 
     int index = program->uniformLocation(name);
+    printAllGLErrors();
     if (index < 0) {
         return 0;
     }
@@ -3222,6 +3312,7 @@ void CanvasContext::bindAttribLocation(CanvasProgram *program, int index, const 
     }
 
     program->bindAttributeLocation(index, name);
+    printAllGLErrors();
 }
 
 /*!
@@ -3237,6 +3328,7 @@ void CanvasContext::enableVertexAttribArray(int index)
                                 << "(index:" << index
                                 << ")";
     glEnableVertexAttribArray(index);
+    printAllGLErrors();
 }
 
 /*!
@@ -3252,6 +3344,7 @@ void CanvasContext::disableVertexAttribArray(int index)
                                 << "(index:" << index
                                 << ")";
     glDisableVertexAttribArray(index);
+    printAllGLErrors();
 }
 
 /*!
@@ -3279,6 +3372,7 @@ void CanvasContext::uniformMatrix2fv(CanvasUniformLocation *uniformLocation, boo
     int numMatrices = value->length() / 4;
 
     glUniformMatrix2fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 }
 
 /*!
@@ -3306,6 +3400,7 @@ void CanvasContext::uniformMatrix3fv(CanvasUniformLocation *uniformLocation, boo
     int numMatrices = value->length() / 9;
 
     glUniformMatrix3fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 }
 
 /*!
@@ -3333,6 +3428,7 @@ void CanvasContext::uniformMatrix4fv(CanvasUniformLocation *uniformLocation, boo
     int numMatrices = value->length() / 16;
 
     glUniformMatrix4fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 }
 
 /*!
@@ -3362,6 +3458,7 @@ void CanvasContext::uniformMatrix4fva(CanvasUniformLocation *uniformLocation, bo
     ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
 
     glUniformMatrix4fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -3393,6 +3490,7 @@ void CanvasContext::uniformMatrix3fva(CanvasUniformLocation *uniformLocation, bo
     ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
 
     glUniformMatrix3fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -3425,6 +3523,7 @@ void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bo
     ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
 
     glUniformMatrix2fv(location, numMatrices, transpose, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -3452,6 +3551,7 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
                                 << ")";
 
     glVertexAttribPointer(indx, size, GLenum(type), normalized, stride, (GLvoid *)offset);
+    printAllGLErrors();
 }
 
 
@@ -3504,6 +3604,7 @@ void CanvasContext::bufferData(glEnums target, long size, glEnums usage)
     }
 
     glBufferData(GLenum(target), size, (GLvoid *)tempArray->rawDataCptr(), GLenum(usage));
+    printAllGLErrors();
     delete tempArray;
 }
 
@@ -3567,6 +3668,7 @@ void CanvasContext::bufferData(glEnums target, CanvasTypedArray *typedArray, glE
 
     glBufferData(GLenum(target), typedArray->byteLength(), (GLvoid *)typedArray->rawDataCptr(),
                  GLenum(usage));
+    printAllGLErrors();
 }
 
 /*!
@@ -3596,6 +3698,7 @@ void CanvasContext::bufferData(glEnums target, CanvasArrayBuffer &data, glEnums 
     }
 
     glBufferData(GLenum(target), data.byteLength(), (GLvoid*)data.rawData(), GLenum(usage));
+    printAllGLErrors();
 }
 
 /*!
@@ -3631,6 +3734,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, CanvasTypedArray *
 
     glBufferSubData(GLenum(target), offset, typedArray->byteLength(),
                     (GLvoid*)typedArray->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -3658,6 +3762,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, CanvasArrayBuffer 
     }
 
     glBufferSubData(GLenum(target), offset, data.byteLength(), (GLvoid*)data.rawData());
+    printAllGLErrors();
 }
 
 /*!
@@ -3689,6 +3794,7 @@ QVariant CanvasContext::getBufferParameter(glEnums target, glEnums pname)
     case BUFFER_USAGE:
         GLint data;
         glGetBufferParameteriv(GLenum(target), GLenum(pname), &data);
+        printAllGLErrors();
 
         // TODO: What happens here regarding ownership?
         return QVariant(data);
@@ -3747,6 +3853,7 @@ void CanvasContext::deleteBuffer(CanvasBuffer *buffer)
 
     m_idToCanvasBufferMap.remove(buffer->id());
     buffer->del();
+    printAllGLErrors();
 }
 
 /*!
@@ -3809,11 +3916,13 @@ QVariant CanvasContext::getParameter(glEnums pname)
         // Intentional flow through
     case MAX_CUBE_MAP_TEXTURE_SIZE: {
         glGetIntegerv(pname, &value);
+        printAllGLErrors();
         return QVariant::fromValue(value);
     }
 #if !defined(QT_OPENGL_ES_2)
     case MAX_VERTEX_UNIFORM_VECTORS: {
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &value);
+        printAllGLErrors();
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "():" << value;
         return QVariant::fromValue(value);
     }
@@ -3827,6 +3936,7 @@ QVariant CanvasContext::getParameter(glEnums pname)
         // Intentional flow through
     case VERSION: {
         const GLubyte *text = glGetString(pname);
+        printAllGLErrors();
         QString qtext = QString::fromLatin1((const char *)text);
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "():" << qtext;
         return qtext;
@@ -3834,12 +3944,14 @@ QVariant CanvasContext::getParameter(glEnums pname)
     }
     case UNMASKED_VENDOR_WEBGL: {
         const GLubyte *text = glGetString(GL_VENDOR);
+        printAllGLErrors();
         QString qtext = QString::fromLatin1((const char *)text);
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "():" << qtext;
         return qtext;
     }
     case UNMASKED_RENDERER_WEBGL: {
         const GLubyte *text = glGetString(GL_VENDOR);
+        printAllGLErrors();
         QString qtext = QString::fromLatin1((const char *)text);
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "():" << qtext;
         return qtext;
@@ -3941,8 +4053,10 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
             m_currentElementArrayBuffer = buffer;
         }
         glBindBuffer(GLenum(target), buffer->id());
+        printAllGLErrors();
     } else {
         glBindBuffer(GLenum(target), 0);
+        printAllGLErrors();
     }
 
 }
@@ -3962,6 +4076,7 @@ void CanvasContext::validateProgram(CanvasProgram *program)
                                 << "(program:" << program << ")";
     if (program)
         program->validateProgram();
+    printAllGLErrors();
 }
 
 /*!
@@ -3980,6 +4095,7 @@ void CanvasContext::useProgram(CanvasProgram *program)
     if (!program || !program->isLinked())
         return;
     program->bind();
+    printAllGLErrors();
 }
 
 /*!
@@ -4006,6 +4122,7 @@ void CanvasContext::clear(glEnums flags)
     }
 
     glClear(flags);
+    printAllGLErrors();
 }
 
 /*!
@@ -4021,6 +4138,7 @@ void CanvasContext::cullFace(glEnums mode)
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(mode:" << glEnumToString(mode) << ")";
     glCullFace(mode);
+    printAllGLErrors();
 }
 
 /*!
@@ -4036,6 +4154,7 @@ void CanvasContext::frontFace(glEnums mode)
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(mode:" << glEnumToString(mode) << ")";
     glFrontFace(mode);
+    printAllGLErrors();
 }
 
 /*!
@@ -4053,6 +4172,8 @@ void CanvasContext::depthMask(bool flag)
         glDepthMask(GL_TRUE);
     else
         glDepthMask(GL_FALSE);
+
+    printAllGLErrors();
 }
 
 // TODO: Why are all the enums for this commented out?
@@ -4070,6 +4191,7 @@ void CanvasContext::depthFunc(glEnums func)
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(func:" << glEnumToString(func) << ")";
     glDepthFunc(func);
+    printAllGLErrors();
 }
 
 /*!
@@ -4086,6 +4208,7 @@ void CanvasContext::depthRange(float zNear, float zFar)
                                 << "(zNear:" << zNear
                                 << ", zFar:" << zFar <<  ")";
     glDepthRangef(GLclampf(zNear), GLclampf(zFar));
+    printAllGLErrors();
 }
 
 /*!
@@ -4099,6 +4222,7 @@ void CanvasContext::clearStencil(int stencil)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "(stencil:" << stencil << ")";
     glClearStencil(stencil);
+    printAllGLErrors();
 }
 
 /*!
@@ -4117,6 +4241,7 @@ void CanvasContext::colorMask(bool maskRed, bool maskGreen, bool maskBlue, bool 
                                 << ", maskBlue:" << maskBlue
                                 << ", maskAlpha:" << maskAlpha  <<  ")";
     glColorMask(maskRed, maskGreen, maskBlue, maskAlpha);
+    printAllGLErrors();
 }
 
 /*!
@@ -4131,6 +4256,7 @@ void CanvasContext::clearDepth(float depth)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << "(depth:" << depth << ")";
     glClearDepthf(depth);
+    printAllGLErrors();
 }
 
 /*!
@@ -4149,6 +4275,7 @@ void CanvasContext::clearColor(float red, float green, float blue, float alpha)
                                  << ", blue:" << blue
                                  << ", alpha:" << alpha << ")";
     glClearColor(red, green, blue, alpha);
+    printAllGLErrors();
 }
 
 /*!
@@ -4171,6 +4298,7 @@ void CanvasContext::viewport(int x, int y, int width, int height)
                                  << ", width:" << width
                                  << ", height:" << height << ")";
     glViewport(x, y, width, height);
+    printAllGLErrors();
     m_glViewportRect.setX(x);
     m_glViewportRect.setY(y);
     m_glViewportRect.setWidth(width);
@@ -4201,6 +4329,7 @@ void CanvasContext::drawArrays(glEnums mode, int first, int count)
                                 << ", first:" << first
                                 << ", count:" << count << ")";
     glDrawArrays(mode, first, count);
+    printAllGLErrors();
 }
 
 /*!
@@ -4236,6 +4365,7 @@ void CanvasContext::drawElements(glEnums mode, int count, glEnums type, long off
                                 << ", type:" << glEnumToString(type)
                                 << ", offset:" << offset << ")";
     glDrawElements(GLenum(mode), count, GLenum(type), (GLvoid*)offset);
+    printAllGLErrors();
 }
 
 /*!
@@ -4277,6 +4407,7 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
     }
 
     glReadPixels(x, y, width, height, format, type, pixels->rawDataCptr());
+    printAllGLErrors();
 }
 
 /*!
@@ -4299,6 +4430,7 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(CanvasProgram *program, uint in
     int size = 0;
     GLenum type = 0;
     glGetActiveAttrib(program->id(), index, 512, &length, &size, &type, name);
+    printAllGLErrors();
     QString strName(name);
     delete [] name;
     return new CanvasActiveInfo(size, CanvasContext::glEnums(type), strName);
@@ -4324,6 +4456,7 @@ CanvasActiveInfo *CanvasContext::getActiveUniform(CanvasProgram *program, uint i
     int size = 0;
     GLenum type = 0;
     glGetActiveUniform(program->id(), index, 512, &length, &size, &type, name);
+    printAllGLErrors();
     QString strName(name);
     delete [] name;
     return new CanvasActiveInfo(size, CanvasContext::glEnums(type), strName);
@@ -4357,6 +4490,7 @@ void CanvasContext::stencilFunc(glEnums func, int ref, uint mask)
                                 << ")";
 
     glStencilFunc(GLenum(func), ref, mask);
+    printAllGLErrors();
 }
 
 /*!
@@ -4393,6 +4527,7 @@ void CanvasContext::stencilFuncSeparate(glEnums face, glEnums func, int ref, uin
                                 << ", mask:" << mask
                                 << ")";
     glStencilFuncSeparate(GLenum(face), GLenum(func), ref, mask);
+    printAllGLErrors();
 }
 
 /*!
@@ -4409,6 +4544,7 @@ void CanvasContext::stencilMask(uint mask)
                                 << "(mask:" << mask
                                 << ")";
     glStencilMask(mask);
+    printAllGLErrors();
 }
 
 /*!
@@ -4432,6 +4568,7 @@ void CanvasContext::stencilMaskSeparate(glEnums face, uint mask)
                                 << ", mask:" << mask
                                 << ")";
     glStencilMaskSeparate(GLenum(face), mask);
+    printAllGLErrors();
 }
 
 /*!
@@ -4461,6 +4598,7 @@ void CanvasContext::stencilOp(glEnums sfail, glEnums zfail, glEnums zpass)
                                 << ", zpass:" << glEnumToString(zpass)
                                 << ")";
     glStencilOp(GLenum(sfail), GLenum(zfail), GLenum(zpass));
+    printAllGLErrors();
 }
 
 /*!
@@ -4497,6 +4635,7 @@ void CanvasContext::stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail,
                                 << ", zpass:" << glEnumToString(zpass)
                                 << ")";
     glStencilOpSeparate(GLenum(face), GLenum(fail), GLenum(zfail), GLenum(zpass));
+    printAllGLErrors();
 }
 
 
@@ -4523,6 +4662,7 @@ void CanvasContext::vertexAttrib1fva(uint indx, QVariantList values)
     ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
 
     glVertexAttrib1fv(indx, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -4550,6 +4690,7 @@ void CanvasContext::vertexAttrib2fva(uint indx, QVariantList values)
     ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
 
     glVertexAttrib2fv(indx, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -4577,6 +4718,7 @@ void CanvasContext::vertexAttrib3fva(uint indx, QVariantList values)
     ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
 
     glVertexAttrib3fv(indx, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -4604,6 +4746,7 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
     ArrayUtils::fillFloatArrayFromVariantList(values, arrayData);
 
     glVertexAttrib4fv(indx, arrayData);
+    printAllGLErrors();
 
     delete [] arrayData;
 }
@@ -4626,6 +4769,7 @@ int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums att
                                 << ")";
     GLint parameter;
     glGetFramebufferAttachmentParameteriv(target, attachment, pname, &parameter);
+    printAllGLErrors();
     return parameter;
 }
 
@@ -4646,6 +4790,7 @@ int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
 
     GLint parameter;
     glGetRenderbufferParameteriv(target, pname, &parameter);
+    printAllGLErrors();
     return parameter;
 }
 
@@ -4689,6 +4834,7 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
             // Intentional flow through
         case TEXTURE_WRAP_T:
             glGetTexParameteriv(target, pname, &parameter);
+            printAllGLErrors();
             break;
         default:
             // Intentional flow through
@@ -4744,6 +4890,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
     }
 
     glGetVertexAttribPointerv(index, GLenum(pname), (GLvoid**) &offset);
+    printAllGLErrors();
     return offset;
 }
 
@@ -4798,6 +4945,7 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
         case VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             if (value == 0 || !m_idToCanvasBufferMap.contains(value))
                 return QVariant();
 
@@ -4807,35 +4955,41 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
         case VERTEX_ATTRIB_ARRAY_ENABLED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             return QVariant::fromValue( bool(value));
         }
             break;
         case VERTEX_ATTRIB_ARRAY_SIZE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             return QVariant::fromValue(value);
         }
             break;
         case VERTEX_ATTRIB_ARRAY_STRIDE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             return QVariant::fromValue(value);
         }
             break;
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             return QVariant::fromValue(value);
         }
         case VERTEX_ATTRIB_ARRAY_NORMALIZED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
+            printAllGLErrors();
             return QVariant::fromValue( bool(value));
         }
         case CURRENT_VERTEX_ATTRIB: {
             // TODO: Should be Float32Array
             GLfloat values[4];
             glGetVertexAttribfv(index, GLenum(pname), values);
+            printAllGLErrors();
 
             QList<float> floatList;
             floatList.push_back(values[0]);
@@ -4948,6 +5102,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
         case INT: {
             GLint value = 0;
             glGetUniformiv(programId, locationId, &value);
+            printAllGLErrors();
             return QVariant::fromValue(value);
         }
         case INT_VEC2:
@@ -4960,6 +5115,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
             numValues--;
             GLint *value = new GLint[numValues];
             glGetUniformiv(programId, locationId, value);
+            printAllGLErrors();
 
             QList<float> intList;
             for (int i = 0; i < numValues; i++)
@@ -4971,6 +5127,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
         case FLOAT: {
             GLfloat value = 0;
             glGetUniformfv(programId, locationId, &value);
+            printAllGLErrors();
             return QVariant::fromValue(value);
         }
         case FLOAT_VEC2:
@@ -4984,6 +5141,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
             GLfloat *value = new GLfloat[numValues];
 
             glGetUniformfv(programId, locationId, value);
+            printAllGLErrors();
 
             QList<float> floatList;
             for (int i = 0; i < numValues; i++)
@@ -4995,6 +5153,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
         case BOOL: {
             GLint value = 0;
             glGetUniformiv(programId, locationId, &value);
+            printAllGLErrors();
             return QVariant::fromValue(bool(value));
         }
         case BOOL_VEC2:
@@ -5008,6 +5167,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
             GLint *value = new GLint[numValues];
 
             glGetUniformiv(programId, locationId, value);
+            printAllGLErrors();
 
             QList<bool> boolList;
             for (int i = 0; i < numValues; i++)
@@ -5026,6 +5186,7 @@ QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation
             GLfloat *value = new GLfloat[numValues];
 
             glGetUniformfv(programId, locationId, value);
+            printAllGLErrors();
 
             QList<float> floatList;
             for (int i = 0; i < numValues; i++)

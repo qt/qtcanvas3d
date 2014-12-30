@@ -1186,19 +1186,17 @@ public:
 
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
+    void printAllGLErrors();
 
     void setLogAllCalls(bool logCalls);
-    bool logAllCalls() const;
     void setLogAllErrors(bool logErrors);
-    bool logAllErrors() const;
+    void setCheckAllErrors(bool checkErrors);
 
     uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
                         int bytesPerPixel, int width, int height);
 
 signals:
     void canvasChanged(Canvas *canvas);
-    void logAllCallsChanged(bool logCalls);
-    void logAllErrorsChanged(bool logErrors);
     void drawingBufferWidthChanged();
     void drawingBufferHeightChanged();
 
@@ -1209,6 +1207,7 @@ private:
 
     bool m_logAllCalls;
     bool m_logAllErrors;
+    bool m_checkAllErrors;
     QRect m_glViewportRect;
 
 

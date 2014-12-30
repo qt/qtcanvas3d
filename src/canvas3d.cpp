@@ -82,6 +82,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_renderNodeReady(false),
     m_logAllCalls(false),
     m_logAllErrors(true),
+    m_checkAllErrors(false),
     m_mainThread(QThread::currentThread()),
     m_contextThread(0),
     m_context3D(0),
@@ -199,6 +200,24 @@ void Canvas::setLogAllErrors(bool logErrors)
 bool Canvas::logAllErrors() const
 {
     return m_logAllErrors;
+}
+
+/*!
+ * \qmlproperty bool Canvas3D::checkAllErrors
+ * Specifies if all GL errors are checked after each context call and logged to the console.
+ * Defaults to \c{false}.
+ */
+void Canvas::setCheckAllErrors(bool checkErrors)
+{
+    if (m_checkAllErrors != checkErrors) {
+        m_checkAllErrors = checkErrors;
+        emit checkAllErrorsChanged(checkErrors);
+    }
+}
+
+bool Canvas::checkAllErrors() const
+{
+    return m_checkAllErrors;
 }
 
 /*!
@@ -392,7 +411,6 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
                                     << " Render FBO handle:" << m_renderFbo->handle()
                                     << " isValid:" << m_renderFbo->isValid();
-        m_renderFbo->bind();
 
         if (m_contextAttribs.antialias()) {
             if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
@@ -401,6 +419,11 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
                                         << "and attachment format of :"
                                         << antialiasFboFormat.attachment();
             m_antialiasFbo = new QOpenGLFramebufferObject(m_initialisedSize, antialiasFboFormat);
+            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                        << " Antialias FBO handle:" << m_antialiasFbo->handle()
+                                        << " isValid:" << m_antialiasFbo->isValid();
+            m_antialiasFbo->bind();
+            glClear(GL_COLOR_BUFFER_BIT);
         }
 
         m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,
@@ -412,8 +435,10 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         m_context3D->setContextAttributes(m_contextAttribs);
         m_context3D->setLogAllCalls(this->logAllCalls());
         m_context3D->setLogAllErrors(this->logAllErrors());
+        m_context3D->setCheckAllErrors(this->checkAllErrors());
         connect(this, &Canvas::logAllCallsChanged, m_context3D, &CanvasContext::setLogAllCalls);
         connect(this, &Canvas::logAllErrorsChanged, m_context3D, &CanvasContext::setLogAllErrors);
+        connect(this, &Canvas::checkAllErrorsChanged, m_context3D, &CanvasContext::setCheckAllErrors);
 
 
         emit contextChanged(m_context3D);
@@ -595,20 +620,21 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 void Canvas::bindCurrentRenderTarget()
 {
     if (m_context3D->currentFramebuffer() == 0) {
-        if (m_contextAttribs.antialias()) {
+        // Bind default framebuffer
+        if (m_antialiasFbo) {
             if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Binding current FBO to antialias FBO of "
+                                        << " Binding current FBO to antialias FBO:"
                                         << m_antialiasFbo->handle();
             m_antialiasFbo->bind();
         } else {
             if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Binding current FBO to render FBO of "
+                                        << " Binding current FBO to render FBO:"
                                         << m_renderFbo->handle();
             m_renderFbo->bind();
         }
     } else {
         if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Binding current FBO to current context FBO of "
+                                    << " Binding current FBO to current context FBO:"
                                     << m_context3D->currentFramebuffer();
         glBindFramebuffer(GL_FRAMEBUFFER, m_context3D->currentFramebuffer());
     }
@@ -662,8 +688,11 @@ void Canvas::renderNext()
                                 << " viewport set to " << viewport;
 
     // Check that we're complete component before drawing
-    if (!isComponentComplete())
+    if (!isComponentComplete()) {
+        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                    << " Component is not complete, skipping drawing";
         return;
+    }
 
     // Check if any images are loaded and need to be notified while the correct
     // GL context is current.
@@ -675,7 +704,9 @@ void Canvas::renderNext()
 
     // Resolve MSAA
     if (m_contextAttribs.antialias()) {
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << " Resolving MSAA";
+        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+                                    << " Resolving MSAA from FBO:" << m_antialiasFbo->handle()
+                                     << " to FBO:" << m_renderFbo->handle();
         QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
     }
 
