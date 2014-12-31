@@ -1186,11 +1186,10 @@ public:
 
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
-    void printAllGLErrors();
+    void logAllGLErrors(const char *className, const char *funcName);
 
     void setLogAllCalls(bool logCalls);
     void setLogAllErrors(bool logErrors);
-    void setCheckAllErrors(bool checkErrors);
 
     uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
                         int bytesPerPixel, int width, int height);
@@ -1207,7 +1206,6 @@ private:
 
     bool m_logAllCalls;
     bool m_logAllErrors;
-    bool m_checkAllErrors;
     QRect m_glViewportRect;
 
 

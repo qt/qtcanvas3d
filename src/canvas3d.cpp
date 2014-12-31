@@ -81,8 +81,7 @@ Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_renderNodeReady(false),
     m_logAllCalls(false),
-    m_logAllErrors(true),
-    m_checkAllErrors(false),
+    m_logAllErrors(false),
     m_mainThread(QThread::currentThread()),
     m_contextThread(0),
     m_context3D(0),
@@ -187,7 +186,10 @@ bool Canvas::logAllCalls() const
 
 /*!
  * \qmlproperty bool Canvas3D::logAllErrors
- * Specifies if all Canvas3D errors are logged to the console. Defaults to \c{true}.
+ * Specifies if all GL errors are checked and logged to the console. Defaults to \c{false}.
+ * WARNING! Enabling this flag will have severe negative performance impact due to use of
+ * \c{glGetError()} after each function call, so only enable it while debugging an issue during
+ * development.
  */
 void Canvas::setLogAllErrors(bool logErrors)
 {
@@ -200,24 +202,6 @@ void Canvas::setLogAllErrors(bool logErrors)
 bool Canvas::logAllErrors() const
 {
     return m_logAllErrors;
-}
-
-/*!
- * \qmlproperty bool Canvas3D::checkAllErrors
- * Specifies if all GL errors are checked after each context call and logged to the console.
- * Defaults to \c{false}.
- */
-void Canvas::setCheckAllErrors(bool checkErrors)
-{
-    if (m_checkAllErrors != checkErrors) {
-        m_checkAllErrors = checkErrors;
-        emit checkAllErrorsChanged(checkErrors);
-    }
-}
-
-bool Canvas::checkAllErrors() const
-{
-    return m_checkAllErrors;
 }
 
 /*!
@@ -435,11 +419,8 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         m_context3D->setContextAttributes(m_contextAttribs);
         m_context3D->setLogAllCalls(this->logAllCalls());
         m_context3D->setLogAllErrors(this->logAllErrors());
-        m_context3D->setCheckAllErrors(this->checkAllErrors());
         connect(this, &Canvas::logAllCallsChanged, m_context3D, &CanvasContext::setLogAllCalls);
         connect(this, &Canvas::logAllErrorsChanged, m_context3D, &CanvasContext::setLogAllErrors);
-        connect(this, &Canvas::checkAllErrorsChanged, m_context3D, &CanvasContext::setCheckAllErrors);
-
 
         emit contextChanged(m_context3D);
     }

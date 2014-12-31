@@ -54,8 +54,8 @@ Item {
     }
 
     Canvas3D {
-        id: no_logs
-        logAllErrors: false
+        id: log_only_errors
+        logAllErrors: true
     }
 
     Canvas3D {
@@ -87,7 +87,7 @@ Item {
             compare(empty.width, 0)
             compare(empty.height, 0)
             compare(empty.logAllCalls, false)
-            compare(empty.logAllErrors, true)
+            compare(empty.logAllErrors, false)
             compare(empty.context, null)
         }
 
@@ -97,9 +97,9 @@ Item {
             log_only_calls.logAllCalls = false
         }
 
-        function test_no_logs() {
+        function log_only_errors() {
             compare(no_logs.logAllCalls, false)
-            compare(no_logs.logAllErrors, false)
+            compare(no_logs.logAllErrors, true)
         }
 
         function test_basic_context() {

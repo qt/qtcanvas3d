@@ -65,7 +65,6 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
-    Q_PROPERTY(bool checkAllErrors READ checkAllErrors WRITE setCheckAllErrors NOTIFY checkAllErrorsChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
 
 public:
@@ -81,8 +80,6 @@ public:
     bool logAllCalls() const;
     void setLogAllErrors(bool logErrors);
     bool logAllErrors() const;
-    void setCheckAllErrors(bool checkErrors);
-    bool checkAllErrors() const;
 
     Q_INVOKABLE CanvasContext *getContext(const QString &name);
     Q_INVOKABLE CanvasContext *getContext(const QString &name, const QVariantMap &options);
@@ -99,7 +96,6 @@ signals:
     void animatedChanged(bool animated);
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
-    void checkAllErrorsChanged(bool checkErrors);
     void contextChanged(CanvasContext *context);
 
     void initGL();
@@ -119,7 +115,6 @@ private:
     bool m_renderNodeReady;
     bool m_logAllCalls;
     bool m_logAllErrors;
-    bool m_checkAllErrors;
     QThread *m_mainThread;
     QThread *m_contextThread;
     QRectF m_cachedGeometry;
