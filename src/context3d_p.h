@@ -1186,7 +1186,7 @@ public:
 
     QRect glViewportRect() const;
     GLuint currentFramebuffer();
-    void logAllGLErrors(const char *className, const char *funcName);
+    void logAllGLErrors(const QString &funcName);
 
     void setLogAllCalls(bool logCalls);
     void setLogAllErrors(bool logErrors);
