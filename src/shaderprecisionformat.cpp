@@ -59,21 +59,6 @@ CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
 }
 
 /*!
- * \fn inline void CanvasShaderPrecisionFormat::setRangeMin(int min)
- * \internal
- */
-
-/*!
- * \fn inline void CanvasShaderPrecisionFormat::setRangeMax(int max)
- * \internal
- */
-
-/*!
- * \fn inline void CanvasShaderPrecisionFormat::setPrecision(int precision)
- * \internal
- */
-
-/*!
  * \qmlproperty int ShaderPrecisionFormat::rangeMin
  * The base 2 log of the absolute value of the minimum value that can be represented.
  */

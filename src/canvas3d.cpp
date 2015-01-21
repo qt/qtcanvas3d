@@ -210,18 +210,10 @@ bool Canvas::logAllErrors() const
  * if a value that affects the look of the 3D scene has changed, but no other mechanism
  * triggers the re-render cycle.
  */
-/*!
- * \fn Canvas::needRender()
- * \internal
- */
 
 /*!
  * \qmlsignal Canvas3D::textureReady(int id, size size, float devicePixelRatio)
  * Emitted when a new texture is ready to inform the render node.
- */
-/*!
- * \fn Canvas::textureReady(int id, const QSize &size, float devicePixelRatio)
- * \internal
  */
 
 /*!

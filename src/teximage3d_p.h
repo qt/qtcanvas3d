@@ -120,7 +120,7 @@ public:
     void load();
     void handleReply(QNetworkReply *reply);
     QImage &getImage();
-    uchar *convertToFormat(CanvasContext::glEnums format, bool flipY = false);
+    uchar *convertToFormat(CanvasContext::glEnums format, bool flipY = false, bool premultipliedAlpha = false);
 
     friend QDebug operator<< (QDebug d, const CanvasTextureImage *buffer);
 

@@ -84,6 +84,7 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     CanvasAbstractObject(parent),
     QOpenGLFunctions(context),
     m_unpackFlipYEnabled(false),
+    m_unpackPremultiplyAlphaEnabled(false),
     m_logAllCalls(false),
     m_logAllErrors(false),
     m_glViewportRect(0, 0, width, height),
@@ -1150,12 +1151,12 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     uchar *pixels = 0;
     switch (type) {
     case UNSIGNED_BYTE:
-        pixels = image->convertToFormat(type, m_unpackFlipYEnabled);
+        pixels = image->convertToFormat(type, m_unpackFlipYEnabled, m_unpackPremultiplyAlphaEnabled);
         break;
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_5_5_1:
-        pixels = image->convertToFormat(type, m_unpackFlipYEnabled);
+        pixels = image->convertToFormat(type, m_unpackFlipYEnabled, m_unpackPremultiplyAlphaEnabled);
         break;
     default:
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -1236,12 +1237,12 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     uchar *pixels = 0;
     switch (type) {
     case UNSIGNED_BYTE:
-        pixels = image->convertToFormat(type, m_unpackFlipYEnabled);
+        pixels = image->convertToFormat(type, m_unpackFlipYEnabled, m_unpackPremultiplyAlphaEnabled);
         break;
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_5_5_1:
-        pixels = image->convertToFormat(type, m_unpackFlipYEnabled);
+        pixels = image->convertToFormat(type, m_unpackFlipYEnabled, m_unpackPremultiplyAlphaEnabled);
         break;
     default:
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -2006,9 +2007,15 @@ void CanvasContext::polygonOffset(float factor, float units)
 /*!
  * \qmlmethod void Context3D::pixelStorei(glEnums pname, int param)
  * Set the pixel storage modes.
- * \a pname specifies the name of the parameter to be set. \c Context3D.PACK_ALIGNMENT affects the
- * packing of pixel data into memory. \c Context3D.UNPACK_ALIGNMENT affects the unpacking of pixel
- * data from memory.
+ * \a pname specifies the name of the parameter to be set. \c {Context3D.PACK_ALIGNMENT} affects the
+ * packing of pixel data into memory. \c {Context3D.UNPACK_ALIGNMENT} affects the unpacking of pixel
+ * data from memory. \c {Context3D.UNPACK_FLIP_Y_WEBGL} is initially \c false, but once set, in any
+ * subsequent calls to \l texImage2D or \l texSubImage2D, the source data is flipped along the
+ * vertical axis. \c {Context3D.UNPACK_PREMULTIPLY_ALPHA_WEBGL} is initially \c false, but once set,
+ * in any subsequent calls to \l texImage2D or \l texSubImage2D, the alpha channel of the source
+ * data, is multiplied into the color channels during the data transfer. Initial value is \c false
+ * and any non-zero value is interpreted as \c true.
+ *
  * \a param specifies the value that \a pname is set to.
  */
 /*!
@@ -2029,7 +2036,7 @@ void CanvasContext::pixelStorei(glEnums pname, int param)
         m_unpackPremultiplyAlphaEnabled = (param != 0);
         break;
     case UNPACK_COLORSPACE_CONVERSION_WEBGL:
-        m_unpackColorspaceConversion = glEnums(param);
+        // Intentionally ignored
         break;
     default:
         glPixelStorei(GLenum(pname), param);
@@ -5018,8 +5025,7 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
         }
         default:
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                         << ":INVALID_ENUM index must be smaller than "
-                                         << "MAX_VERTEX_ATTRIBS = " << MAX_VERTEX_ATTRIBS;
+                                         << ":INVALID_ENUM pname " << pname;
             m_error = INVALID_ENUM;
         }
     }

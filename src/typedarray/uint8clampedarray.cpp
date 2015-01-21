@@ -51,16 +51,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 
 /*!
- * \fn virtual inline int CanvasUint8ClampedArray::bytesPerElement();
- * \internal
- */
-
-/*!
- * \fn virtual inline CanvasContext3D::glEnums CanvasUint8ClampedArray::dataType();
- * \internal
- */
-
-/*!
  * \internal
  */
 CanvasUint8ClampedArray::CanvasUint8ClampedArray(QObject *parent) :

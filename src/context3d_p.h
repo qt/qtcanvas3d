@@ -1206,7 +1206,6 @@ signals:
 private:
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
-    glEnums m_unpackColorspaceConversion;
 
     bool m_logAllCalls;
     bool m_logAllErrors;

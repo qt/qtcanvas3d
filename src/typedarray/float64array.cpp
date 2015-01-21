@@ -51,16 +51,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 
 /*!
- * \fn virtual inline int CanvasFloat64Array::bytesPerElement();
- * \internal
- */
-
-/*!
- * \fn virtual inline CanvasContext3D::glEnums CanvasFloat64Array::dataType();
- * \internal
- */
-
-/*!
  * \internal
  */
 CanvasFloat64Array::CanvasFloat64Array(QObject *parent) :

@@ -416,7 +416,8 @@ int CanvasTextureImage::height() const
 /*!
  * \internal
  */
-uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool flipY)
+uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format,
+                                           bool flipY, bool premultipliedAlpha)
 {
     if (m_pixelCacheFormat == format && m_pixelCacheFlipY == flipY)
         return m_pixelCache;
@@ -431,7 +432,11 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format, bool f
         m_image = m_image.mirrored(false, true);
         m_pixelCacheFlipY = flipY;
     }
-    m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
+
+    if (premultipliedAlpha)
+        m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888_Premultiplied);
+    else
+        m_glImage = m_image.convertToFormat(QImage::Format_RGBA8888);
 
     // Get latest data for the conversion
     uchar *origPixels = m_glImage.bits();

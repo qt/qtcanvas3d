@@ -51,16 +51,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 
 /*!
- * \fn virtual inline int CanvasUint32Array::bytesPerElement();
- * \internal
- */
-
-/*!
- * \fn virtual inline CanvasContext3D::glEnums CanvasUint32Array::dataType();
- * \internal
- */
-
-/*!
  * \internal
  */
 CanvasUint32Array::CanvasUint32Array(QObject *parent) :
