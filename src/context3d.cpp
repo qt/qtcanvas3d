@@ -100,8 +100,11 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     m_canvas(0),
     m_maxVertexAttribs(0),
     m_isOpenGLES2(isES2),
-    m_stateDumpExt(0)
+    m_stateDumpExt(0),
+    m_standardDerivatives(0)
 {
+    m_extensions = m_context->extensions();
+
     int value = 0;
     glGetIntegerv(MAX_VERTEX_ATTRIBS, &value);
     m_maxVertexAttribs = uint(value);
@@ -115,10 +118,8 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
     qDebug() << "Context3D::" << __FUNCTION__
              << "GLSL version:" << (const char *)version;
 
-    QString extensions = QString((char *)glGetString(GL_EXTENSIONS));
-    QStringList list = extensions.split(" ");
     qDebug() << "Context3D::" << __FUNCTION__
-             << "EXTENSIONS: " << list;
+             << "EXTENSIONS: " << m_extensions;
 #endif
 }
 
@@ -2051,8 +2052,20 @@ void CanvasContext::hint(glEnums target, glEnums mode)
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(target:" << glEnumToString(target)
                                 << ",mode:" << glEnumToString(mode) << ")";
-    glHint(GLenum(target), GLenum(mode));
-    logAllGLErrors(__FUNCTION__);
+    switch (target) {
+    case FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+        if (m_standardDerivatives) {
+            glHint(GLenum(target), GLenum(mode));
+            logAllGLErrors(__FUNCTION__);
+        } else {
+            m_error = INVALID_ENUM;
+        }
+        break;
+    default:
+        glHint(GLenum(target), GLenum(mode));
+        logAllGLErrors(__FUNCTION__);
+        break;
+    }
 }
 
 /*!
@@ -3908,11 +3921,22 @@ QVariant CanvasContext::getParameter(glEnums pname)
         // Intentional flow through
     case MAX_TEXTURE_SIZE:
         // Intentional flow through
-    case MAX_CUBE_MAP_TEXTURE_SIZE: {
+    case MAX_CUBE_MAP_TEXTURE_SIZE:
+    {
         glGetIntegerv(pname, &value);
         logAllGLErrors(__FUNCTION__);
         return QVariant::fromValue(value);
     }
+    case FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+        if (m_standardDerivatives) {
+            glGetIntegerv(pname, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QVariant::fromValue(value);
+        } else {
+            m_error = INVALID_ENUM;
+            return QVariant::fromValue(0);
+        }
+        break;
 #if !defined(QT_OPENGL_ES_2)
     case MAX_VERTEX_UNIFORM_VECTORS: {
         glGetIntegerv(GL_MAX_VERTEX_UNIFORM_COMPONENTS, &value);
@@ -5208,9 +5232,12 @@ QVariantList CanvasContext::getSupportedExtensions()
 {
     if (m_logAllCalls) qDebug() << Q_FUNC_INFO;
 
-    // No extensions supported at the moment
     QVariantList list;
     list.append(QVariant::fromValue(QStringLiteral(QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME)));
+
+    if (!m_isOpenGLES2 || (m_context->format().majorVersion() >= 3 || m_extensions.contains("OES_standard_derivatives")))
+        list.append(QVariant::fromValue(QStringLiteral("OES_standard_derivatives")));
+
     return list;
 }
 
@@ -5236,6 +5263,10 @@ QVariant CanvasContext::getExtension(const QString &name)
         if (!m_stateDumpExt)
             m_stateDumpExt = new CanvasGLStateDump(m_context, this);
         return QVariant::fromValue(m_stateDumpExt);
+    } else if (upperCaseName == QStringLiteral("OES_STANDARD_DERIVATIVES")) {
+        if (!m_standardDerivatives)
+            m_standardDerivatives = new QObject(this);
+        return QVariant::fromValue(m_standardDerivatives);
     }
 
     return QVariant(QVariant::Int);

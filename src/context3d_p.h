@@ -56,6 +56,7 @@
 #include <QString>
 #include <QRect>
 #include <QSize>
+#include <QSet>
 #include <QVariantList>
 #include <QtQuick/QQuickItem>
 
@@ -457,6 +458,9 @@ public:
 
         /* Shader Source */
         COMPILE_STATUS                 = 0x8B81,
+
+        /* OES_standard_derivatives */
+        FRAGMENT_SHADER_DERIVATIVE_HINT_OES = 0x8B8B,
 
         /* Shader Precision-Specified Types */
         LOW_FLOAT                      = 0x8DF0,
@@ -1215,6 +1219,7 @@ private:
     CanvasBuffer *m_currentElementArrayBuffer;
     CanvasTexture *m_currentTexture;
     QOpenGLContext *m_context;
+    QSet<QByteArray> m_extensions;
     QSurface *m_surface;
     glEnums m_error;
     CanvasFrameBuffer *m_currentFramebuffer;
@@ -1232,6 +1237,7 @@ private:
 
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;
+    QObject *m_standardDerivatives;
 };
 
 QT_CANVAS3D_END_NAMESPACE
