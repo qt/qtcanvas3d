@@ -334,10 +334,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         }
 
         QSurfaceFormat surfaceFormat = m_glContextQt->format();
-        if (m_isOpenGLES2) {
-            surfaceFormat.setMajorVersion(2);
-            surfaceFormat.setMinorVersion(0);
-        } else {
+        if (!m_isOpenGLES2) {
             surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
             surfaceFormat.setSwapInterval(0);
         }
@@ -547,7 +544,7 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
     if (!m_glContextQt) {
         m_glContextQt = window()->openglContext();
         m_isOpenGLES2 = m_glContextQt->isOpenGLES();
-        if (!m_isOpenGLES2)
+        if (!m_isOpenGLES2 || m_glContextQt->format().majorVersion() >= 3)
             m_maxSamples = 4;
         ready();
         return 0;
