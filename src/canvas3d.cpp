@@ -367,13 +367,19 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(surfaceFormat);
         m_glContext->setShareContext(m_glContextQt);
-        m_glContext->create();
+        if (!m_glContext->create()) {
+            qWarning("Failed to create context for FBO");
+            return Q_NULLPTR;
+        }
 
         m_offscreenSurface = new QOffscreenSurface();
         m_offscreenSurface->setFormat(m_glContext->format());
         m_offscreenSurface->create();
 
-        m_glContext->makeCurrent(m_offscreenSurface);
+        if (!m_glContext->makeCurrent(m_offscreenSurface)) {
+            qWarning("Failed to make offscreen surface current");
+            return Q_NULLPTR;
+        }
 
         // Initialize OpenGL functions using the created GL context
         initializeOpenGLFunctions();
