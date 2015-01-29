@@ -406,6 +406,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         }
 
         m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,
+                                        QQmlEngine::contextForObject(this)->engine(),
                                         m_initialisedSize.width() * m_devicePixelRatio,
                                         m_initialisedSize.height() * m_devicePixelRatio,
                                         m_isOpenGLES2);

@@ -116,8 +116,8 @@ function renderGL(canvas) {
 
     gl.useProgram(shaderProgram);
 
-    gl.uniformMatrix4fva(pMatrixUniformLoc, false, pMatrix);
-    gl.uniformMatrix4fva(mvMatrixUniformLoc, false, mvMatrix);
+    gl.uniformMatrix4fv(pMatrixUniformLoc, false, pMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniformLoc, false, mvMatrix);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.enableVertexAttribArray(vertexPositionAttrLoc);

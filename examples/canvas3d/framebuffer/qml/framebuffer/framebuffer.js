@@ -178,18 +178,18 @@ function renderGL(canvas) {
 
     // Calculate and set matrix uniforms
     mat4.perspective(pMatrix, degToRad(45), rttWidth / rttHeight, 0.1, 100.0);
-    gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
 
     mat4.identity(mvMatrix);
     mat4.translate(mvMatrix, mvMatrix, [0, 0, -5.0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotSlider), [0, 1, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotSlider), [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotSlider), [0, 0, 1]);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     mat4.invert(nMatrix, mvMatrix);
     mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nUniform, false, nMatrix);
+    gl.uniformMatrix4fv(nUniform, false, nMatrix);
 
     //! [6]
     // Draw the cube to the FBO
@@ -214,18 +214,18 @@ function renderGL(canvas) {
 
     // Calculate and set matrix uniforms
     mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);
-    gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
 
     mat4.identity(mvMatrix);
     mat4.translate(mvMatrix, mvMatrix, [(canvas.yRotAnim - 120.0) / 120.0,
                                         (canvas.xRotAnim -  60.0) / 50.0,
                                         -10.0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotAnim), [0, 1, 0]);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     mat4.invert(nMatrix, mvMatrix);
     mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nUniform, false, nMatrix);
+    gl.uniformMatrix4fv(nUniform, false, nMatrix);
 
     //! [9]
     // Draw the on-screen cube

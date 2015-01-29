@@ -179,7 +179,7 @@ function renderGL(canvas) {
 
     // Calculate the perspective projection
     mat4.perspective(pMatrix, fov, canvas.width / canvas.height, 0.1, 100.0);
-    gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
 
     //! [7]
     // Get the view matrix
@@ -193,7 +193,7 @@ function renderGL(canvas) {
         light = moveEye(canvas.lightX, canvas.lightY, canvas.lightDistance);
     else
         light = eye;
-    gl.uniform3fva(eyeUniform, light);
+    gl.uniform3fv(eyeUniform, light);
 
     if (canvas3d.drawWireframe)
         drawMode = gl.LINES;
@@ -231,12 +231,12 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
 
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
@@ -256,11 +256,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
@@ -275,11 +275,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
@@ -316,11 +316,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelTwo.indexVBO);
@@ -336,11 +336,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
@@ -355,11 +355,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelTwo.count, gl.UNSIGNED_SHORT, 0);
@@ -395,11 +395,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFour.indexVBO);
@@ -415,11 +415,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
@@ -434,11 +434,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
@@ -453,11 +453,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelFour.count, gl.UNSIGNED_SHORT, 0);
@@ -493,11 +493,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelFive.indexVBO);
@@ -514,11 +514,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.drawElements(drawMode, modelFive.count, gl.UNSIGNED_SHORT, 0);
@@ -555,11 +555,11 @@ function renderGL(canvas) {
         mat4.scale(nMatrix, nMatrix, [canvas.distance, canvas.distance, canvas.distance]);
         mat4.invert(nMatrix, nMatrix);
         mat4.transpose(nMatrix, nMatrix);
-        gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+        gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
         // Scale the modelview matrix, and apply the matrix
         mat4.scale(mMatrix, mMatrix, [canvas.itemSize, canvas.itemSize, canvas.itemSize]);
         mat4.multiply(mvMatrix, vMatrix, mMatrix);
-        gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelThree.indexVBO);

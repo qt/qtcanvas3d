@@ -131,7 +131,7 @@ function renderGL(canvas) {
         width = currentWidth;
         height = currentHeight;
         mat4.perspective(pMatrix, degToRad(45), width / height, 0.1, 500.0);
-        gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+        gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
     }
 
     // Clear the screen
@@ -149,7 +149,7 @@ function renderGL(canvas) {
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotAnim), [0, 0, 1]);
 
     // Set the matrix to shader
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     // Draw the cube
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);

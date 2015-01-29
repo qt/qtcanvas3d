@@ -58,19 +58,11 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                             "Canvas3D");
     qmlRegisterType<CanvasContextAttributes>(uri,
                                              1, 0,
-                                             "ContextAttributes");
+                                             "ContextAttributes3D");
     qmlRegisterUncreatableType<CanvasShaderPrecisionFormat>(uri,
                                                             1, 0,
-                                                            "ShaderPrecisionFormat",
-                                                            QLatin1String("Trying to create uncreatable: ShaderPrecisionFormat."));
-    qmlRegisterUncreatableType<CanvasTypedArray>(uri,
-                                                 1, 0,
-                                                 "TypedArray",
-                                                 QLatin1String("Trying to create uncreatable: TypedArray."));
-    qmlRegisterUncreatableType<CanvasArrayBufferView>(uri,
-                                                      1, 0,
-                                                      "ArrayBufferView",
-                                                      QLatin1String("Trying to create uncreatable: ArrayBufferView."));
+                                                            "ShaderPrecisionFormat3D",
+                                                            QLatin1String("Trying to create uncreatable: ShaderPrecisionFormat3D."));
     qmlRegisterUncreatableType<CanvasContext>(uri,
                                               1, 0,
                                               "Context3D",
@@ -105,15 +97,29 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                              QLatin1String("Trying to create uncreatable: Buffer3D, use Context3D.createBuffer() instead."));
     qmlRegisterUncreatableType<CanvasUniformLocation>(uri,
                                                       1, 0,
-                                                      "UniformLocation",
-                                                      QLatin1String("Trying to create uncreatable: UniformLocation, use Context3D.getUniformLocation() instead."));
+                                                      "UniformLocation3D",
+                                                      QLatin1String("Trying to create uncreatable: UniformLocation3D, use Context3D.getUniformLocation() instead."));
 
-    // TYPED ARRAY IMPLEMENTATION
+    // EXTENSIONS
+    qmlRegisterUncreatableType<CanvasGLStateDump>(uri,
+                                                  1, 0,
+                                                  "GLStateDumpExt",
+                                                  QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"" QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "\") instead."));
+
+
+    // TYPED ARRAY IMPLEMENTATION  TODO: Remove these by Qt 5.5
     qmlRegisterSingletonType<CanvasTypedArrayFactory>(uri,
                                                       1, 0,
                                                       "Arrays",
                                                       CanvasTypedArrayFactory::type_array_factory_provider);
-
+    qmlRegisterUncreatableType<CanvasTypedArray>(uri,
+                                                 1, 0,
+                                                 "TypedArray",
+                                                 QLatin1String("Trying to create uncreatable: TypedArray."));
+    qmlRegisterUncreatableType<CanvasArrayBufferView>(uri,
+                                                      1, 0,
+                                                      "ArrayBufferView",
+                                                      QLatin1String("Trying to create uncreatable: ArrayBufferView."));
     qmlRegisterUncreatableType<CanvasArrayBuffer>(uri,
                                                   1, 0,
                                                   "ArrayBuffer",
@@ -154,12 +160,6 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                    1, 0,
                                                    "Float64Array",
                                                    QLatin1String("Trying to create uncreatable: Float64Array, use Arrays.newFloat64Array() instead."));
-
-    // EXTENSIONS
-    qmlRegisterUncreatableType<CanvasGLStateDump>(uri,
-                                                  1, 0,
-                                                  "GLStateDumpExt",
-                                                  QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"" QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "\") instead."));
 }
 
 QT_CANVAS3D_END_NAMESPACE

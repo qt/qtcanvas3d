@@ -203,7 +203,7 @@ function renderGL(canvas) {
 
     // Calculate the perspective projection
     mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);
-    gl.uniformMatrix4fva(cubeUniform_pMatrix, false, pMatrix);
+    gl.uniformMatrix4fv(cubeUniform_pMatrix, false, pMatrix);
 
     // Bind the correct buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
@@ -236,7 +236,7 @@ function renderGL(canvas) {
                 [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotAnim), [0, 0, 1]);
 
-    gl.uniformMatrix4fva(cubeUniform_mvMatrix, false, mvMatrix);
+    gl.uniformMatrix4fv(cubeUniform_mvMatrix, false, mvMatrix);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
     // Draw first cube
@@ -248,7 +248,7 @@ function renderGL(canvas) {
     mat4.rotate(mvMatrix, mvMatrix, degToRad(30), [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotAnim), [0, 0, 1]);
 
-    gl.uniformMatrix4fva(cubeUniform_mvMatrix, false, mvMatrix);
+    gl.uniformMatrix4fv(cubeUniform_mvMatrix, false, mvMatrix);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
     // Draw second cube
@@ -260,7 +260,7 @@ function renderGL(canvas) {
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotAnim), [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotAnim), [0, 0, 1]);
 
-    gl.uniformMatrix4fva(cubeUniform_mvMatrix, false, mvMatrix);
+    gl.uniformMatrix4fv(cubeUniform_mvMatrix, false, mvMatrix);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
     // Draw third cube
@@ -272,7 +272,7 @@ function renderGL(canvas) {
                 [1, 0, 0]);
     mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotAnim), [0, 0, 1]);
 
-    gl.uniformMatrix4fva(cubeUniform_mvMatrix, false, mvMatrix);
+    gl.uniformMatrix4fv(cubeUniform_mvMatrix, false, mvMatrix);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
 
     gl.disableVertexAttribArray(cubeAttribute_vertexPosition);

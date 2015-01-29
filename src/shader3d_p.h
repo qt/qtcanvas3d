@@ -62,6 +62,7 @@ public:
     ~CanvasShader();
 
     void del();
+    GLuint id();
     bool isAlive();
     QOpenGLShader *qOGLShader();
     QString sourceCode();

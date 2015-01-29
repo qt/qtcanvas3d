@@ -69,6 +69,14 @@ CanvasShader::~CanvasShader()
 /*!
  * \internal
  */
+GLuint CanvasShader::id()
+{
+    return m_shader->shaderId();
+}
+
+/*!
+ * \internal
+ */
 bool CanvasShader::isAlive()
 {
     return bool(m_shader);

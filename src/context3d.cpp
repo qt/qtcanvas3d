@@ -63,6 +63,7 @@
 #include "typedarray/float64array_p.h"
 
 #include <QtGui/QOpenGLShader>
+#include <QtQml>
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
@@ -79,10 +80,11 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \sa Canvas3D
  */
 
-CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface,
+CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface, QQmlEngine *engine,
                              int width, int height, bool isES2, QObject *parent) :
     CanvasAbstractObject(parent),
     QOpenGLFunctions(context),
+    m_engine(engine),
     m_unpackFlipYEnabled(false),
     m_unpackPremultiplyAlphaEnabled(false),
     m_logAllCalls(false),
@@ -1811,17 +1813,18 @@ void CanvasContext::sampleCoverage(float value, bool invert)
 /*!
  * \internal
  */
-CanvasProgram *CanvasContext::createProgram()
+QJSValue CanvasContext::createProgram()
 {
     CanvasProgram *program = new CanvasProgram(this);
+    QJSValue value = m_engine->newQObject(program);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "():" << program;
+                                << "():" << value.toString();
 
     logAllGLErrors(__FUNCTION__);
 
     // Returning a pointer to QObject that has parent set
     // -> V4VM should respect this and ownership should remain with this class
-    return program;
+    return value;
 }
 
 /*!
@@ -1832,63 +1835,90 @@ CanvasProgram *CanvasContext::createProgram()
 /*!
  * \internal
  */
-bool CanvasContext::isProgram(QObject *anyObject)
+bool CanvasContext::isProgram(QJSValue anyObject) const
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(anyObject:" << anyObject
+                                << "(anyObject:" << anyObject.toString()
                                 << ")";
 
-    if (!anyObject)
+    return _isProgram3D(anyObject);
+}
+
+/*!
+ * \internal
+ */
+bool CanvasContext::_isProgram3D(QJSValue anyObject) const
+{
+    if (!isOfType(anyObject, "QtCanvas3D::CanvasProgram"))
         return false;
 
-    QString className = QString(anyObject->metaObject()->className());
-    if (className != "QtCanvas3D::CanvasProgram")
-        return false;
-
-    CanvasProgram *program = static_cast<CanvasProgram *>(anyObject);
+    CanvasProgram *program = static_cast<CanvasProgram *>(anyObject.toQObject());
     return program->isAlive();
 }
 
 /*!
- * \qmlmethod void Context3D::deleteProgram(Program3D program)
+ * \qmlmethod void Context3D::deleteProgram(Program3D program3D)
  * Deletes the given program as if by calling \c{glDeleteProgram()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a program is the Program3D to be deleted.
+ * \a program3D is the Program3D to be deleted.
  */
 /*!
  * \internal
  */
-void CanvasContext::deleteProgram(CanvasProgram *program)
+void CanvasContext::deleteProgram(QJSValue program3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ")";
+
+    if (!_isProgram3D(program3D))
+        return;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
 
     if (program) {
         program->del();
         logAllGLErrors(__FUNCTION__);
     } else {
         m_error = INVALID_VALUE;
-        if (m_logAllErrors) qDebug() << "deleteProgram(): INVALID_VALUE program handle:" << program;
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ": INVALID_VALUE program handle:" << program3D.toString();
     }
 }
 
 /*!
- * \qmlmethod void Context3D::attachShader(Program3D program, Shader3D shader)
- * Attaches the given \a shader object to the given \a program object.
+ * \qmlmethod void Context3D::attachShader(Program3D program3D, Shader3D shader3D)
+ * Attaches the given \a shader3D object to the given \a program3D object.
  * Calling this method repeatedly on the same object has no side effects.
- * \a program is the Program3D to be deleted.
  */
 /*!
  * \internal
  */
-void CanvasContext::attachShader(CanvasProgram *program, CanvasShader *shader)
+void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
-                                << ", shader:" << shader
+                                << "(program3D:" << program3D.toString()
+                                << ", shader:" << shader3D.toString()
                                 << ")";
-    if (!program || !shader || !program->isAlive())
+
+    if (!_isProgram3D(program3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "(): Invalid program handle "
+                                     << program3D.toString();
+        return;
+    }
+
+    if (!_isShader3D(shader3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "(): Invalid shader handle "
+                                     << shader3D.toString();
+        return;
+    }
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+    CanvasShader *shader = static_cast<CanvasShader*>(shader3D.toQObject());
+
+    if (!program || !shader || !program->isAlive() || !shader->isAlive())
         return;
 
     program->attach(shader);
@@ -1896,19 +1926,25 @@ void CanvasContext::attachShader(CanvasProgram *program, CanvasShader *shader)
 }
 
 /*!
- * \qmlmethod list<Shader3D> Context3D::getAttachedShaders(Program3D program)
- * Returns the list of shaders currently attached to the given \a program.
+ * \qmlmethod list<Shader3D> Context3D::getAttachedShaders(Program3D program3D)
+ * Returns the list of shaders currently attached to the given \a program3D.
  */
 /*!
  * \internal
  */
-QVariantList CanvasContext::getAttachedShaders(CanvasProgram *program)
+QVariantList CanvasContext::getAttachedShaders(QJSValue program3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ")";
 
     QVariantList shaderList;
+
+    if (!_isProgram3D(program3D))
+        return shaderList;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (!program)
         return shaderList;
 
@@ -1927,19 +1963,37 @@ QVariantList CanvasContext::getAttachedShaders(CanvasProgram *program)
 /*!
  * \qmlmethod void Context3D::detachShader(Program3D program, Shader3D shader)
  * Detaches given shader object from given program object.
- * \a program specifies the program object from which to detach the shader.
- * \a shader specifies the shader object to detach.
+ * \a program3D specifies the program object from which to detach the shader.
+ * \a shader3D specifies the shader object to detach.
  */
 /*!
  * \internal
  */
-void CanvasContext::detachShader(CanvasProgram *program, CanvasShader *shader)
+void CanvasContext::detachShader(QJSValue program3D, QJSValue shader3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
-                                << ", shader:" << shader
+                                << "(program3D:" << program3D.toString()
+                                << ", shader:" << shader3D.toString()
                                 << ")";
-    if (!program || !shader || !program->isAlive())
+
+    if (!_isProgram3D(program3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "(): Invalid program handle "
+                                     << program3D.toString();
+        return;
+    }
+
+    if (!_isShader3D(shader3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "(): Invalid shader handle "
+                                     << shader3D.toString();
+        return;
+    }
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+    CanvasShader *shader = static_cast<CanvasShader*>(shader3D.toQObject());
+
+    if (!program || !shader || !program->isAlive() || !shader->isAlive())
         return;
 
     program->detach(shader);
@@ -1947,18 +2001,24 @@ void CanvasContext::detachShader(CanvasProgram *program, CanvasShader *shader)
 }
 
 /*!
- * \qmlmethod void Context3D::linkProgram(Program3D program)
+ * \qmlmethod void Context3D::linkProgram(Program3D program3D)
  * Links the given program object.
- * \a program specifies the program to be linked.
+ * \a program3D specifies the program to be linked.
  */
 /*!
  * \internal
  */
-void CanvasContext::linkProgram(CanvasProgram *program)
+void CanvasContext::linkProgram(QJSValue program3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ")";
+
+    if (!_isProgram3D(program3D))
+        return;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (!program || !program->isAlive())
         return;
 
@@ -2295,8 +2355,8 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 }
 
 /*!
- * \qmlmethod variant Context3D::getProgramParameter(Program3D program, glEnums paramName)
- * Return the value for the passed \a paramName given the passed \a program. The type returned is
+ * \qmlmethod variant Context3D::getProgramParameter(Program3D program3D, glEnums paramName)
+ * Return the value for the passed \a paramName given the passed \a program3D. The type returned is
  * the natural type for the requested paramName.
  * \a paramName must be \c{Context3D.DELETE_STATUS}, \c{Context3D.LINK_STATUS},
  * \c{Context3D.VALIDATE_STATUS}, \c{Context3D.ATTACHED_SHADERS}, \c{Context3D.ACTIVE_ATTRIBUTES} or
@@ -2305,12 +2365,17 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 /*!
  * \internal
  */
-QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums paramName)
+QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramName)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ", paramName:" << glEnumToString(paramName)
                                 << ")";
+
+    if (!_isProgram3D(program3D))
+        return 0;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
 
     if (!program || !program->isAlive())
         return 0;
@@ -2356,25 +2421,25 @@ QVariant CanvasContext::getProgramParameter(CanvasProgram *program, glEnums para
 /*!
  * \internal
  */
-CanvasShader *CanvasContext::createShader(glEnums type)
+QJSValue CanvasContext::createShader(glEnums type)
 {
     switch (type) {
     case VERTEX_SHADER:
         if (m_logAllCalls) qDebug() << "Context3D::createShader(VERTEX_SHADER)";
         // Returning a pointer to QObject that has parent set
         // -> V4VM should respect this and ownership should remain with this class
-        return new CanvasShader(QOpenGLShader::Vertex, this);
+        return m_engine->newQObject(new CanvasShader(QOpenGLShader::Vertex, this));
     case FRAGMENT_SHADER:
         if (m_logAllCalls) qDebug() << "Context3D::createShader(FRAGMENT_SHADER)";
         // Returning a pointer to QObject that has parent set
         // -> V4VM should respect this and ownership should remain with this class
-        return new CanvasShader(QOpenGLShader::Fragment, this);
+        return m_engine->newQObject(new CanvasShader(QOpenGLShader::Fragment, this));
     default:
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                      << ":INVALID_ENUM unknown shader type:"
                                      << glEnumToString(type);
         m_error = INVALID_ENUM;
-        return 0;
+        return m_engine->newObject();
     }
 }
 
@@ -2386,21 +2451,30 @@ CanvasShader *CanvasContext::createShader(glEnums type)
 /*!
  * \internal
  */
-bool CanvasContext::isShader(QObject *anyObject)
+bool CanvasContext::isShader(QJSValue anyObject)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(anyObject:" << anyObject
+                                << "(anyObject:" << anyObject.toString()
                                 << ")";
 
-    if (!anyObject)
+    if (!_isShader3D(anyObject))
         return false;
 
-    QString className = QString(anyObject->metaObject()->className());
-    if (className != "QtCanvas3D::CanvasShader")
+    CanvasShader *shader3D = static_cast<CanvasShader *>(anyObject.toQObject());
+    return glIsShader(shader3D->id());
+}
+
+/*!
+ * \internal
+ */
+bool CanvasContext::_isShader3D(QJSValue anyObject) const
+{
+    if (!isOfType(anyObject, "QtCanvas3D::CanvasShader"))
         return false;
 
-    CanvasShader *shader = static_cast<CanvasShader *>(anyObject);
+    CanvasShader *shader = static_cast<CanvasShader *>(anyObject.toQObject());
     return shader->isAlive();
+
 }
 
 /*!
@@ -2412,20 +2486,21 @@ bool CanvasContext::isShader(QObject *anyObject)
 /*!
  * \internal
  */
-void CanvasContext::deleteShader(CanvasShader *shader)
+void CanvasContext::deleteShader(QJSValue shader3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::"
                                 << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader:" << shader3D.toString()
                                 << ")";
 
-    if (shader) {
+    if (_isShader3D(shader3D)) {
+        CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
         shader->del();
         logAllGLErrors(__FUNCTION__);
     } else {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ": invalid shader handle:" << shader;
+                                     << ": invalid shader handle:" << shader3D.toString();
     }
 }
 
@@ -2438,7 +2513,7 @@ void CanvasContext::deleteShader(CanvasShader *shader)
 /*!
  * \internal
  */
-void CanvasContext::shaderSource(CanvasShader *shader, const QString &shaderSource)
+void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
 {
     QString modSource = "#version 120 \n#define precision \n"+ shaderSource;
 
@@ -2446,15 +2521,18 @@ void CanvasContext::shaderSource(CanvasShader *shader, const QString &shaderSour
         modSource = shaderSource;
 
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader:" << shader3D.toString()
                                 << ", shaderSource"
                                 << ")" << endl << modSource << endl;
-    if (!shader) {
+
+    if (!_isShader3D(shader3D)) {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ": invalid shader handle:" << shader;
+                                     << ": invalid shader handle:" << shader3D.toString();
         return;
     }
+
+    CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
     shader->setSourceCode(modSource);
     logAllGLErrors(__FUNCTION__);
 }
@@ -2467,20 +2545,20 @@ void CanvasContext::shaderSource(CanvasShader *shader, const QString &shaderSour
 /*!
  * \internal
  */
-QString CanvasContext::getShaderSource(CanvasShader *shader)
+QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader:" << shader3D.toString()
                                 << ")";
-    if (!shader) {
+    if (!_isShader3D(shader3D)) {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     <<": invalid shader handle:" << shader;
-        return m_emptyString;
+                                     <<": invalid shader handle:" << shader3D.toString();
+        return m_engine->newObject();
     }
 
-    // Returning a copy, V4VM takes ownership
-    return QString(shader->qOGLShader()->sourceCode());
+    CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
+    return QJSValue(QString(shader->qOGLShader()->sourceCode()));
 }
 
 /*!
@@ -2490,537 +2568,675 @@ QString CanvasContext::getShaderSource(CanvasShader *shader)
 /*!
  * \internal
  */
-void CanvasContext::compileShader(CanvasShader *shader)
+void CanvasContext::compileShader(QJSValue shader3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader:" << shader3D.toString()
                                 << ")";
-    if (!shader) {
+    if (!_isShader3D(shader3D)) {
         m_error = INVALID_VALUE;
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ": invalid shader handle:" << shader;
+                                     << ": invalid shader handle:" << shader3D.toString();
         return;
     }
+
+    CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
     shader->qOGLShader()->compileSourceCode(shader->sourceCode());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1i(UniformLocation location, int x)
- * Sets the single integer value given in \a x to the given uniform \a location.
+ * \internal
+ */
+bool CanvasContext::_isUniformLocation3D(QJSValue anyObject) const
+{
+    if (!isOfType(anyObject, "QtCanvas3D::CanvasUniformLocation"))
+        return false;
+
+    // TODO: Should uniform locations be killed and checked for "isAlive" when program is
+    // deleted?
+
+    return true;
+}
+
+/*!
+ * \qmlmethod void Context3D::uniform1i(UniformLocation3D location3D, int x)
+ * Sets the single integer value given in \a x to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform1i(CanvasUniformLocation *location, int x)
+void CanvasContext::uniform1i(QJSValue location3D, int x)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform1i(location->id(), x);
+    glUniform1i(locationObj->id(), x);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1iv(UniformLocation location, Int32Array array)
- * Sets the integer array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform1iv(UniformLocation3D location3D, Int32Array array)
+ * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform1iv(CanvasUniformLocation *location, CanvasInt32Array *array)
+void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform1fva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasInt32Array")))
+        return;
+    CanvasInt32Array *arrayObj = static_cast<CanvasInt32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform1iv(location->id(), array->length(), (int *)array->rawDataCptr());
+    glUniform1iv(locationObj->id(), arrayObj->length(), (int *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1f(UniformLocation location, float x)
- * Sets the single float value given in \a x to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform1f(UniformLocation3D location3D, float x)
+ * Sets the single float value given in \a x to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform1f(CanvasUniformLocation *location, float x)
+void CanvasContext::uniform1f(QJSValue location3D, float x)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform1f(location->id(), x);
+    glUniform1f(locationObj->id(), x);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1fv(UniformLocation location, Float32Array array)
- * Sets the float array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform1fvt(UniformLocation3D location3D, Object array)
+ * Sets the float array given in \a array to the given uniform \a location3D. \a array must be
+ * a JavaScript \c Array object or a \c Float32Array object.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform1fv(CanvasUniformLocation *location, CanvasFloat32Array *array)
+void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform1fva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform1fv(location->id(), array->length(), (float *)array->rawDataCptr());
+    glUniform1fv(locationObj->id(), arrayObj->length(), (float *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2f(UniformLocation location, float x, float y)
- * Sets the two float values given in \a x and \a y to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform2f(UniformLocation3D location3D, float x, float y)
+ * Sets the two float values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform2f(CanvasUniformLocation *location, float x, float y)
+void CanvasContext::uniform2f(QJSValue location3D, float x, float y)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform2f(location->id(), x, y);
+    glUniform2f(locationObj->id(), x, y);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2fv(UniformLocation location, Float32Array array)
- * Sets the float array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform2fv(UniformLocation3D location3D, Float32Array array)
+ * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform2fv(CanvasUniformLocation *location, CanvasFloat32Array *array)
+void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform2fva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform2fv(location->id(), array->length() / 2, (float *)array->rawDataCptr());
+    glUniform2fv(locationObj->id(), arrayObj->length() / 2, (float *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2i(UniformLocation location, int x, int y)
- * Sets the two integer values given in \a x and \a y to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform2i(UniformLocation3D location3D, int x, int y)
+ * Sets the two integer values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform2i(CanvasUniformLocation *location, int x, int y)
+void CanvasContext::uniform2i(QJSValue location3D, int x, int y)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform2i(location->id(), x, y);
+    glUniform2i(locationObj->id(), x, y);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2iv(UniformLocation location, Int32Array array)
- * Sets the integer array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform2iv(UniformLocation3D location3D, Int32Array array)
+ * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform2iv(CanvasUniformLocation *location, CanvasInt32Array *array)
+void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform2iva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasInt32Array")))
+        return;
+    CanvasInt32Array *arrayObj = static_cast<CanvasInt32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform2iv(location->id(), array->length() / 2, (int *)array->rawDataCptr());
+    glUniform2iv(locationObj->id(), arrayObj->length() / 2, (int *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3f(UniformLocation location, float x, float y, float z)
- * Sets the three float values given in \a x , \a y and \a z to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform3f(UniformLocation3D location3D, float x, float y, float z)
+ * Sets the three float values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform3f(CanvasUniformLocation *location, float x, float y, float z)
+void CanvasContext::uniform3f(QJSValue location3D, float x, float y, float z)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ", z:" << z
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform3f(location->id(), x, y, z);
+    glUniform3f(locationObj->id(), x, y, z);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3fv(UniformLocation location, Float32Array array)
- * Sets the float array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform3fv(UniformLocation3D location3D, Float32Array array)
+ * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform3fv(CanvasUniformLocation *location, CanvasFloat32Array *array)
+void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform3fva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform3fv(location->id(), array->length() / 3, (float *)array->rawDataCptr());
+    glUniform3fv(locationObj->id(), arrayObj->length() / 3, (float *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3i(UniformLocation location, int x, int y, int z)
- * Sets the three integer values given in \a x , \a y and \a z to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform3i(UniformLocation3D location3D, int x, int y, int z)
+ * Sets the three integer values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform3i(CanvasUniformLocation *location, int x, int y, int z)
+void CanvasContext::uniform3i(QJSValue location3D, int x, int y, int z)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ", z:" << z
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform3i(location->id(), x, y, z);
+    glUniform3i(locationObj->id(), x, y, z);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3iv(UniformLocation location, Int32Array array)
- * Sets the integer array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform3iv(UniformLocation3D location3D, Int32Array array)
+ * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform3iv(CanvasUniformLocation *location, CanvasInt32Array *array)
+void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform3iva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasInt32Array")))
+        return;
+    CanvasInt32Array *arrayObj = static_cast<CanvasInt32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform3iv(location->id(), array->length() / 3, (int *)array->rawDataCptr());
+    glUniform3iv(locationObj->id(), arrayObj->length() / 3, (int *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4f(UniformLocation location, float x, float y, float z, float w)
- * Sets the four float values given in \a x , \a y , \a z and \a w to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform4f(UniformLocation3D location3D, float x, float y, float z, float w)
+ * Sets the four float values given in \a x , \a y , \a z and \a w to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform4f(CanvasUniformLocation *location, float x, float y, float z, float w)
+void CanvasContext::uniform4f(QJSValue location3D, float x, float y, float z, float w)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ", z:" << z
                                 << ", w:" << w
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform4f(location->id(), x, y, z, w);
+    glUniform4f(locationObj->id(), x, y, z, w);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4fv(UniformLocation location, Float32Array array)
- * Sets the float array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform4fv(UniformLocation3D location3D, Float32Array array)
+ * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform4fv(CanvasUniformLocation *location, CanvasFloat32Array *array)
+void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform4fva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform4fv(location->id(), array->length() / 4, (float *)array->rawDataCptr());
+    glUniform4fv(locationObj->id(), arrayObj->length() / 4, (float *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4i(UniformLocation location, int x, int y, int z, int w)
+ * \qmlmethod void Context3D::uniform4i(UniformLocation3D location3D, int x, int y, int z, int w)
  * Sets the four integer values given in \a x , \a y , \a z and \a w to the given uniform
- * \a location.
+ * \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform4i(CanvasUniformLocation *location, int x, int y, int z, int w)
+void CanvasContext::uniform4i(QJSValue location3D, int x, int y, int z, int w)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D.toString()
                                 << ", x:" << x
                                 << ", y:" << y
                                 << ", z:" << z
                                 << ", w:" << w
                                 << ")";
-    if (!location)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!locationObj)
         return;
 
-    glUniform4i(location->id(), x, y, z, w);
+    glUniform4i(locationObj->id(), x, y, z, w);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4iv(UniformLocation location, Int32Array array)
- * Sets the integer array given in \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform4iv(UniformLocation3D location3D, Int32Array array)
+ * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform4iv(CanvasUniformLocation *location, CanvasInt32Array *array)
+void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
-                                << ", array:" << array
+                                << "(location3D:" << location3D.toString()
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!location || !array)
+    if (!_isUniformLocation3D(location3D))
+        return;
+    CanvasUniformLocation *locationObj = static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform4iva(locationObj, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasInt32Array")))
+        return;
+    CanvasInt32Array *arrayObj = static_cast<CanvasInt32Array *>(array.toQObject());
+
+    if (!locationObj || !arrayObj)
         return;
 
-    glUniform4iv(location->id(), array->length() / 4, (int *)array->rawDataCptr());
+    glUniform4iv(locationObj->id(), arrayObj->length() / 4, (int *)arrayObj->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1fva(UniformLocation location, list<variant> array)
- * Sets the float array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform1fva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform1fva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-    glUniform1fv(location->id(), array.count(), arrayData);
+    glUniform1fv(location3D->id(), array.count(), arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2fva(UniformLocation location, list<variant> array)
- * Sets the float array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform2fva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform2fva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-    glUniform2fv(location->id(), array.count() / 2, arrayData);
+    glUniform2fv(location3D->id(), array.count() / 2, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3fva(UniformLocation location, list<variant> array)
- * Sets the float array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform3fva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform3fva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     float *arrayData = new float[array.length()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-    glUniform3fv(location->id(), array.count() / 3, arrayData);
+    glUniform3fv(location3D->id(), array.count() / 3, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4fva(UniformLocation location, list<variant> array)
- * Sets the float array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform4fva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform4fva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     float *arrayData = new float[array.count()];
     ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-    glUniform4fv(location->id(), array.count() / 4, arrayData);
+    glUniform4fv(location3D->id(), array.count() / 4, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1iva(UniformLocation location, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform1iva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform1iva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
-    glUniform1iv(location->id(), array.count(), arrayData);
+    glUniform1iv(location3D->id(), array.count(), arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2iva(UniformLocation location, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform2iva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform2iva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
-    glUniform2iv(location->id(), array.count() / 2, arrayData);
+    glUniform2iv(location3D->id(), array.count() / 2, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3iva(UniformLocation location, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location.
- */
-/*!
  * \internal
  */
-void CanvasContext::uniform3iva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform3iva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
-    glUniform3iv(location->id(), array.count() / 3, arrayData);
+    glUniform3iv(location3D->id(), array.count() / 3, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4iva(UniformLocation location, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location.
+ * \qmlmethod void Context3D::uniform4iva(UniformLocation3D location3D, list<variant> array)
+ * Sets the integer array given as JavasScript \a array to the given uniform \a location3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniform4iva(CanvasUniformLocation *location, QVariantList array)
+void CanvasContext::uniform4iva(CanvasUniformLocation *location3D, QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(location:" << location
+                                << "(location3D:" << location3D
                                 << ", array:" << array
                                 << ")";
-    if (!location)
+    if (!location3D)
         return;
 
     int *arrayData = new int[array.length()];
     ArrayUtils::fillIntArrayFromVariantList(array, arrayData);
-    glUniform4iv(location->id(), array.length() / 4, arrayData);
+    glUniform4iv(location3D->id(), array.length() / 4, arrayData);
     logAllGLErrors(__FUNCTION__);
     delete [] arrayData;
 }
@@ -3184,14 +3400,19 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, CanvasFloat32Array *value
 /*!
  * \internal
  */
-int CanvasContext::getShaderParameter(CanvasShader *shader, glEnums pname)
+int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader:" << shader3D.toString()
                                 << ", pname:"<< glEnumToString(pname)
                                 << ")";
-    if (!shader)
+    if (!_isShader3D(shader3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     <<": invalid shader handle:" << shader3D.toString();
         return 0;
+    }
+
+    CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
 
     switch (pname) {
     case SHADER_TYPE: {
@@ -3226,37 +3447,49 @@ int CanvasContext::getShaderParameter(CanvasShader *shader, glEnums pname)
 /*!
  * \internal
  */
-CanvasBuffer *CanvasContext::createBuffer()
+QJSValue CanvasContext::createBuffer()
 {
     CanvasBuffer *newBuffer = new CanvasBuffer(this);
     logAllGLErrors(__FUNCTION__);
     m_idToCanvasBufferMap[newBuffer->id()] = newBuffer;
-    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__ << ":" << newBuffer;
 
-    // Returning a pointer to QObject that has parent set
-    // -> V4VM should respect this and ownership should remain with this class
-    return newBuffer;
+    QJSValue value = m_engine->newQObject(newBuffer);
+    if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                << ":" << value.toString() << " = " << newBuffer;
+    return value;
 }
 
 /*!
- * \qmlmethod UniformLocation Context3D::getUniformLocation(Program3D program, string name)
- * Returns UniformLocation object that represents the location of a specific uniform variable
- * with the given \a name within the given \a program object.
+ * \qmlmethod UniformLocation3D Context3D::getUniformLocation(Program3D program3D, string name)
+ * Returns UniformLocation3D object that represents the location3D of a specific uniform variable
+ * with the given \a name within the given \a program3D object.
  * Returns \c null if name doesn't correspond to a uniform variable.
  */
 /*!
  * \internal
  */
-CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
-                                                         const QString &name)
+QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &name)
 {
+    if (!_isProgram3D(program3D)) {
+        if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                    << "(program3D:" << program3D.toString()
+                                    << ", name:" << name
+                                    << "):null";
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "WARNING: Invalid Program3D reference "
+                                     << program3D.toString();
+        return 0;
+    }
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (!program) {
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                    << "(program:" << program
+                                    << "(program3D:" << program3D.toString()
                                     << ", name:" << name
                                     << "):-1";
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ": INVALID Program3D reference " << program;
+                                     << "WARNING: Invalid Program3D reference " << program;
         return 0;
     }
 
@@ -3266,30 +3499,41 @@ CanvasUniformLocation *CanvasContext::getUniformLocation(CanvasProgram *program,
         return 0;
     }
 
-    CanvasUniformLocation *location = new CanvasUniformLocation(index, this);
-    location->setName(name);
+    CanvasUniformLocation *location3D = new CanvasUniformLocation(index, this);
+    location3D->setName(name);
+    QJSValue value = m_engine->newQObject(location3D);
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
-                                << ", name:" << name
-                                << "):" << location;
+                                << "(program3D:" << program3D.toString()
+                                << ", name:" << value.toString()
+                                << "):" << location3D;
 
-    // Returning a pointer to QObject that has parent set
-    // -> V4VM should respect this and ownership should remain with this class
-    return location;
+    return value;
 }
 
 /*!
- * \qmlmethod int Context3D::getAttribLocation(Program3D program, string name)
- * Returns location of the given attribute variable \a name in the given \a program.
+ * \qmlmethod int Context3D::getAttribLocation(Program3D program3D, string name)
+ * Returns location3D of the given attribute variable \a name in the given \a program3D.
  */
 /*!
  * \internal
  */
-int CanvasContext::getAttribLocation(CanvasProgram *program, const QString &name)
+int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
 {
+    if (!_isProgram3D(program3D)) {
+        if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                    << "(program3D:" << program3D.toString()
+                                    << ", name:" << name
+                                    << "):-1";
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ": INVALID Program3D reference " << program3D.toString();
+        return -1;
+    }
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (!program) {
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                    << "(" << program
+                                    << "(program3D:" << program3D.toString()
                                     << ", name:" << name
                                     << "):-1";
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -3297,7 +3541,7 @@ int CanvasContext::getAttribLocation(CanvasProgram *program, const QString &name
         return -1;
     } else {
         if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                    << "(program:" << program
+                                    << "(program3D:" << program3D.toString()
                                     << ", name:" << name
                                     << "):" << program->attributeLocation(name);
     }
@@ -3306,16 +3550,29 @@ int CanvasContext::getAttribLocation(CanvasProgram *program, const QString &name
 }
 
 /*!
- * \qmlmethod void Context3D::bindAttribLocation(Program3D program, int index, string name)
- * Binds the attribute \a index with the attribute variable \a name in the given \a program.
+ * \qmlmethod void Context3D::bindAttribLocation(Program3D program3D, int index, string name)
+ * Binds the attribute \a index with the attribute variable \a name in the given \a program3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::bindAttribLocation(CanvasProgram *program, int index, const QString &name)
+void CanvasContext::bindAttribLocation(QJSValue program3D, int index, const QString &name)
 {
+    if (!_isProgram3D(program3D)) {
+        if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
+                                    << "(program3D:" << program3D.toString()
+                                    << ", index:" << index
+                                    << ", name:" << name
+                                    << ")";
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << ": INVALID Program3D reference " << program3D.toString();
+        return;
+    }
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" <<program
+                                << "(program3D:" << program3D.toString()
                                 << ", index:" << index
                                 << ", name:" << name
                                 << ")";
@@ -3362,181 +3619,213 @@ void CanvasContext::disableVertexAttribArray(int index)
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix2fv(UniformLocation uniformLocation, bool transpose, Float32Array value)
- * Converts the float array given in \a value to a 2x2 matrix and sets it to the given
+ * \qmlmethod void Context3D::uniformMatrix2fv(UniformLocation3D location3D, bool transpose, Value array)
+ * Converts the float array given in \a array to a 2x2 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniformMatrix2fv(CanvasUniformLocation *uniformLocation, bool transpose,
-                                     CanvasFloat32Array *value)
+void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(uniformLocation:" << location3D.toString()
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array.toString()
                                 <<")";
-    if (!m_currentProgram || !uniformLocation || !value)
+
+    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
         return;
-    if (m_logAllCalls) qDebug() << "    numMatrices:" << (value->length() / 4);
 
-    int location = uniformLocation->id();
-    float *arrayData = (float *)value->rawDataCptr();
-    int numMatrices = value->length() / 4;
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
 
-    glUniformMatrix2fv(location, numMatrices, transpose, arrayData);
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniformMatrix2fva(locationObj, transpose, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!m_currentProgram || !locationObj || !arrayObj)
+        return;
+    if (m_logAllCalls) qDebug() << "    numMatrices:" << (arrayObj->length() / 4);
+
+    int uniformLocation = locationObj->id();
+    float *arrayData = (float *)arrayObj->rawDataCptr();
+    int numMatrices = arrayObj->length() / 4;
+
+    glUniformMatrix2fv(uniformLocation, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix3fv(UniformLocation uniformLocation, bool transpose, Float32Array value)
- * Converts the float array given in \a value to a 3x3 matrix and sets it to the given
+ * \qmlmethod void Context3D::uniformMatrix3fv(UniformLocation3D location3D, bool transpose, Value array)
+ * Converts the float array given in \a array to a 3x3 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniformMatrix3fv(CanvasUniformLocation *uniformLocation, bool transpose,
-                                     CanvasFloat32Array *value)
+void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(location3D:" << location3D.toString()
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array.toString()
                                 <<")";
-    if (!m_currentProgram || !uniformLocation || !value)
+
+    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
         return;
-    if (m_logAllCalls) qDebug() << "    numMatrices:" << (value->length() / 9);
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
 
-    int location = uniformLocation->id();
-    float *arrayData = (float *) value->rawDataCptr();
-    int numMatrices = value->length() / 9;
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniformMatrix3fva(locationObj, transpose, array.toVariant().toList());
+        return;
+    }
 
-    glUniformMatrix3fv(location, numMatrices, transpose, arrayData);
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!m_currentProgram || !locationObj || !arrayObj)
+        return;
+    if (m_logAllCalls) qDebug() << "    numMatrices:" << (arrayObj->length() / 9);
+
+    int uniformLocation = locationObj->id();
+    float *arrayData = (float *) arrayObj->rawDataCptr();
+    int numMatrices = arrayObj->length() / 9;
+
+    glUniformMatrix3fv(uniformLocation, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix4fv(UniformLocation uniformLocation, bool transpose, Float32Array value)
- * Converts the float array given in \a value to a 4x4 matrix and sets it to the given
+ * \qmlmethod void Context3D::uniformMatrix4fv(UniformLocation3D location3D, bool transpose, Value array)
+ * Converts the float array given in \a array to a 4x4 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
 /*!
  * \internal
  */
-void CanvasContext::uniformMatrix4fv(CanvasUniformLocation *uniformLocation, bool transpose,
-                                     CanvasFloat32Array *value)
+void CanvasContext::uniformMatrix4fv(QJSValue location3D, bool transpose, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(location3D:" << location3D.toString()
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array.toString()
                                 << ")";
-    if (!m_currentProgram || !uniformLocation || !value)
+
+    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
+        return;
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniformMatrix4fva(locationObj, transpose,array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+    CanvasFloat32Array *arrayObj = static_cast<CanvasFloat32Array *>(array.toQObject());
+
+    if (!m_currentProgram || !locationObj || !arrayObj)
         return;
 
-    if (m_logAllCalls) qDebug() << "    numMatrices:" << (value->length() / 16);
-    int location = uniformLocation->id();
-    float *arrayData = (float *)value->rawDataCptr();
-    int numMatrices = value->length() / 16;
+    if (m_logAllCalls) qDebug() << "    numMatrices:" << (arrayObj->length() / 16);
+    int uniformLocation = locationObj->id();
+    float *arrayData = (float *)arrayObj->rawDataCptr();
+    int numMatrices = arrayObj->length() / 16;
 
-    glUniformMatrix4fv(location, numMatrices, transpose, arrayData);
+    glUniformMatrix4fv(uniformLocation, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 }
 
-/*!
- * \qmlmethod void Context3D::uniformMatrix4fva(UniformLocation uniformLocation, bool transpose, list<variant> value)
- * Converts the float array given in \a value to a 4x4 matrix and sets it to the given
- * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
- */
 /*!
  * \internal
  */
 void CanvasContext::uniformMatrix4fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList value)
+                                      QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(location3D:" << uniformLocation
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array
                                 << ")";
     if (!m_currentProgram || !uniformLocation)
         return;
 
-    int location = uniformLocation->id();
-    int size = value.count();
+    int location3D = uniformLocation->id();
+    int size = array.count();
     float *arrayData = new float[size];
     int numMatrices = size / 16;
 
-    ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
+    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
 
-    glUniformMatrix4fv(location, numMatrices, transpose, arrayData);
+    glUniformMatrix4fv(location3D, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 
     delete [] arrayData;
 }
 
-/*!
- * \qmlmethod void Context3D::uniformMatrix3fva(UniformLocation uniformLocation, bool transpose, list<variant> value)
- * Converts the float array given in \a value to a 3x3 matrix and sets it to the given
- * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
- */
+
 /*!
  * \internal
  */
 void CanvasContext::uniformMatrix3fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList value)
+                                      QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(location3D:" << uniformLocation
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array
                                 << ")";
     if (!m_currentProgram || !uniformLocation)
         return;
 
-    int location = uniformLocation->id();
-    int size = value.count();
+    int location3D = uniformLocation->id();
+    int size = array.count();
     float *arrayData = new float[size];
     int numMatrices = size / 9;
 
-    ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
+    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
 
-    glUniformMatrix3fv(location, numMatrices, transpose, arrayData);
+    glUniformMatrix3fv(location3D, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 
     delete [] arrayData;
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix2fva(UniformLocation uniformLocation, bool transpose, list<variant> value)
- * Converts the float array given in \a value to a 2x2 matrix and sets it to the given
- * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
- */
-/*!
  * \internal
  */
 void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList value)
+                                      QVariantList array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(uniformLocation:" << uniformLocation
+                                << "(location3D:" << uniformLocation
                                 << ", transpose:" << transpose
-                                << ", value:" << value
+                                << ", array:" << array
                                 << ")";
 
     if (!m_currentProgram || !uniformLocation)
         return;
 
-    int location = uniformLocation->id();
-    int size = value.count();
+    int location3D = uniformLocation->id();
+    int size = array.count();
     float *arrayData = new float[size];
     int numMatrices = size / 4;
 
-    ArrayUtils::fillFloatArrayFromVariantList(value, arrayData);
+    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
 
-    glUniformMatrix2fv(location, numMatrices, transpose, arrayData);
+    glUniformMatrix2fv(location3D, numMatrices, transpose, arrayData);
     logAllGLErrors(__FUNCTION__);
 
     delete [] arrayData;
@@ -3788,7 +4077,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, CanvasArrayBuffer 
 /*!
  * \internal
  */
-QVariant CanvasContext::getBufferParameter(glEnums target, glEnums pname)
+QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(target:" << glEnumToString(target)
@@ -3800,7 +4089,7 @@ QVariant CanvasContext::getBufferParameter(glEnums target, glEnums pname)
                                      << ":INVALID_ENUM target must be either ARRAY_BUFFER"
                                      << " or ELEMENT_ARRAY_BUFFER.";
         m_error = INVALID_ENUM;
-        return 0;
+        return m_engine->newObject();
     }
 
     switch (pname) {
@@ -3810,15 +4099,14 @@ QVariant CanvasContext::getBufferParameter(glEnums target, glEnums pname)
         glGetBufferParameteriv(GLenum(target), GLenum(pname), &data);
         logAllGLErrors(__FUNCTION__);
 
-        // TODO: What happens here regarding ownership?
-        return QVariant(data);
+        return QJSValue(data);
     default:
-        if (m_logAllErrors) qDebug() << "getBufferParameter() : UNKNOWN pname";
-        m_error = INVALID_ENUM;
-        return 0;
+        break;
     }
 
-    return 0;
+    if (m_logAllErrors) qDebug() << "getBufferParameter() : UNKNOWN pname";
+    m_error = INVALID_ENUM;
+    return m_engine->newObject();
 }
 
 /*!
@@ -3828,23 +4116,29 @@ QVariant CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 /*!
  * \internal
  */
-bool CanvasContext::isBuffer(QObject *anyObject)
+bool CanvasContext::isBuffer(QJSValue anyObject)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(anyObject:" << anyObject
+                                << "(anyObject:" << anyObject.toString()
                                 << ")";
-    if (!anyObject)
+
+    if (!_isBuffer3D(anyObject))
         return false;
 
-    QString className = QString(anyObject->metaObject()->className());
-    if (className != "QtCanvas3D::CanvasBuffer")
-        return false;
-
-    CanvasBuffer *buffer = static_cast<CanvasBuffer *>(anyObject);
-    if (!buffer->isAlive())
-        return false;
-
+    CanvasBuffer *buffer = static_cast<CanvasBuffer *>(anyObject.toQObject());
     return glIsBuffer(buffer->id());
+}
+
+/*!
+ * \internal
+ */
+bool CanvasContext::_isBuffer3D(QJSValue anyObject) const
+{
+    if (!isOfType(anyObject, "QtCanvas3D::CanvasBuffer"))
+        return false;
+
+    CanvasBuffer *buffer = static_cast<CanvasBuffer *>(anyObject.toQObject());
+    return buffer->isAlive();
 }
 
 /*!
@@ -3854,19 +4148,21 @@ bool CanvasContext::isBuffer(QObject *anyObject)
 /*!
  * \internal
  */
-void CanvasContext::deleteBuffer(CanvasBuffer *buffer)
+void CanvasContext::deleteBuffer(QJSValue buffer)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(buffer:" << buffer
+                                << "(buffer:" << buffer.toString()
                                 << ")";
-    if (!buffer) {
+    if (!_isBuffer3D(buffer)) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ": Called with null buffer target";
+                                     << ": Called with invalid buffer target";
         return;
     }
 
-    m_idToCanvasBufferMap.remove(buffer->id());
-    buffer->del();
+    CanvasBuffer *bufferObj = static_cast<CanvasBuffer *>(buffer.toQObject());
+
+    m_idToCanvasBufferMap.remove(bufferObj->id());
+    bufferObj->del();
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3999,34 +4295,41 @@ QVariant CanvasContext::getParameter(glEnums pname)
 /*!
  * \internal
  */
-QString CanvasContext::getShaderInfoLog(CanvasShader *shader) const
+QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D) const
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(shader:" << shader
+                                << "(shader3D:" << shader3D.toString()
                                 << ")";
-    if (!shader)
-        return QString();
+    if (!_isShader3D(shader3D)) {
+        if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
+                                     << "WARNING: invalid shader handle:" << shader3D.toString();
+        return m_engine->newObject();
+    }
 
-    // Returning a copy, V4VM takes ownership
-    return shader->qOGLShader()->log();
+    CanvasShader *shader = static_cast<CanvasShader*>(shader3D.toQObject());
+    return QJSValue(shader->qOGLShader()->log());
 }
 
 /*!
- * \qmlmethod string Context3D::getProgramInfoLog(Program3D program)
- * Returns the info log string of the given \a program.
+ * \qmlmethod string Context3D::getProgramInfoLog(Program3D program3D)
+ * Returns the info log string of the given \a program3D.
  */
 /*!
  * \internal
  */
-QString CanvasContext::getProgramInfoLog(CanvasProgram *program) const
+QString CanvasContext::getProgramInfoLog(QJSValue program3D) const
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ")";
+    if (!_isProgram3D(program3D))
+        return QString();
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (!program)
         return QString();
 
-    // Returning a copy, V4VM takes ownership
     return program->log();
 }
 
@@ -4039,11 +4342,12 @@ QString CanvasContext::getProgramInfoLog(CanvasProgram *program) const
 /*!
  * \internal
  */
-void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
+void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(target:" << glEnumToString(target)
-                                << ", buffer:" <<buffer<< ")";
+                                << ", buffer:" << buffer3D.toString()
+                                << ")";
 
     if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -4053,13 +4357,15 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
         return;
     }
 
-    if (buffer) {
+    if (_isBuffer3D(buffer3D)) {
+        CanvasBuffer *buffer = static_cast<CanvasBuffer *>(buffer3D.toQObject());
         if (target == ARRAY_BUFFER) {
             if (buffer->target() == CanvasBuffer::UNINITIALIZED)
                 buffer->setTarget(CanvasBuffer::ARRAY_BUFFER);
+
             if (buffer->target() != CanvasBuffer::ARRAY_BUFFER) {
                 if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                             << ":INVALID_OPERATION can't bind "
+                                             << ":INVALID_OPERATION can't rebind "
                                              << "ELEMENT_ARRAY_BUFFER as ARRAY_BUFFER";
                 m_error = INVALID_OPERATION;
                 return;
@@ -4068,9 +4374,10 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
         } else {
             if (buffer->target() == CanvasBuffer::UNINITIALIZED)
                 buffer->setTarget(CanvasBuffer::ELEMENT_ARRAY_BUFFER);
+
             if (buffer->target() != CanvasBuffer::ELEMENT_ARRAY_BUFFER) {
                 if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                             << ":INVALID_OPERATION can't bind "
+                                             << ":INVALID_OPERATION can't rebind "
                                              << "ARRAY_BUFFER as ELEMENT_ARRAY_BUFFER";
                 m_error = INVALID_OPERATION;
                 return;
@@ -4083,22 +4390,26 @@ void CanvasContext::bindBuffer(glEnums target, CanvasBuffer *buffer)
         glBindBuffer(GLenum(target), 0);
         logAllGLErrors(__FUNCTION__);
     }
-
 }
 
 // TODO: Is this function useful? We don't offer a way to query the status.
 /*!
- * \qmlmethod void Context3D::validateProgram(Program3D program)
- * Validates the given \a program. The validation status is stored into the state of the shader
- * program container in \a program.
+ * \qmlmethod void Context3D::validateProgram(Program3D program3D)
+ * Validates the given \a program3D. The validation status is stored into the state of the shader
+ * program container in \a program3D.
  */
 /*!
  * \internal
  */
-void CanvasContext::validateProgram(CanvasProgram *program)
+void CanvasContext::validateProgram(QJSValue program3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program << ")";
+                                << "(program3D:" << program3D.toString() << ")";
+    if (!_isProgram3D(program3D))
+        return;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     if (program)
         program->validateProgram();
     logAllGLErrors(__FUNCTION__);
@@ -4106,16 +4417,21 @@ void CanvasContext::validateProgram(CanvasProgram *program)
 
 /*!
  * \qmlmethod void Context3D::useProgram(Program3D program)
- * Installs the given \a program as a part of the current rendering state.
+ * Installs the given \a program3D as a part of the current rendering state.
  */
 /*!
  * \internal
  */
-void CanvasContext::useProgram(CanvasProgram *program)
+void CanvasContext::useProgram(QJSValue program3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program << ")";
-    // TODO: Check if this is ok
+                                << "(program3D:" << program3D.toString() << ")";
+
+    if (!_isProgram3D(program3D))
+        return;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
+
     m_currentProgram = program;
     if (!program || !program->isLinked())
         return;
@@ -4377,7 +4693,7 @@ void CanvasContext::drawArrays(glEnums mode, int first, int count)
  * \li \c{Context3D.UNSIGNED_SHORT}
  * \endlist
  *
- * \a offset specifies the location where indices are stored.
+ * \a offset specifies the location3D where indices are stored.
  */
 /*!
  * \internal
@@ -4436,19 +4752,24 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveAttrib(Program3D program, uint index)
+ * \qmlmethod ActiveInfo3D Context3D::getActiveAttrib(Program3D program3D, uint index)
  * Returns information about the given active attribute variable defined by \a index for the given
- * \a program.
+ * \a program3D.
  * \sa ActiveInfo3D
  */
 /*!
  * \internal
  */
-CanvasActiveInfo *CanvasContext::getActiveAttrib(CanvasProgram *program, uint index)
+CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ", index:" << index << ")";
+
+    if (!_isProgram3D(program3D))
+        return 0;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
 
     char *name = new char[512];
     GLsizei length = 0;
@@ -4462,19 +4783,24 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(CanvasProgram *program, uint in
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveUniform(Program3D program, uint index)
+ * \qmlmethod ActiveInfo3D Context3D::getActiveUniform(Program3D program3D, uint index)
  * Returns information about the given active uniform variable defined by \a index for the given
- * \a program.
+ * \a program3D.
  * \sa ActiveInfo3D
  */
 /*!
  * \internal
  */
-CanvasActiveInfo *CanvasContext::getActiveUniform(CanvasProgram *program, uint index)
+CanvasActiveInfo *CanvasContext::getActiveUniform(QJSValue program3D, uint index)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program:" << program
+                                << "(program3D:" << program3D.toString()
                                 << ", index:" << index << ")";
+
+    if (!_isProgram3D(program3D))
+        return 0;
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
 
     char *name = new char[512];
     GLsizei length = 0;
@@ -4953,7 +5279,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
 /*!
  * \internal
  */
-QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
+QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(index" << index
@@ -4972,43 +5298,43 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             if (value == 0 || !m_idToCanvasBufferMap.contains(value))
-                return QVariant();
+                return m_engine->newObject();
 
-            return QVariant::fromValue(m_idToCanvasBufferMap[value]);
+            return m_engine->newQObject(m_idToCanvasBufferMap[value]);
         }
             break;
         case VERTEX_ATTRIB_ARRAY_ENABLED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue( bool(value));
+            return QJSValue(bool(value));
         }
             break;
         case VERTEX_ATTRIB_ARRAY_SIZE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
+            return QJSValue(value);
         }
             break;
         case VERTEX_ATTRIB_ARRAY_STRIDE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
+            return QJSValue(value);
         }
             break;
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
+            return QJSValue(value);
         }
         case VERTEX_ATTRIB_ARRAY_NORMALIZED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue( bool(value));
+            return QJSValue(bool(value));
         }
         case CURRENT_VERTEX_ATTRIB: {
             // TODO: Should be Float32Array
@@ -5016,12 +5342,12 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
             glGetVertexAttribfv(index, GLenum(pname), values);
             logAllGLErrors(__FUNCTION__);
 
-            QList<float> floatList;
-            floatList.push_back(values[0]);
-            floatList.push_back(values[1]);
-            floatList.push_back(values[2]);
-            floatList.push_back(values[3]);
-            return QVariant::fromValue(floatList);
+            QJSValue array = m_engine->newArray(4);
+            array.setProperty(0, values[0]);
+            array.setProperty(1, values[1]);
+            array.setProperty(2, values[2]);
+            array.setProperty(3, values[3]);
+            return array;
         }
         default:
             if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
@@ -5030,12 +5356,12 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
         }
     }
 
-    return QVariant();
+    return m_engine->newObject();
 }
 
 /*!
- * \qmlmethod variant Context3D::getUniform(Program3D program, UniformLocation3D location)
- * Returns the uniform value at the given \a location in the \a program.
+ * \qmlmethod variant Context3D::getUniform(Program3D program, UniformLocation3D location3D)
+ * Returns the uniform value at the given \a location3D in the \a program.
  * The type returned is dependent on the uniform type, as shown in the table:
  * \table
  * \header
@@ -5097,25 +5423,30 @@ QVariant CanvasContext::getVertexAttrib(uint index, glEnums pname)
 /*!
  * \internal
  */
-QVariant CanvasContext::getUniform(CanvasProgram *program, CanvasUniformLocation *location)
+QVariant CanvasContext::getUniform(QJSValue program3D, CanvasUniformLocation *location3D)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
-                                << "(program" << program
-                                << ", location:" << location
+                                << "(program" << program3D.toString()
+                                << ", location3D:" << location3D
                                 << ")";
+
+    if (!_isProgram3D(program3D))
+        return QVariant();
+
+    CanvasProgram *program = static_cast<CanvasProgram*>(program3D.toQObject());
 
     if (!program) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
                                      << ":INVALID_OPERATION No program was specified";
         m_error = INVALID_OPERATION;
-    } else  if (!location) {
+    } else  if (!location3D) {
         if (m_logAllErrors) qDebug() << "Context3D::" << __FUNCTION__
-                                     << ":INVALID_OPERATION No location was specified";
+                                     << ":INVALID_OPERATION No location3D was specified";
         m_error = INVALID_OPERATION;
     } else {
         uint programId = program->id();
-        uint locationId = location->id();
-        CanvasActiveInfo *info = getActiveUniform(program, locationId);
+        uint locationId = location3D->id();
+        CanvasActiveInfo *info = getActiveUniform(program3D, locationId);
         int numValues = 4;
 
         switch (info->type()) {
@@ -5245,6 +5576,27 @@ QVariantList CanvasContext::getSupportedExtensions()
         list.append(QVariant::fromValue(QStringLiteral("OES_standard_derivatives")));
 
     return list;
+}
+
+/*!
+ * \internal TODO: Remove once TypedArrays are in V4VM
+ */
+bool CanvasContext::isOfType(const QJSValue &value, const QString &classname) const
+{
+    if (!value.isQObject()) {
+        return false;
+    }
+
+    QObject *obj = value.toQObject();
+
+    if (!obj)
+        return false;
+
+    if (!obj->inherits(classname.toLocal8Bit().constData())) {
+        return false;
+    }
+
+    return true;
 }
 
 /*!

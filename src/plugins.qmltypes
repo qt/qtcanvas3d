@@ -408,6 +408,7 @@ Module {
                 "VERTEX_ATTRIB_ARRAY_POINTER": 34373,
                 "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": 34975,
                 "COMPILE_STATUS": 35713,
+                "FRAGMENT_SHADER_DERIVATIVE_HINT_OES": 35723,
                 "LOW_FLOAT": 36336,
                 "MEDIUM_FLOAT": 36337,
                 "HIGH_FLOAT": 36338,
@@ -1317,14 +1318,6 @@ Module {
             name: "canvasChanged"
             Parameter { name: "canvas"; type: "Canvas"; isPointer: true }
         }
-        Signal {
-            name: "logAllCallsChanged"
-            Parameter { name: "logCalls"; type: "bool" }
-        }
-        Signal {
-            name: "logAllErrorsChanged"
-            Parameter { name: "logErrors"; type: "bool" }
-        }
         Method { name: "getSupportedExtensions"; type: "QVariantList" }
         Method {
             name: "getExtension"
@@ -1526,71 +1519,71 @@ Module {
         }
         Method {
             name: "createShader"
-            type: "CanvasShader*"
+            type: "QJSValue"
             Parameter { name: "type"; type: "glEnums" }
         }
         Method {
             name: "isShader"
             type: "bool"
-            Parameter { name: "anyObject"; type: "QObject"; isPointer: true }
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "deleteShader"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "shaderSource"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "shader3D"; type: "QJSValue" }
             Parameter { name: "shaderSource"; type: "string" }
         }
         Method {
             name: "getShaderSource"
-            type: "string"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            type: "QJSValue"
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "compileShader"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "uniform1f"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "float" }
         }
         Method {
             name: "uniform1i"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "int" }
         }
         Method {
             name: "uniform2f"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "float" }
             Parameter { name: "y"; type: "float" }
         }
         Method {
             name: "uniform2i"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "int" }
             Parameter { name: "y"; type: "int" }
         }
         Method {
             name: "uniform3f"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "float" }
             Parameter { name: "y"; type: "float" }
             Parameter { name: "z"; type: "float" }
         }
         Method {
             name: "uniform3i"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "int" }
             Parameter { name: "y"; type: "int" }
             Parameter { name: "z"; type: "int" }
         }
         Method {
             name: "uniform4f"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "float" }
             Parameter { name: "y"; type: "float" }
             Parameter { name: "z"; type: "float" }
@@ -1598,7 +1591,7 @@ Module {
         }
         Method {
             name: "uniform4i"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "x"; type: "int" }
             Parameter { name: "y"; type: "int" }
             Parameter { name: "z"; type: "int" }
@@ -1606,174 +1599,116 @@ Module {
         }
         Method {
             name: "uniform1fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform1iv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasInt32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform2fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform2iv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasInt32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform3fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform3iv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasInt32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform4fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniform4iv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "CanvasInt32Array"; isPointer: true }
-        }
-        Method {
-            name: "uniform1fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform2fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform3fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform4fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform1iva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform2iva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform3iva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniform4iva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "array"; type: "QVariantList" }
+            Parameter { name: "location"; type: "QJSValue" }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "uniformMatrix2fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "value"; type: "QJSValue" }
         }
         Method {
             name: "uniformMatrix3fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "value"; type: "QJSValue" }
         }
         Method {
             name: "uniformMatrix4fv"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
             Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "value"; type: "QJSValue" }
         }
-        Method {
-            name: "uniformMatrix2fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniformMatrix3fva"
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "QVariantList" }
-        }
-        Method {
-            name: "uniformMatrix4fva"
-            Parameter { name: "uniformLocation"; type: "CanvasUniformLocation"; isPointer: true }
-            Parameter { name: "transpose"; type: "bool" }
-            Parameter { name: "value"; type: "QVariantList" }
-        }
-        Method { name: "createProgram"; type: "CanvasProgram*" }
+        Method { name: "createProgram"; type: "QJSValue" }
         Method {
             name: "attachShader"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "detachShader"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
         Method {
             name: "linkProgram"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "useProgram"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "validateProgram"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "getUniformLocation"
-            type: "CanvasUniformLocation*"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            type: "QJSValue"
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "name"; type: "string" }
         }
         Method {
             name: "getAttribLocation"
             type: "int"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "name"; type: "string" }
         }
         Method {
             name: "bindAttribLocation"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "index"; type: "int" }
             Parameter { name: "name"; type: "string" }
         }
         Method {
             name: "getProgramInfoLog"
             type: "string"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "isProgram"
             type: "bool"
-            Parameter { name: "anyObject"; type: "QObject"; isPointer: true }
+            Parameter { name: "anyObject"; type: "QJSValue" }
         }
         Method {
             name: "deleteProgram"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "disableVertexAttribArray"
@@ -1841,25 +1776,25 @@ Module {
         Method {
             name: "getShaderParameter"
             type: "int"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            Parameter { name: "shader3D"; type: "QJSValue" }
             Parameter { name: "paramName"; type: "glEnums" }
         }
         Method {
             name: "getProgramParameter"
             type: "QVariant"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "paramName"; type: "glEnums" }
         }
         Method {
             name: "getShaderInfoLog"
-            type: "string"
-            Parameter { name: "shader"; type: "CanvasShader"; isPointer: true }
+            type: "QJSValue"
+            Parameter { name: "shader3D"; type: "QJSValue" }
         }
-        Method { name: "createBuffer"; type: "CanvasBuffer*" }
+        Method { name: "createBuffer"; type: "QJSValue" }
         Method {
             name: "bindBuffer"
             Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "buffer"; type: "CanvasBuffer"; isPointer: true }
+            Parameter { name: "buffer"; type: "QJSValue" }
         }
         Method {
             name: "bufferData"
@@ -1893,18 +1828,18 @@ Module {
         }
         Method {
             name: "getBufferParameter"
-            type: "QVariant"
+            type: "QJSValue"
             Parameter { name: "target"; type: "glEnums" }
             Parameter { name: "pname"; type: "glEnums" }
         }
         Method {
             name: "isBuffer"
             type: "bool"
-            Parameter { name: "anyObject"; type: "QObject"; isPointer: true }
+            Parameter { name: "value"; type: "QJSValue" }
         }
         Method {
             name: "deleteBuffer"
-            Parameter { name: "buffer"; type: "CanvasBuffer"; isPointer: true }
+            Parameter { name: "buffer"; type: "QJSValue" }
         }
         Method { name: "getError"; type: "glEnums" }
         Method {
@@ -2059,19 +1994,19 @@ Module {
         Method {
             name: "getActiveAttrib"
             type: "CanvasActiveInfo*"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "index"; type: "uint" }
         }
         Method {
             name: "getActiveUniform"
             type: "CanvasActiveInfo*"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "index"; type: "uint" }
         }
         Method {
             name: "getAttachedShaders"
             type: "QVariantList"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
         }
         Method {
             name: "stencilFunc"
@@ -2150,7 +2085,7 @@ Module {
         Method {
             name: "getUniform"
             type: "QVariant"
-            Parameter { name: "program"; type: "CanvasProgram"; isPointer: true }
+            Parameter { name: "program"; type: "QJSValue" }
             Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
         }
         Method {
@@ -2161,7 +2096,7 @@ Module {
         }
         Method {
             name: "getVertexAttrib"
-            type: "QVariant"
+            type: "QJSValue"
             Parameter { name: "index"; type: "uint" }
             Parameter { name: "pname"; type: "glEnums" }
         }
@@ -2169,7 +2104,7 @@ Module {
     Component {
         name: "QtCanvas3D::CanvasContextAttributes"
         prototype: "QtCanvas3D::CanvasAbstractObject"
-        exports: ["QtCanvas3D/ContextAttributes 1.0"]
+        exports: ["QtCanvas3D/ContextAttributes3D 1.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "alpha"; type: "bool" }
         Property { name: "depth"; type: "bool" }
@@ -2288,20 +2223,24 @@ Module {
         }
         Property {
             name: "DUMP_BASIC_ONLY"
-            type: "CanvasGLStateDump::stateDumpEnums"
+            type: "QtCanvas3D::CanvasGLStateDump::stateDumpEnums"
             isReadonly: true
         }
         Property {
             name: "DUMP_VERTEX_ATTRIB_ARRAYS_BIT"
-            type: "CanvasGLStateDump::stateDumpEnums"
+            type: "QtCanvas3D::CanvasGLStateDump::stateDumpEnums"
             isReadonly: true
         }
         Property {
             name: "DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT"
-            type: "CanvasGLStateDump::stateDumpEnums"
+            type: "QtCanvas3D::CanvasGLStateDump::stateDumpEnums"
             isReadonly: true
         }
-        Property { name: "DUMP_FULL"; type: "CanvasGLStateDump::stateDumpEnums"; isReadonly: true }
+        Property {
+            name: "DUMP_FULL"
+            type: "QtCanvas3D::CanvasGLStateDump::stateDumpEnums"
+            isReadonly: true
+        }
         Method {
             name: "getGLStateDump"
             type: "string"
@@ -2389,7 +2328,7 @@ Module {
     Component {
         name: "QtCanvas3D::CanvasShaderPrecisionFormat"
         prototype: "QtCanvas3D::CanvasAbstractObject"
-        exports: ["QtCanvas3D/ShaderPrecisionFormat 1.0"]
+        exports: ["QtCanvas3D/ShaderPrecisionFormat3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
         Property { name: "rangeMin"; type: "int"; isReadonly: true }
@@ -2769,7 +2708,7 @@ Module {
     Component {
         name: "QtCanvas3D::CanvasUniformLocation"
         prototype: "QtCanvas3D::CanvasAbstractObject"
-        exports: ["QtCanvas3D/UniformLocation 1.0"]
+        exports: ["QtCanvas3D/UniformLocation3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
     }

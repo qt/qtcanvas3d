@@ -188,7 +188,7 @@ function renderGL(canvas) {
 
     // Calculate the perspective projection
     mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 10000.0);
-    gl.uniformMatrix4fva(pMatrixUniform, false, pMatrix);
+    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
 
     // Bind the correct buffers
     gl.bindBuffer(gl.ARRAY_BUFFER, theModel.verticesVBO);
@@ -215,12 +215,12 @@ function renderGL(canvas) {
     mvMatrix = mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotSlider), [0, 1, 0]);
     mvMatrix = mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotSlider), [0, 0, 1]);
     //! [0]
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     // Calculate normal matrix
     nMatrix = mat4.invert(nMatrix, mvMatrix);
     nMatrix = mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
 
     // Draw the barrel
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, theModel.indexVBO);
@@ -232,12 +232,12 @@ function renderGL(canvas) {
     mvMatrix = mat4.identity(mvMatrix);
     mvMatrix = mat4.translate(mvMatrix, mvMatrix, [-250, -50, -700]);
     mvMatrix = mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotSlider), [0, 1, 0]);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     // Calculate normal matrix
     nMatrix = mat4.invert(nMatrix, mvMatrix);
     nMatrix = mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
 
     // Draw the barrel
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, theModel.indexVBO);
@@ -249,12 +249,12 @@ function renderGL(canvas) {
     mvMatrix = mat4.identity(mvMatrix);
     mvMatrix = mat4.translate(mvMatrix, mvMatrix, [250, -50, -700]);
     mvMatrix = mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotSlider), [0, 1, 0]);
-    gl.uniformMatrix4fva(mvMatrixUniform, false, mvMatrix);
+    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
     // Calculate normal matrix
     nMatrix = mat4.invert(nMatrix, mvMatrix);
     nMatrix = mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fva(nMatrixUniform, false, nMatrix);
+    gl.uniformMatrix4fv(nMatrixUniform, false, nMatrix);
 
     // Draw the barrel
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, theModel.indexVBO);
