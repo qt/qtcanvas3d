@@ -3267,12 +3267,24 @@ void CanvasContext::vertexAttrib1f(unsigned int indx, float x)
 /*!
  * \internal
  */
-void CanvasContext::vertexAttrib1fv(unsigned int indx, CanvasFloat32Array *values)
+void CanvasContext::vertexAttrib1fv(unsigned int indx, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(indx:" << indx
-                                << ", values:" << values
+                                << ", array:" << array.toString()
                                 << ")";
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        vertexAttrib1fva(indx, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+
+    CanvasFloat32Array *values = static_cast<CanvasFloat32Array *>(array.toQObject());
+
     glVertexAttrib1fv(indx, (float *)values->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
@@ -3304,12 +3316,24 @@ void CanvasContext::vertexAttrib2f(unsigned int indx, float x, float y)
 /*!
  * \internal
  */
-void CanvasContext::vertexAttrib2fv(unsigned int indx, CanvasFloat32Array *values)
+void CanvasContext::vertexAttrib2fv(unsigned int indx, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(indx:" << indx
-                                << ", values:" << values
+                                << ", array:" << array.toString()
                                 << ")";
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        vertexAttrib2fva(indx, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+
+    CanvasFloat32Array *values = static_cast<CanvasFloat32Array *>(array.toQObject());
+
     glVertexAttrib2fv(indx, (float *)values->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
@@ -3342,12 +3366,24 @@ void CanvasContext::vertexAttrib3f(unsigned int indx, float x, float y, float z)
 /*!
  * \internal
  */
-void CanvasContext::vertexAttrib3fv(unsigned int indx, CanvasFloat32Array *values)
+void CanvasContext::vertexAttrib3fv(unsigned int indx, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(indx:" << indx
-                                << ", values:" << values
+                                << ", array:" << array.toString()
                                 << ")";
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        vertexAttrib3fva(indx, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+
+    CanvasFloat32Array *values = static_cast<CanvasFloat32Array *>(array.toQObject());
+
     glVertexAttrib3fv(indx, (float *)values->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }
@@ -3381,12 +3417,24 @@ void CanvasContext::vertexAttrib4f(unsigned int indx, float x, float y, float z,
 /*!
  * \internal
  */
-void CanvasContext::vertexAttrib4fv(unsigned int indx, CanvasFloat32Array *values)
+void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
 {
     if (m_logAllCalls) qDebug() << "Context3D::" << __FUNCTION__
                                 << "(indx:" << indx
-                                << ", values:" << values
+                                << ", array:" << array.toString()
                                 << ")";
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        vertexAttrib4fva(indx, array.toVariant().toList());
+        return;
+    }
+
+    if (!isOfType(array, QStringLiteral("QtCanvas3D::CanvasFloat32Array")))
+        return;
+
+    CanvasFloat32Array *values = static_cast<CanvasFloat32Array *>(array.toQObject());
+
     glVertexAttrib4fv(indx, (float *)values->rawDataCptr());
     logAllGLErrors(__FUNCTION__);
 }

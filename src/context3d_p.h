@@ -1091,13 +1091,19 @@ public:
     Q_INVOKABLE void vertexAttribPointer(int indx, int size, glEnums type,
                                          bool normalized, int stride, long offset);
     Q_INVOKABLE void vertexAttrib1f(unsigned int indx, float x);
-    Q_INVOKABLE void vertexAttrib1fv(unsigned int indx, CanvasFloat32Array *values);
     Q_INVOKABLE void vertexAttrib2f(unsigned int indx, float x, float y);
-    Q_INVOKABLE void vertexAttrib2fv(unsigned int indx, CanvasFloat32Array *values);
     Q_INVOKABLE void vertexAttrib3f(unsigned int indx, float x, float y, float z);
-    Q_INVOKABLE void vertexAttrib3fv(unsigned int indx, CanvasFloat32Array *values);
     Q_INVOKABLE void vertexAttrib4f(unsigned int indx, float x, float y, float z, float w);
-    Q_INVOKABLE void vertexAttrib4fv(unsigned int indx, CanvasFloat32Array *values);
+
+    Q_INVOKABLE void vertexAttrib1fv(unsigned int indx, QJSValue array);
+    Q_INVOKABLE void vertexAttrib2fv(unsigned int indx, QJSValue array);
+    Q_INVOKABLE void vertexAttrib3fv(unsigned int indx, QJSValue array);
+    Q_INVOKABLE void vertexAttrib4fv(unsigned int indx, QJSValue array);
+
+    void vertexAttrib1fva(uint indx, QVariantList values);
+    void vertexAttrib2fva(uint indx, QVariantList values);
+    void vertexAttrib3fva(uint indx, QVariantList values);
+    void vertexAttrib4fva(uint indx, QVariantList values);
 
     Q_INVOKABLE int getShaderParameter(QJSValue shader3D, glEnums paramName);
     Q_INVOKABLE QVariant getProgramParameter(QJSValue program, glEnums paramName);
@@ -1168,11 +1174,6 @@ public:
     Q_INVOKABLE void stencilMaskSeparate(glEnums face, uint mask);
     Q_INVOKABLE void stencilOp(glEnums fail, glEnums zfail, glEnums zpass);
     Q_INVOKABLE void stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass);
-
-    Q_INVOKABLE void vertexAttrib1fva(uint indx, QVariantList values);
-    Q_INVOKABLE void vertexAttrib2fva(uint indx, QVariantList values);
-    Q_INVOKABLE void vertexAttrib3fva(uint indx, QVariantList values);
-    Q_INVOKABLE void vertexAttrib4fva(uint indx, QVariantList values);
 
     Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target,
                                                       glEnums attachment,
