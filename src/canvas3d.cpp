@@ -50,6 +50,7 @@
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
+#include <QtCore/QElapsedTimer>
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
@@ -89,6 +90,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_glContext(0),
     m_glContextQt(0),
     m_contextWindow(0),
+    m_fps(0),
     m_maxSamples(0),
     m_devicePixelRatio(1.0f),
     m_isOpenGLES2(false),
@@ -618,6 +620,16 @@ void Canvas::bindCurrentRenderTarget()
 }
 
 /*!
+ * \qmlproperty uint Canvas3D::fps
+ * This property specifies the current frames per seconds, the value is calculated every
+ * 500 ms.
+ */
+uint Canvas::fps()
+{
+    return m_fps;
+}
+
+/*!
  * \internal
  */
 void Canvas::renderNext()
@@ -692,6 +704,27 @@ void Canvas::renderNext()
     // get unexpected results.
     glFlush();
     glFinish();
+
+    // Update frames per second reading after glFinish()
+    static QElapsedTimer timer;
+    static int frames;
+
+    if (frames == 0) {
+        timer.start();
+    } else if (timer.elapsed() > 500) {
+        qreal avgtime = timer.elapsed() / (qreal) frames;
+        uint avgFps = uint(1000.0 / avgtime);
+        if (avgFps != m_fps) {
+            m_fps = avgFps;
+            emit fpsChanged(avgFps);
+        }
+
+        timer.start();
+        frames = 0;
+    }
+    ++frames;
+
+    // Swap
     qSwap(m_renderFbo, m_displayFbo);
     if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
                                 << " Displaying texture: " << m_displayFbo->texture()

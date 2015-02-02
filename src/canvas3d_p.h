@@ -66,6 +66,7 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
     Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
+    Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
 
 public:
     Canvas(QQuickItem *parent = 0);
@@ -80,6 +81,8 @@ public:
     bool logAllCalls() const;
     void setLogAllErrors(bool logErrors);
     bool logAllErrors() const;
+
+    uint fps();
 
     Q_INVOKABLE CanvasContext *getContext(const QString &name);
     Q_INVOKABLE CanvasContext *getContext(const QString &name, const QVariantMap &options);
@@ -97,6 +100,7 @@ signals:
     void logAllCallsChanged(bool logCalls);
     void logAllErrorsChanged(bool logErrors);
     void contextChanged(CanvasContext *context);
+    void fpsChanged(uint fps);
 
     void initGL();
     void renderGL();
@@ -126,6 +130,7 @@ private:
     QOpenGLContext *m_glContextQt;
     QQuickWindow *m_contextWindow;
 
+    uint m_fps;
     int m_maxSamples;
     float m_devicePixelRatio;
 
