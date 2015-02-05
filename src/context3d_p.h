@@ -957,29 +957,28 @@ public:
     Q_INVOKABLE QVariant getExtension(const QString &name);
 
     Q_INVOKABLE bool isContextLost();
+    Q_INVOKABLE QJSValue getContextAttributes();
     void setContextAttributes(const CanvasContextAttributes &attribs);
-    Q_INVOKABLE CanvasContextAttributes *getContextAttributes();
 
-    Q_INVOKABLE CanvasShaderPrecisionFormat *getShaderPrecisionFormat(glEnums shadertype,
-                                                                      glEnums precisiontype);
+    Q_INVOKABLE QJSValue getShaderPrecisionFormat(glEnums shadertype, glEnums precisiontype);
 
     Q_INVOKABLE void flush();
     Q_INVOKABLE void finish();
 
-    Q_INVOKABLE CanvasTexture *createTexture();
-    Q_INVOKABLE void deleteTexture(CanvasTexture *texture);
+    Q_INVOKABLE QJSValue createTexture();
+    Q_INVOKABLE void deleteTexture(QJSValue texture);
     Q_INVOKABLE void activeTexture(glEnums texture);
-    Q_INVOKABLE void bindTexture(glEnums target, CanvasTexture *texture);
+    Q_INVOKABLE void bindTexture(glEnums target, QJSValue texture);
     Q_INVOKABLE void generateMipmap(glEnums target);
-    Q_INVOKABLE bool isTexture(QObject *texture);
+    Q_INVOKABLE bool isTexture(QJSValue anyObject);
     Q_INVOKABLE void compressedTexImage2D(glEnums target, int level, glEnums internalformat,
                                           int width, int height, int border,
-                                          CanvasTypedArray *pixels);
+                                          QJSValue pixels);
     Q_INVOKABLE void compressedTexSubImage2D(glEnums target, int level,
                                              int xoffset, int yoffset,
                                              int width, int height,
                                              glEnums format,
-                                             CanvasTypedArray *pixels);
+                                             QJSValue pixels);
 
     Q_INVOKABLE void copyTexImage2D(glEnums target, int level,
                                     glEnums internalformat,
@@ -989,52 +988,51 @@ public:
                                        int xoffset, int yoffset,
                                        int x, int y,
                                        int width, int height);
+
     Q_INVOKABLE void texImage2D(glEnums target, int level, glEnums internalformat,
                                 int width, int height, int border,
                                 glEnums format, glEnums type,
-                                CanvasTypedArray *pixels);
+                                QJSValue pixels);
     Q_INVOKABLE void texSubImage2D(glEnums target, int level,
                                    int xoffset, int yoffset,
                                    int width, int height,
                                    glEnums format, glEnums type,
-                                   CanvasTypedArray *pixels);
+                                   QJSValue pixels);
     Q_INVOKABLE void texImage2D(glEnums target, int level, glEnums internalformat,
-                                glEnums format, glEnums type, CanvasTextureImage *image);
+                                glEnums format, glEnums type, QJSValue image);
     Q_INVOKABLE void texSubImage2D(glEnums target, int level,
                                    int xoffset, int yoffset,
-                                   glEnums format, glEnums type, CanvasTextureImage *image);
+                                   glEnums format, glEnums type, QJSValue image);
     Q_INVOKABLE void texParameterf(glEnums target, glEnums pname, float param);
     Q_INVOKABLE void texParameteri(glEnums target, glEnums pname, int param);
 
-    Q_INVOKABLE CanvasFrameBuffer *createFramebuffer();
-    Q_INVOKABLE void bindFramebuffer(glEnums target, CanvasFrameBuffer* framebuffer);
+    Q_INVOKABLE QJSValue createFramebuffer();
+    Q_INVOKABLE void deleteFramebuffer(QJSValue buffer);
+    Q_INVOKABLE void bindFramebuffer(glEnums target, QJSValue framebuffer);
     Q_INVOKABLE glEnums checkFramebufferStatus(glEnums target);
     Q_INVOKABLE void framebufferRenderbuffer(glEnums target, glEnums attachment,
                                              glEnums renderbuffertarget,
-                                             CanvasRenderBuffer *renderbuffer);
+                                             QJSValue renderbuffer);
     Q_INVOKABLE void framebufferTexture2D(glEnums target, glEnums attachment, glEnums textarget,
-                                          CanvasTexture *texture, int level);
-    Q_INVOKABLE bool isFramebuffer(QObject *anyObject);
-    Q_INVOKABLE void deleteFramebuffer(CanvasFrameBuffer *buffer);
+                                          QJSValue texture, int level);
+    Q_INVOKABLE bool isFramebuffer(QJSValue anyObject);
 
-    Q_INVOKABLE CanvasRenderBuffer *createRenderbuffer();
-    Q_INVOKABLE void bindRenderbuffer(glEnums target, CanvasRenderBuffer *renderbuffer);
+    Q_INVOKABLE QJSValue createRenderbuffer();
+    Q_INVOKABLE void bindRenderbuffer(glEnums target, QJSValue renderbuffer);
     Q_INVOKABLE void renderbufferStorage(glEnums target, glEnums internalformat, int width,
                                          int height);
-    Q_INVOKABLE bool isRenderbuffer(QObject *anyObject);
-    Q_INVOKABLE void deleteRenderbuffer(CanvasRenderBuffer *renderbuffer);
+    Q_INVOKABLE bool isRenderbuffer(QJSValue anyObject);
+    Q_INVOKABLE void deleteRenderbuffer(QJSValue renderbuffer);
 
     Q_INVOKABLE void sampleCoverage(float value, bool invert);
 
     Q_INVOKABLE QJSValue createShader(glEnums type);
     Q_INVOKABLE bool isShader(QJSValue shader3D);
-    bool _isShader3D(QJSValue shader3D) const;
     Q_INVOKABLE void deleteShader(QJSValue shader3D);
     Q_INVOKABLE void shaderSource(QJSValue shader3D, const QString &shaderSource);
     Q_INVOKABLE QJSValue getShaderSource(QJSValue shader3D);
     Q_INVOKABLE void compileShader(QJSValue shader3D);
 
-    bool _isUniformLocation3D(QJSValue anyObject) const;
     Q_INVOKABLE void uniform1f(QJSValue location, float x);
     Q_INVOKABLE void uniform1i(QJSValue location, int x);
     Q_INVOKABLE void uniform2f(QJSValue location, float x, float y);
@@ -1053,24 +1051,10 @@ public:
     Q_INVOKABLE void uniform4fv(QJSValue location, QJSValue array);
     Q_INVOKABLE void uniform4iv(QJSValue location, QJSValue array);
 
-    void uniform1fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform2fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform3fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform4fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform1iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform2iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform3iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform4iva(CanvasUniformLocation *location, QVariantList array);
-
     Q_INVOKABLE void uniformMatrix2fv(QJSValue location, bool transpose, QJSValue value);
     Q_INVOKABLE void uniformMatrix3fv(QJSValue location, bool transpose, QJSValue value);
     Q_INVOKABLE void uniformMatrix4fv(QJSValue location, bool transpose, QJSValue value);
 
-    void uniformMatrix2fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-    void uniformMatrix3fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-    void uniformMatrix4fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-
-    // TODO: Q_INVOKABLE void uniform1iv(UniformLocation *location, sequence<long> v);
     Q_INVOKABLE QJSValue createProgram();
     Q_INVOKABLE void attachShader(QJSValue program, QJSValue shader3D);
     Q_INVOKABLE void detachShader(QJSValue program, QJSValue shader3D);
@@ -1083,7 +1067,6 @@ public:
     Q_INVOKABLE void bindAttribLocation(QJSValue program, int index, const QString &name);
     Q_INVOKABLE QString getProgramInfoLog(QJSValue program) const;
     Q_INVOKABLE bool isProgram(QJSValue anyObject) const;
-    bool _isProgram3D(QJSValue anyObject) const;
     Q_INVOKABLE void deleteProgram(QJSValue program);
 
     Q_INVOKABLE void disableVertexAttribArray(int index);
@@ -1100,11 +1083,6 @@ public:
     Q_INVOKABLE void vertexAttrib3fv(unsigned int indx, QJSValue array);
     Q_INVOKABLE void vertexAttrib4fv(unsigned int indx, QJSValue array);
 
-    void vertexAttrib1fva(uint indx, QVariantList values);
-    void vertexAttrib2fva(uint indx, QVariantList values);
-    void vertexAttrib3fva(uint indx, QVariantList values);
-    void vertexAttrib4fva(uint indx, QVariantList values);
-
     Q_INVOKABLE int getShaderParameter(QJSValue shader3D, glEnums paramName);
     Q_INVOKABLE QVariant getProgramParameter(QJSValue program, glEnums paramName);
     Q_INVOKABLE QJSValue getShaderInfoLog(QJSValue shader3D) const;
@@ -1113,14 +1091,11 @@ public:
     Q_INVOKABLE QJSValue createBuffer();
     Q_INVOKABLE void bindBuffer(glEnums target, QJSValue buffer);
     Q_INVOKABLE void bufferData(glEnums target, long size, glEnums hint);
-    Q_INVOKABLE void bufferData(glEnums target, CanvasTypedArray *data, glEnums hint);
-    Q_INVOKABLE void bufferData(glEnums target, CanvasArrayBuffer &data, glEnums hint);
-    Q_INVOKABLE void bufferSubData(glEnums target, int offset, CanvasTypedArray *data);
-    Q_INVOKABLE void bufferSubData(glEnums target, int offset, CanvasArrayBuffer &data);
+    Q_INVOKABLE void bufferData(glEnums target, QJSValue data, glEnums hint);
+    Q_INVOKABLE void bufferSubData(glEnums target, int offset, QJSValue data);
 
     Q_INVOKABLE QJSValue getBufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE bool isBuffer(QJSValue value);
-    bool _isBuffer3D(QJSValue value) const;
     Q_INVOKABLE void deleteBuffer(QJSValue buffer);
 
     Q_INVOKABLE glEnums getError();
@@ -1162,7 +1137,7 @@ public:
     Q_INVOKABLE void scissor(int x, int y, int width, int height);
 
     Q_INVOKABLE void readPixels(int x, int y, long width, long height, glEnums format,
-                                glEnums type, CanvasArrayBufferView *pixels);
+                                glEnums type, QJSValue pixels);
 
     Q_INVOKABLE CanvasActiveInfo *getActiveAttrib(QJSValue program, uint index);
     Q_INVOKABLE CanvasActiveInfo *getActiveUniform(QJSValue program, uint index);
@@ -1180,9 +1155,44 @@ public:
                                                       glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
-    Q_INVOKABLE QVariant getUniform(QJSValue program, CanvasUniformLocation *location);
+    Q_INVOKABLE QVariant getUniform(QJSValue program, QJSValue location);
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
     Q_INVOKABLE QJSValue getVertexAttrib(uint index, glEnums pname);
+
+signals:
+    void canvasChanged(Canvas *canvas);
+    void drawingBufferWidthChanged();
+    void drawingBufferHeightChanged();
+
+private:
+    uchar *getAsUint8ArrayRawPtr(QJSValue value);
+    uchar *getAsUint16ArrayRawPtr(QJSValue value);
+    CanvasTexture *getAsTexture3D(QJSValue anyObject);
+    CanvasTextureImage* getAsTextureImage(QJSValue image);
+    CanvasFrameBuffer *getAsFramebuffer(QJSValue anyObject);
+    CanvasRenderBuffer *getAsRenderbuffer3D(QJSValue anyObject) const;
+    CanvasShader *getAsShader3D(QJSValue shader3D) const;
+    CanvasUniformLocation *getAsUniformLocation3D(QJSValue anyObject) const;
+    CanvasProgram *getAsProgram3D(QJSValue anyObject) const;
+    CanvasBuffer *getAsBuffer3D(QJSValue value) const;
+
+    void uniform1fva(CanvasUniformLocation *location, QVariantList array);
+    void uniform2fva(CanvasUniformLocation *location, QVariantList array);
+    void uniform3fva(CanvasUniformLocation *location, QVariantList array);
+    void uniform4fva(CanvasUniformLocation *location, QVariantList array);
+    void uniform1iva(CanvasUniformLocation *location, QVariantList array);
+    void uniform2iva(CanvasUniformLocation *location, QVariantList array);
+    void uniform3iva(CanvasUniformLocation *location, QVariantList array);
+    void uniform4iva(CanvasUniformLocation *location, QVariantList array);
+
+    void uniformMatrix2fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
+    void uniformMatrix3fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
+    void uniformMatrix4fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
+
+    void vertexAttrib1fva(uint indx, QVariantList values);
+    void vertexAttrib2fva(uint indx, QVariantList values);
+    void vertexAttrib3fva(uint indx, QVariantList values);
+    void vertexAttrib4fva(uint indx, QVariantList values);
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1201,11 +1211,6 @@ public:
                         int bytesPerPixel, int width, int height);
 
     bool isOfType(const QJSValue &value, const QString &classname) const;
-
-signals:
-    void canvasChanged(Canvas *canvas);
-    void drawingBufferWidthChanged();
-    void drawingBufferHeightChanged();
 
 private:
     QQmlEngine *m_engine;

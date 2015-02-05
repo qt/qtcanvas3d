@@ -61,7 +61,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 class CanvasProgram : public CanvasAbstractObject, protected QOpenGLFunctions
 {
     Q_OBJECT
-    Q_PROPERTY(int id READ id NOTIFY idChanged)
 
 public:
     explicit CanvasProgram(QObject *parent = 0);
@@ -89,9 +88,6 @@ public:
 private:
     QOpenGLShaderProgram *m_program;
     QList<CanvasShader *> m_attachedShaders;
-
-signals:
-    void idChanged(int id);
 };
 
 QT_CANVAS3D_END_NAMESPACE

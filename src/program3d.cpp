@@ -187,10 +187,6 @@ void CanvasProgram::validateProgram()
 }
 
 /*!
- * \qmlproperty int Program3D::id()
- * Holds the shader program id. Returns \c -1 if there is none.
- */
-/*!
  * \internal
  */
 int CanvasProgram::id()
