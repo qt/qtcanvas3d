@@ -36,7 +36,7 @@
 
 /*!
     \title QtCanvas3D
-    \page index.html
+    \page qtcanvas3d-index.html
     \brief Provides functionality for 3D drawing inside Qt Quick 2.
 
     QtCanvas3D module provides a way to make OpenGL-like 3D drawing calls from Qt Quick JavaScript.

@@ -1,8 +1,4 @@
-include($QT_INSTALL_DOCS/global/macros.qdocconf)
-include($QT_INSTALL_DOCS/global/qt-cpp-defines.qdocconf)
-include($QT_INSTALL_DOCS/global/compat.qdocconf)
-include($QT_INSTALL_DOCS/global/fileextensions.qdocconf)
-include($QT_INSTALL_DOCS/global/qt-html-templates-offline.qdocconf)
+include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
 project             = QtCanvas3D
 description         = QML 3D Canvas Reference Documentation
@@ -26,7 +22,7 @@ indexes += $QT_INSTALL_DOCS/qtcore/qtcore.index \
 qhp.projects                   = QtCanvas3D
 
 qhp.QtCanvas3D.file            = qtcanvas3d.qhp
-qhp.QtCanvas3D.namespace       = com.digia.qtcanvas3d.100
+qhp.QtCanvas3D.namespace       = org.qt-project.qtcanvas3d.100
 qhp.QtCanvas3D.virtualFolder   = qtcanvas3d
 qhp.QtCanvas3D.indexTitle      = QML 3D Canvas
 qhp.QtCanvas3D.indexRoot       =
@@ -45,11 +41,9 @@ qhp.QtCanvas3D.subprojects.examples.selectors          = fake:example
 qhp.QtCanvas3D.subprojects.examples.sortPages          = true
 qhp.QtCanvas3D.subprojects.types.title                 = QML Types
 qhp.QtCanvas3D.subprojects.types.indexTitle            = QtCanvas3D QML Types
-qhp.QtCanvas3D.subprojects.types.selectors             = fake:qmlclass
+qhp.QtCanvas3D.subprojects.types.selectors             = qmlclass
 qhp.QtCanvas3D.subprojects.types.sortPages             = true
 
 navigation.landingpage = QML 3D Canvas
 navigation.qmltypespage = QML Canvas 3D QML Types
 navigation.examplespage = QML Canvas 3D Examples
-
-buildversion = QML 3D Canvas $QT_VERSION Reference Documentation
