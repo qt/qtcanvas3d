@@ -17,6 +17,7 @@ Module {
         Property { name: "logAllCalls"; type: "bool" }
         Property { name: "logAllErrors"; type: "bool" }
         Property { name: "devicePixelRatio"; type: "float"; isReadonly: true }
+        Property { name: "fps"; type: "uint"; isReadonly: true }
         Signal { name: "needRender" }
         Signal {
             name: "devicePixelRatioChanged"
@@ -37,6 +38,10 @@ Module {
         Signal {
             name: "contextChanged"
             Parameter { name: "context"; type: "CanvasContext"; isPointer: true }
+        }
+        Signal {
+            name: "fpsChanged"
+            Parameter { name: "fps"; type: "uint" }
         }
         Signal { name: "initGL" }
         Signal { name: "renderGL" }
@@ -1325,19 +1330,19 @@ Module {
             Parameter { name: "name"; type: "string" }
         }
         Method { name: "isContextLost"; type: "bool" }
-        Method { name: "getContextAttributes"; type: "CanvasContextAttributes*" }
+        Method { name: "getContextAttributes"; type: "QJSValue" }
         Method {
             name: "getShaderPrecisionFormat"
-            type: "CanvasShaderPrecisionFormat*"
+            type: "QJSValue"
             Parameter { name: "shadertype"; type: "glEnums" }
             Parameter { name: "precisiontype"; type: "glEnums" }
         }
         Method { name: "flush" }
         Method { name: "finish" }
-        Method { name: "createTexture"; type: "CanvasTexture*" }
+        Method { name: "createTexture"; type: "QJSValue" }
         Method {
             name: "deleteTexture"
-            Parameter { name: "texture"; type: "CanvasTexture"; isPointer: true }
+            Parameter { name: "texture"; type: "QJSValue" }
         }
         Method {
             name: "activeTexture"
@@ -1346,7 +1351,7 @@ Module {
         Method {
             name: "bindTexture"
             Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "texture"; type: "CanvasTexture"; isPointer: true }
+            Parameter { name: "texture"; type: "QJSValue" }
         }
         Method {
             name: "generateMipmap"
@@ -1355,7 +1360,7 @@ Module {
         Method {
             name: "isTexture"
             type: "bool"
-            Parameter { name: "texture"; type: "QObject"; isPointer: true }
+            Parameter { name: "anyObject"; type: "QJSValue" }
         }
         Method {
             name: "compressedTexImage2D"
@@ -1365,7 +1370,7 @@ Module {
             Parameter { name: "width"; type: "int" }
             Parameter { name: "height"; type: "int" }
             Parameter { name: "border"; type: "int" }
-            Parameter { name: "pixels"; type: "CanvasTypedArray"; isPointer: true }
+            Parameter { name: "pixels"; type: "QJSValue" }
         }
         Method {
             name: "compressedTexSubImage2D"
@@ -1376,7 +1381,7 @@ Module {
             Parameter { name: "width"; type: "int" }
             Parameter { name: "height"; type: "int" }
             Parameter { name: "format"; type: "glEnums" }
-            Parameter { name: "pixels"; type: "CanvasTypedArray"; isPointer: true }
+            Parameter { name: "pixels"; type: "QJSValue" }
         }
         Method {
             name: "copyTexImage2D"
@@ -1410,7 +1415,7 @@ Module {
             Parameter { name: "border"; type: "int" }
             Parameter { name: "format"; type: "glEnums" }
             Parameter { name: "type"; type: "glEnums" }
-            Parameter { name: "pixels"; type: "CanvasTypedArray"; isPointer: true }
+            Parameter { name: "pixels"; type: "QJSValue" }
         }
         Method {
             name: "texSubImage2D"
@@ -1422,7 +1427,7 @@ Module {
             Parameter { name: "height"; type: "int" }
             Parameter { name: "format"; type: "glEnums" }
             Parameter { name: "type"; type: "glEnums" }
-            Parameter { name: "pixels"; type: "CanvasTypedArray"; isPointer: true }
+            Parameter { name: "pixels"; type: "QJSValue" }
         }
         Method {
             name: "texImage2D"
@@ -1431,7 +1436,7 @@ Module {
             Parameter { name: "internalformat"; type: "glEnums" }
             Parameter { name: "format"; type: "glEnums" }
             Parameter { name: "type"; type: "glEnums" }
-            Parameter { name: "image"; type: "CanvasTextureImage"; isPointer: true }
+            Parameter { name: "image"; type: "QJSValue" }
         }
         Method {
             name: "texSubImage2D"
@@ -1441,7 +1446,7 @@ Module {
             Parameter { name: "yoffset"; type: "int" }
             Parameter { name: "format"; type: "glEnums" }
             Parameter { name: "type"; type: "glEnums" }
-            Parameter { name: "image"; type: "CanvasTextureImage"; isPointer: true }
+            Parameter { name: "image"; type: "QJSValue" }
         }
         Method {
             name: "texParameterf"
@@ -1455,11 +1460,15 @@ Module {
             Parameter { name: "pname"; type: "glEnums" }
             Parameter { name: "param"; type: "int" }
         }
-        Method { name: "createFramebuffer"; type: "CanvasFrameBuffer*" }
+        Method { name: "createFramebuffer"; type: "QJSValue" }
+        Method {
+            name: "deleteFramebuffer"
+            Parameter { name: "buffer"; type: "QJSValue" }
+        }
         Method {
             name: "bindFramebuffer"
             Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "framebuffer"; type: "CanvasFrameBuffer"; isPointer: true }
+            Parameter { name: "framebuffer"; type: "QJSValue" }
         }
         Method {
             name: "checkFramebufferStatus"
@@ -1471,30 +1480,26 @@ Module {
             Parameter { name: "target"; type: "glEnums" }
             Parameter { name: "attachment"; type: "glEnums" }
             Parameter { name: "renderbuffertarget"; type: "glEnums" }
-            Parameter { name: "renderbuffer"; type: "CanvasRenderBuffer"; isPointer: true }
+            Parameter { name: "renderbuffer"; type: "QJSValue" }
         }
         Method {
             name: "framebufferTexture2D"
             Parameter { name: "target"; type: "glEnums" }
             Parameter { name: "attachment"; type: "glEnums" }
             Parameter { name: "textarget"; type: "glEnums" }
-            Parameter { name: "texture"; type: "CanvasTexture"; isPointer: true }
+            Parameter { name: "texture"; type: "QJSValue" }
             Parameter { name: "level"; type: "int" }
         }
         Method {
             name: "isFramebuffer"
             type: "bool"
-            Parameter { name: "anyObject"; type: "QObject"; isPointer: true }
+            Parameter { name: "anyObject"; type: "QJSValue" }
         }
-        Method {
-            name: "deleteFramebuffer"
-            Parameter { name: "buffer"; type: "CanvasFrameBuffer"; isPointer: true }
-        }
-        Method { name: "createRenderbuffer"; type: "CanvasRenderBuffer*" }
+        Method { name: "createRenderbuffer"; type: "QJSValue" }
         Method {
             name: "bindRenderbuffer"
             Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "renderbuffer"; type: "CanvasRenderBuffer"; isPointer: true }
+            Parameter { name: "renderbuffer"; type: "QJSValue" }
         }
         Method {
             name: "renderbufferStorage"
@@ -1506,11 +1511,11 @@ Module {
         Method {
             name: "isRenderbuffer"
             type: "bool"
-            Parameter { name: "anyObject"; type: "QObject"; isPointer: true }
+            Parameter { name: "anyObject"; type: "QJSValue" }
         }
         Method {
             name: "deleteRenderbuffer"
-            Parameter { name: "renderbuffer"; type: "CanvasRenderBuffer"; isPointer: true }
+            Parameter { name: "renderbuffer"; type: "QJSValue" }
         }
         Method {
             name: "sampleCoverage"
@@ -1733,20 +1738,10 @@ Module {
             Parameter { name: "x"; type: "float" }
         }
         Method {
-            name: "vertexAttrib1fv"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "CanvasFloat32Array"; isPointer: true }
-        }
-        Method {
             name: "vertexAttrib2f"
             Parameter { name: "indx"; type: "uint" }
             Parameter { name: "x"; type: "float" }
             Parameter { name: "y"; type: "float" }
-        }
-        Method {
-            name: "vertexAttrib2fv"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "CanvasFloat32Array"; isPointer: true }
         }
         Method {
             name: "vertexAttrib3f"
@@ -1754,11 +1749,6 @@ Module {
             Parameter { name: "x"; type: "float" }
             Parameter { name: "y"; type: "float" }
             Parameter { name: "z"; type: "float" }
-        }
-        Method {
-            name: "vertexAttrib3fv"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "CanvasFloat32Array"; isPointer: true }
         }
         Method {
             name: "vertexAttrib4f"
@@ -1769,9 +1759,24 @@ Module {
             Parameter { name: "w"; type: "float" }
         }
         Method {
+            name: "vertexAttrib1fv"
+            Parameter { name: "indx"; type: "uint" }
+            Parameter { name: "array"; type: "QJSValue" }
+        }
+        Method {
+            name: "vertexAttrib2fv"
+            Parameter { name: "indx"; type: "uint" }
+            Parameter { name: "array"; type: "QJSValue" }
+        }
+        Method {
+            name: "vertexAttrib3fv"
+            Parameter { name: "indx"; type: "uint" }
+            Parameter { name: "array"; type: "QJSValue" }
+        }
+        Method {
             name: "vertexAttrib4fv"
             Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "CanvasFloat32Array"; isPointer: true }
+            Parameter { name: "array"; type: "QJSValue" }
         }
         Method {
             name: "getShaderParameter"
@@ -1805,26 +1810,14 @@ Module {
         Method {
             name: "bufferData"
             Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "data"; type: "CanvasTypedArray"; isPointer: true }
-            Parameter { name: "hint"; type: "glEnums" }
-        }
-        Method {
-            name: "bufferData"
-            Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "data"; type: "CanvasArrayBuffer&" }
+            Parameter { name: "data"; type: "QJSValue" }
             Parameter { name: "hint"; type: "glEnums" }
         }
         Method {
             name: "bufferSubData"
             Parameter { name: "target"; type: "glEnums" }
             Parameter { name: "offset"; type: "int" }
-            Parameter { name: "data"; type: "CanvasTypedArray"; isPointer: true }
-        }
-        Method {
-            name: "bufferSubData"
-            Parameter { name: "target"; type: "glEnums" }
-            Parameter { name: "offset"; type: "int" }
-            Parameter { name: "data"; type: "CanvasArrayBuffer&" }
+            Parameter { name: "data"; type: "QJSValue" }
         }
         Method {
             name: "getBufferParameter"
@@ -1989,7 +1982,7 @@ Module {
             Parameter { name: "height"; type: "long" }
             Parameter { name: "format"; type: "glEnums" }
             Parameter { name: "type"; type: "glEnums" }
-            Parameter { name: "pixels"; type: "CanvasArrayBufferView"; isPointer: true }
+            Parameter { name: "pixels"; type: "QJSValue" }
         }
         Method {
             name: "getActiveAttrib"
@@ -2044,26 +2037,6 @@ Module {
             Parameter { name: "zpass"; type: "glEnums" }
         }
         Method {
-            name: "vertexAttrib1fva"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "QVariantList" }
-        }
-        Method {
-            name: "vertexAttrib2fva"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "QVariantList" }
-        }
-        Method {
-            name: "vertexAttrib3fva"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "QVariantList" }
-        }
-        Method {
-            name: "vertexAttrib4fva"
-            Parameter { name: "indx"; type: "uint" }
-            Parameter { name: "values"; type: "QVariantList" }
-        }
-        Method {
             name: "getFramebufferAttachmentParameter"
             type: "int"
             Parameter { name: "target"; type: "glEnums" }
@@ -2086,7 +2059,7 @@ Module {
             name: "getUniform"
             type: "QVariant"
             Parameter { name: "program"; type: "QJSValue" }
-            Parameter { name: "location"; type: "CanvasUniformLocation"; isPointer: true }
+            Parameter { name: "location"; type: "QJSValue" }
         }
         Method {
             name: "getVertexAttribOffset"
@@ -2305,11 +2278,6 @@ Module {
         exports: ["QtCanvas3D/Program3D 1.0"]
         isCreatable: false
         exportMetaObjectRevisions: [0]
-        Property { name: "id"; type: "int"; isReadonly: true }
-        Signal {
-            name: "idChanged"
-            Parameter { name: "id"; type: "int" }
-        }
     }
     Component {
         name: "QtCanvas3D::CanvasRenderBuffer"
