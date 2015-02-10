@@ -40,6 +40,7 @@
 #include <QJSValueIterator>
 #include <QtQml/QQmlEngine>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
@@ -536,3 +537,4 @@ QDebug operator<<(QDebug dbg, const CanvasTextureImage *texImage)
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

@@ -36,6 +36,7 @@
 
 #include "shaderprecisionformat_p.h"
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -74,3 +75,4 @@ CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
  */
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

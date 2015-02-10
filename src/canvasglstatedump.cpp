@@ -42,6 +42,7 @@
 
 #define BOOL_TO_STR(a) a ? "true" : "false"
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -425,3 +426,4 @@ QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums opti
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

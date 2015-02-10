@@ -35,11 +35,11 @@
 ****************************************************************************/
 
 #include "buffer3d_p.h"
-#include "typedarray/typedarray_p.h"
 
 #include <QDebug>
 #include <QString>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -143,3 +143,4 @@ QDebug operator<<(QDebug dbg, const CanvasBuffer *buffer)
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

@@ -47,157 +47,16 @@
 #ifndef ARRAYUTILS_P_H
 #define ARRAYUTILS_P_H
 
-#include "typedarray/typedarray_p.h"
-#include "typedarray/int8array_p.h"
-#include "typedarray/uint8array_p.h"
-#include "typedarray/int16array_p.h"
-#include "typedarray/uint16array_p.h"
-#include "typedarray/int32array_p.h"
-#include "typedarray/uint32array_p.h"
-#include "typedarray/float32array_p.h"
-#include "typedarray/float64array_p.h"
-#include "typedarray/uint8clampedarray_p.h"
+#include "canvas3dcommon_p.h"
 
+#include <QtCore/QVariantList>
+
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-// Contains static template functions used by the TypedArray classes.
 class ArrayUtils
 {
 public:
-    template<typename T>
-    static bool copyToTarget(T* targetArray, CanvasTypedArray *sourceArray, unsigned long length)
-    {
-        CanvasInt8Array *int8Source       = qobject_cast<CanvasInt8Array*>(sourceArray);
-        CanvasUint8Array *uint8Source     = qobject_cast<CanvasUint8Array*>(sourceArray);
-        CanvasUint8ClampedArray *uint8ClampedSource = qobject_cast<CanvasUint8ClampedArray*>(sourceArray);
-        CanvasInt16Array *int16Source     = qobject_cast<CanvasInt16Array*>(sourceArray);
-        CanvasUint16Array *uint16Source   = qobject_cast<CanvasUint16Array*>(sourceArray);
-        CanvasInt32Array *int32Source     = qobject_cast<CanvasInt32Array*>(sourceArray);
-        CanvasUint32Array *uint32Source   = qobject_cast<CanvasUint32Array*>(sourceArray);
-        CanvasFloat32Array *float32Source = qobject_cast<CanvasFloat32Array*>(sourceArray);
-        CanvasFloat64Array *float64Source = qobject_cast<CanvasFloat64Array*>(sourceArray);
-        if (int8Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(int8Source->get(idx));
-            }
-        } else if (uint8Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(uint8Source->get(idx));
-            }
-        } else if (uint8ClampedSource) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(uint8ClampedSource->get(idx));
-            }
-        } else if (int16Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(int16Source->get(idx));
-            }
-        } else if (uint16Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(uint16Source->get(idx));
-            }
-        } else if (int32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(int32Source->get(idx));
-            }
-        } else if (uint32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(uint32Source->get(idx));
-            }
-        } else if (float32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(float32Source->get(idx));
-            }
-        } else if (float64Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (T)(float64Source->get(idx));
-            }
-        } else {
-            return false;
-        }
-        return true;
-    }
-
-    static bool copyToTargetClampedByte(unsigned char *targetArray, CanvasTypedArray *sourceArray,
-                                        unsigned long length)
-    {
-        CanvasInt8Array *int8Source       = qobject_cast<CanvasInt8Array*>(sourceArray);
-        CanvasUint8Array *uint8Source     = qobject_cast<CanvasUint8Array*>(sourceArray);
-        CanvasUint8ClampedArray *uint8ClampedSource = qobject_cast<CanvasUint8ClampedArray*>(sourceArray);
-        CanvasInt16Array *int16Source     = qobject_cast<CanvasInt16Array*>(sourceArray);
-        CanvasUint16Array *uint16Source   = qobject_cast<CanvasUint16Array*>(sourceArray);
-        CanvasInt32Array *int32Source     = qobject_cast<CanvasInt32Array*>(sourceArray);
-        CanvasUint32Array *uint32Source   = qobject_cast<CanvasUint32Array*>(sourceArray);
-        CanvasFloat32Array *float32Source = qobject_cast<CanvasFloat32Array*>(sourceArray);
-        CanvasFloat64Array *float64Source = qobject_cast<CanvasFloat64Array*>(sourceArray);
-        if (int8Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (unsigned char)(int8Source->get(idx));
-            }
-        } else if (uint8Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = (unsigned char)(uint8Source->get(idx));
-            }
-        } else if (uint8ClampedSource) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                targetArray[idx] = uint8ClampedSource->get(idx);
-            }
-        } else if (int16Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                short value = int16Source->get(idx);
-                if (value < 0)
-                    value = 0;
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else if (uint16Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                unsigned short value = uint16Source->get(idx);
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else if (int32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                int value = int32Source->get(idx);
-                if (value < 0)
-                    value = 0;
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else if (uint32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                unsigned int value = uint32Source->get(idx);
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else if (float32Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                float value = float32Source->get(idx);
-                if (value < 0)
-                    value = 0;
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else if (float64Source) {
-            for (unsigned long idx = 0; idx < length; idx++) {
-                double value = float64Source->get(idx);
-                if (value < 0)
-                    value = 0;
-                if (value > 255)
-                    value = 255;
-                targetArray[idx] = (unsigned char) value;
-            }
-        } else {
-            return false;
-        }
-        return true;
-    }
-
     static void fillFloatArrayFromVariantList(const QVariantList  &list, float *outArray)
     {
         int idx = 0;
@@ -232,5 +91,6 @@ public:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // ARRAYUTILS_P_H

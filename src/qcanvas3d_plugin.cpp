@@ -38,6 +38,7 @@
 
 #include <QtQml/qqml.h>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 void QtCanvas3DPlugin::registerTypes(const char *uri)
@@ -105,61 +106,7 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                   1, 0,
                                                   "GLStateDumpExt",
                                                   QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"" QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "\") instead."));
-
-
-    // TYPED ARRAY IMPLEMENTATION  TODO: Remove these by Qt 5.5
-    qmlRegisterSingletonType<CanvasTypedArrayFactory>(uri,
-                                                      1, 0,
-                                                      "Arrays",
-                                                      CanvasTypedArrayFactory::type_array_factory_provider);
-    qmlRegisterUncreatableType<CanvasTypedArray>(uri,
-                                                 1, 0,
-                                                 "TypedArray",
-                                                 QLatin1String("Trying to create uncreatable: TypedArray."));
-    qmlRegisterUncreatableType<CanvasArrayBufferView>(uri,
-                                                      1, 0,
-                                                      "ArrayBufferView",
-                                                      QLatin1String("Trying to create uncreatable: ArrayBufferView."));
-    qmlRegisterUncreatableType<CanvasArrayBuffer>(uri,
-                                                  1, 0,
-                                                  "ArrayBuffer",
-                                                  QLatin1String("Trying to create uncreatable: ArrayBuffer."));
-    qmlRegisterUncreatableType<CanvasInt8Array>(uri,
-                                                1, 0,
-                                                "Int8Array",
-                                                QLatin1String("Trying to create uncreatable: Int8Array, use Arrays.newInt8Array() instead."));
-    qmlRegisterUncreatableType<CanvasUint8Array>(uri,
-                                                 1, 0,
-                                                 "Uint8Array",
-                                                 QLatin1String("Trying to create uncreatable: Uint8Array, use Arrays.newUint8Array() instead."));
-    qmlRegisterUncreatableType<CanvasUint8ClampedArray>(uri,
-                                                        1, 0,
-                                                        "Uint8ClampedArray",
-                                                        QLatin1String("Trying to create uncreatable: Uint8ClampedArray, use Arrays.newUint8ClampedArray() instead."));
-    qmlRegisterUncreatableType<CanvasInt16Array>(uri,
-                                                 1, 0,
-                                                 "Int16Array",
-                                                 QLatin1String("Trying to create uncreatable: Int16Array, use Arrays.newInt16Array() instead."));
-    qmlRegisterUncreatableType<CanvasUint16Array>(uri,
-                                                  1, 0,
-                                                  "Uint16Array",
-                                                  QLatin1String("Trying to create uncreatable: Uint16Array, use Arrays.newUint16Array() instead."));
-    qmlRegisterUncreatableType<CanvasInt32Array>(uri,
-                                                 1, 0,
-                                                 "Int32Array",
-                                                 QLatin1String("Trying to create uncreatable: Int32Array, use Arrays.newInt32Array() instead."));
-    qmlRegisterUncreatableType<CanvasUint32Array>(uri,
-                                                  1, 0,
-                                                  "Uint32Array",
-                                                  QLatin1String("Trying to create uncreatable: Uint32Array, use Arrays.newUint32Array() instead."));
-    qmlRegisterUncreatableType<CanvasFloat32Array>(uri,
-                                                   1, 0,
-                                                   "Float32Array",
-                                                   QLatin1String("Trying to create uncreatable: Float32Array, use Arrays.newFloat32Array() instead."));
-    qmlRegisterUncreatableType<CanvasFloat64Array>(uri,
-                                                   1, 0,
-                                                   "Float64Array",
-                                                   QLatin1String("Trying to create uncreatable: Float64Array, use Arrays.newFloat64Array() instead."));
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

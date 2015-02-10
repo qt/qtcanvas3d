@@ -39,6 +39,7 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFramebufferObject>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 CanvasRenderNode::CanvasRenderNode(Canvas *canvas, QQuickWindow *window) :
@@ -103,3 +104,4 @@ void CanvasRenderNode::prepareNode()
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

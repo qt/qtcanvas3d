@@ -606,7 +606,7 @@ function fillModel(modelData, model) {
     log("   "+model.verticesVBO.name);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.verticesVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.vertices),
+                  new Float32Array(modelData.vertices),
                   gl.STATIC_DRAW);
     log("   "+model.normalsVBO.name);
     if (stateDumpExt)
@@ -614,19 +614,19 @@ function fillModel(modelData, model) {
 
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalsVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.normals),
+                  new Float32Array(modelData.normals),
                   gl.STATIC_DRAW);
 
     log("   "+model.texCoordVBO.name);
     gl.bindBuffer(gl.ARRAY_BUFFER, model.texCoordVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.texCoords[0]),
+                  new Float32Array(modelData.texCoords[0]),
                   gl.STATIC_DRAW);
 
     log("   "+model.indexVBO.name);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, model.indexVBO);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array(modelData.indices),
+                  new Uint16Array(modelData.indices),
                   gl.STATIC_DRAW);
 
     model.count = modelData.indices.length;

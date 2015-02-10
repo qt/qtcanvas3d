@@ -271,25 +271,25 @@ function handleLoadedModel(jsonObj) {
     log("    "+theModel.verticesVBO);
     gl.bindBuffer(gl.ARRAY_BUFFER, theModel.verticesVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.vertices),
+                  new Float32Array(modelData.vertices),
                   gl.STATIC_DRAW);
 
     log("    "+theModel.normalsVBO);
     gl.bindBuffer(gl.ARRAY_BUFFER, theModel.normalsVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.normals),
+                  new Float32Array(modelData.normals),
                   gl.STATIC_DRAW);
 
     log("    "+theModel.texCoordVBO);
     gl.bindBuffer(gl.ARRAY_BUFFER, theModel.texCoordVBO);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(modelData.texCoords[0]),
+                  new Float32Array(modelData.texCoords[0]),
                   gl.STATIC_DRAW);
 
     log("    "+theModel.indexVBO);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, theModel.indexVBO);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array(modelData.indices),
+                  new Uint16Array(modelData.indices),
                   gl.STATIC_DRAW);
 
     theModel.count = modelData.indices.length;

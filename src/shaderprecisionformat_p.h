@@ -51,6 +51,7 @@
 
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasShaderPrecisionFormat : public CanvasAbstractObject
@@ -83,5 +84,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // SHADERPRECISIONFORMAT_P_H

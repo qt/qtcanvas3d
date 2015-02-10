@@ -288,7 +288,7 @@ function initBuffers()
     cubeVertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array([// Front face
+                  new Float32Array([// Front face
                                           -1.0, -1.0,  1.0,
                                           1.0, -1.0,  1.0,
                                           1.0,  1.0,  1.0,
@@ -328,7 +328,7 @@ function initBuffers()
     cubeVertexIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array([0,  1,  2,      0,  2,  3,    // front
+                  new Uint16Array([0,  1,  2,      0,  2,  3,    // front
                                          4,  5,  6,      4,  6,  7,    // back
                                          8,  9,  10,     8,  10, 11,   // top
                                          12, 13, 14,     12, 14, 15,   // bottom
@@ -355,7 +355,7 @@ function initBuffers()
     cubeVertexColorBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(generatedColors),
+                  new Float32Array(generatedColors),
                   gl.STATIC_DRAW);
 
     cubeVerticesTextureCoordBuffer = gl.createBuffer();
@@ -391,13 +391,13 @@ function initBuffers()
                               0.0,  1.0,
                               1.0,  1.0];
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array(textureCoordinates),
+                  new Float32Array(textureCoordinates),
                   gl.STATIC_DRAW);
 
     bkgVertexPositionBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bkgVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array([-1.0, -1.0,
+                  new Float32Array([-1.0, -1.0,
                                           1.0, -1.0,
                                           -1.0,  1.0,
                                           -1.0,  1.0,
@@ -408,7 +408,7 @@ function initBuffers()
     bkgVerticesTextureCoordBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, bkgVerticesTextureCoordBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array([0.0, 0.0,
+                  new Float32Array([0.0, 0.0,
                                           1.0, 0.0,
                                           0.0, 1.0,
                                           0.0, 1.0,

@@ -40,10 +40,6 @@
 #include "canvasrendernode_p.h"
 #include "teximage3d_p.h"
 
-#include "typedarray/typedarray_p.h"
-#include "typedarray/uint32array_p.h"
-#include "typedarray/arraybuffer_p.h"
-
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOffscreenSurface>
 #include <QtGui/QOpenGLContext>
@@ -52,6 +48,7 @@
 #include <QtQml/QQmlContext>
 #include <QtCore/QElapsedTimer>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -738,3 +735,4 @@ void Canvas::renderNext()
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

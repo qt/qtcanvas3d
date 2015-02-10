@@ -167,7 +167,7 @@ function initBuffers()
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.bufferData(
                 gl.ARRAY_BUFFER,
-                Arrays.newFloat32Array([// Front face
+                new Float32Array([// Front face
                                         -1.0, -1.0,  1.0,
                                         1.0, -1.0,  1.0,
                                         1.0,  1.0,  1.0,
@@ -212,7 +212,7 @@ function initBuffers()
     var cubeVertexIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array([
+                  new Uint16Array([
                                             0,  1,  2,      0,  2,  3,    // front
                                             4,  5,  6,      4,  6,  7,    // back
                                             8,  9,  10,     8,  10, 11,   // top
@@ -241,7 +241,7 @@ function initBuffers()
             generatedColors = generatedColors.concat(c);
         }
     }
-    gl.bufferData(gl.ARRAY_BUFFER, Arrays.newFloat32Array(generatedColors), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
     gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
     var cubeVerticesTextureCoordBuffer = gl.createBuffer();
@@ -278,14 +278,14 @@ function initBuffers()
                 0.0,  1.0,
                 1.0,  1.0
             ];
-    gl.bufferData(gl.ARRAY_BUFFER, Arrays.newFloat32Array(textureCoordinates),
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
                   gl.STATIC_DRAW);
     gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
 
     var cubeVerticesNormalBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesNormalBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, Arrays.newFloat32Array([
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([
                                                               // Front
                                                               0.0,  0.0,  1.0,
                                                               0.0,  0.0,  1.0,

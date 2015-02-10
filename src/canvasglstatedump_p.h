@@ -52,6 +52,7 @@
 #include <QObject>
 #include <QtGui/QOpenGLFunctions>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 #define DUMP_ENUM_AS_PROPERTY(A,B,C) Q_PROPERTY(A::B C READ C ## _read); inline A::B C ## _read() { return A::C; }
@@ -91,5 +92,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // CANVASGLSTATEDUMP_P_H

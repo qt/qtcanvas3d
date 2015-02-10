@@ -92,7 +92,7 @@ function initBuffers() {
     cubeVertexPositionBuffer.name = "cubeVertexPositionBuffer";
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array([ // front
+                  new Float32Array([ // front
                                           -1.0, -1.0,  1.0,
                                           1.0, -1.0,  1.0,
                                           1.0,  1.0,  1.0,
@@ -108,7 +108,7 @@ function initBuffers() {
     cubeVertexIndexBuffer.name = "cubeVertexIndexBuffer";
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array([// front
+                  new Uint16Array([// front
                                          0, 1, 2,
                                          2, 3, 0,
                                          // top
@@ -132,7 +132,7 @@ function initBuffers() {
     cubeVertexColorBuffer.name = "cubeVertexColorBuffer";
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
     gl.bufferData(gl.ARRAY_BUFFER,
-                  Arrays.newFloat32Array([// front
+                  new Float32Array([// front
                                           0.000,  1.000,  0.000,
                                           0.000,  0.000,  1.000,
                                           1.000,  1.000,  1.000,

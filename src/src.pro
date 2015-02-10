@@ -2,7 +2,7 @@ load(qt_parts)
 
 TEMPLATE = lib
 TARGET = qtcanvas3d
-QT += qml quick
+QT += qml quick qml-private core-private
 DEFINES += QTCANVAS3D_LIBRARY
 TARGETPATH = QtCanvas3D
 IMPORT_VERSION = $$MODULE_VERSION
@@ -14,21 +14,8 @@ include($$PWD/designer/designer.pri)
 
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
-SOURCES += typedarray/arraybuffer.cpp \
-    typedarray/arraybufferview.cpp \
-    typedarray/float32array.cpp \
-    typedarray/uint8array.cpp \
-    typedarray/uint16array.cpp \
-    typedarray/int8array.cpp \
-    typedarray/int16array.cpp \
-    typedarray/int32array.cpp \
-    typedarray/uint32array.cpp \
-    typedarray/float64array.cpp \
-    typedarray/typedarrayfactory.cpp \
-    typedarray/typedarray.cpp \
-    typedarray/uint8clampedarray.cpp \
+SOURCES += arrayutils.cpp \
     qcanvas3d_plugin.cpp \
-    arrayutils.cpp \
     enumtostringmap.cpp \
     abstractobject3d.cpp \
     canvas3d.cpp \
@@ -48,20 +35,7 @@ SOURCES += typedarray/arraybuffer.cpp \
     activeinfo3d.cpp \
     canvasglstatedump.cpp
 
-HEADERS += typedarray/arraybuffer_p.h \
-    typedarray/arraybufferview_p.h \
-    typedarray/float32array_p.h \
-    typedarray/uint8array_p.h \
-    typedarray/uint16array_p.h \
-    typedarray/int8array_p.h \
-    typedarray/int16array_p.h \
-    typedarray/int32array_p.h \
-    typedarray/uint32array_p.h \
-    typedarray/float64array_p.h \
-    typedarray/typedarrayfactory_p.h \
-    typedarray/typedarray_p.h \
-    typedarray/arrayutils_p.h \
-    typedarray/uint8clampedarray_p.h \
+HEADERS += arrayutils_p.h \
     qcanvas3d_plugin.h \
     enumtostringmap_p.h \
     abstractobject3d_p.h \

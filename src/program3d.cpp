@@ -36,6 +36,7 @@
 
 #include "program3d_p.h"
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -221,3 +222,4 @@ QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

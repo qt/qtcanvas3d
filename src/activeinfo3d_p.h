@@ -50,6 +50,7 @@
 #include "context3d_p.h"
 #include <QObject>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasActiveInfo : public QObject
@@ -80,5 +81,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // CANVASACTIVEINFO_P_H

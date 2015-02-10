@@ -36,6 +36,7 @@
 
 #include "framebuffer3d_p.h"
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
@@ -107,3 +108,4 @@ QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
 }
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

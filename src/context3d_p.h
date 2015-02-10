@@ -53,17 +53,21 @@
 #include "canvasglstatedump_p.h"
 
 #include <QtGui/QOpenGLFunctions>
-#include <QString>
-#include <QRect>
-#include <QSize>
-#include <QSet>
-#include <QVariantList>
+#include <QtCore/QString>
+#include <QtCore/QRect>
+#include <QtCore/QSize>
+#include <QtCore/QSet>
+#include <QtCore/QVariantList>
 #include <QtQuick/QQuickItem>
+#include <QtQml>
+#include <QtQml/QJSEngine>
+#include <QtQml/private/qqmlengine_p.h>
 
 #ifdef NO_ERROR // may de defined in winerror.h
 #undef NO_ERROR
 #endif
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 #define ENUM_AS_PROPERTY(A) Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums A READ A ## _read); inline QtCanvas3D::CanvasContext::glEnums A ## _read() { return CanvasContext::A; }
@@ -78,15 +82,9 @@ class CanvasProgram;
 class CanvasBuffer;
 class CanvasUniformLocation;
 class CanvasTextureImage;
-class CanvasArrayBufferView;
-class CanvasArrayBuffer;
-class CanvasFloat32Array;
-class CanvasInt32Array;
-class CanvasUint16Array;
-class CanvasUint8Array;
-class CanvasTypedArray;
 class CanvasShaderPrecisionFormat;
 class EnumToStringMap;
+
 
 class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected QOpenGLFunctions
 {
@@ -455,6 +453,10 @@ public:
         VERTEX_ATTRIB_ARRAY_NORMALIZED     = 0x886A,
         VERTEX_ATTRIB_ARRAY_POINTER        = 0x8645,
         VERTEX_ATTRIB_ARRAY_BUFFER_BINDING = 0x889F,
+
+        /* Read Format */
+        IMPLEMENTATION_COLOR_READ_TYPE   = 0x8B9A,
+        IMPLEMENTATION_COLOR_READ_FORMAT = 0x8B9B,
 
         /* Shader Source */
         COMPILE_STATUS                 = 0x8B81,
@@ -879,6 +881,10 @@ public:
     ENUM_AS_PROPERTY(VERTEX_ATTRIB_ARRAY_POINTER)
     ENUM_AS_PROPERTY(VERTEX_ATTRIB_ARRAY_BUFFER_BINDING)
 
+    /* Read Format */
+    ENUM_AS_PROPERTY(IMPLEMENTATION_COLOR_READ_TYPE)
+    ENUM_AS_PROPERTY(IMPLEMENTATION_COLOR_READ_FORMAT)
+
     /* Shader Source */
     ENUM_AS_PROPERTY(COMPILE_STATUS)
 
@@ -1111,7 +1117,7 @@ public:
     Q_INVOKABLE bool isEnabled(glEnums cap);
     Q_INVOKABLE void disable(glEnums cap);
 
-    Q_INVOKABLE QVariant getParameter(glEnums pname);
+    Q_INVOKABLE QJSValue getParameter(glEnums pname);
 
     Q_INVOKABLE void clear(glEnums flags);
     Q_INVOKABLE void depthMask(bool flag);
@@ -1197,7 +1203,6 @@ private:
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
     void setDevicePixelRatio(float ratio);
-    CanvasTypedArray *createTypedArray(glEnums dataType, long size);
     int getSufficientSize(glEnums internalFormat, int width, int height);
 
     QRect glViewportRect() const;
@@ -1214,6 +1219,7 @@ private:
 
 private:
     QQmlEngine *m_engine;
+    QV4::ExecutionEngine *m_v4engine;
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
 
@@ -1226,7 +1232,8 @@ private:
     CanvasProgram *m_currentProgram;
     CanvasBuffer *m_currentArrayBuffer;
     CanvasBuffer *m_currentElementArrayBuffer;
-    CanvasTexture *m_currentTexture;
+    CanvasTexture *m_currentTexture2D;
+    CanvasTexture *m_currentTextureCubeMap;
     QOpenGLContext *m_context;
     QSet<QByteArray> m_extensions;
     QSurface *m_surface;
@@ -1250,5 +1257,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // CONTEXT3D_P_H

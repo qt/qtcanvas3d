@@ -65,7 +65,7 @@ function initGL(canvas) {
         buffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
         gl.bufferData(
-                    gl.ARRAY_BUFFER, Arrays.newFloat32Array(
+                    gl.ARRAY_BUFFER, new Float32Array(
                         [-1.0, -1.0,
                          1.0, -1.0,
                          -1.0,  1.0

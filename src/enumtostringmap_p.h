@@ -51,6 +51,7 @@
 
 #include <QMap>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class EnumToStringMap
@@ -68,5 +69,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // ENUMTOSTRINGMAP_P_H

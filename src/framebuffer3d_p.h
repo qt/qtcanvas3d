@@ -52,6 +52,7 @@
 #include <QOpenGLFunctions>
 #include <QDebug>
 
+QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasFrameBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
@@ -73,5 +74,6 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE
 
 #endif // FRAMEBUFFER3D_P_H
