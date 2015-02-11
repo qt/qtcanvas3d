@@ -4,8 +4,9 @@
 
 SOURCES += main.cpp
 
+RESOURCES += textureandlight.qrc
+
 OTHER_FILES += qml/textureandlight/* \
                doc/src/* \
                doc/images/*
 
-RESOURCES += textureandlight.qrc

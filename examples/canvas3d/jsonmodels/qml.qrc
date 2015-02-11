@@ -1,8 +1,8 @@
 <RCC>
     <qresource prefix="/">
-        <file>glMatrix-0.9.5.min.js</file>
+        <file alias="gl-matrix.js">../../../3rdparty/gl-matrix.js</file>
+        <file alias="ThreeJSLoader.js">../../../3rdparty/ThreeJSLoader.js</file>
         <file>gold.json</file>
-        <file>ThreeJSLoader.js</file>
         <file>woodbox.json</file>
         <file>bush.json</file>
         <file>pallet.json</file>

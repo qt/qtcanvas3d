@@ -4,8 +4,9 @@
 
 SOURCES += main.cpp
 
+RESOURCES += framebuffer.qrc
+
 OTHER_FILES += qml/framebuffer/* \
                doc/src/* \
                doc/images/*
 
-RESOURCES += framebuffer.qrc

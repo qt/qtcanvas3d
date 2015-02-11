@@ -1,7 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>qml/%ProjectName%/%ProjectName%.qml</file>
-        <file>qml/%ProjectName%/materials.js</file>
-        <file>qml/%ProjectName%/three.js</file>
-    </qresource>
-</RCC>

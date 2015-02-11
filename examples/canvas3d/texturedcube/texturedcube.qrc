@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>qml/texturedcube/glMatrix-0.9.5.min.js</file>
-        <file>qml/texturedcube/main.qml</file>
-        <file>qml/texturedcube/texturedcube.js</file>
-        <file>qml/texturedcube/qtlogo_gray.png</file>
-    </qresource>
-</RCC>
