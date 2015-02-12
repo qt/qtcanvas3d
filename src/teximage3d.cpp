@@ -41,6 +41,7 @@
 #include <QtQml/QQmlEngine>
 
 QT_BEGIN_NAMESPACE
+
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
@@ -151,12 +152,13 @@ void CanvasTextureImageFactory::notifyLoadedImages()
 /*!
  * \internal
  */
-CanvasTextureImage *CanvasTextureImageFactory::newTexImage()
+QJSValue CanvasTextureImageFactory::newTexImage()
 {
-    CanvasTextureImage *newImg = new CanvasTextureImage(this);
+    CanvasTextureImage *newImg = new CanvasTextureImage(this, m_qmlEngine);
     connect(newImg, &CanvasTextureImage::imageLoadingStarted,
             this, &CanvasTextureImageFactory::handleImageLoadingStarted);
-    return newImg;
+
+    return m_qmlEngine->newQObject(newImg);
 }
 
 /*!
@@ -174,8 +176,9 @@ CanvasTextureImage *CanvasTextureImageFactory::newTexImage()
 /*!
  * \internal
  */
-CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent) :
+CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEngine *engine) :
     CanvasAbstractObject(parent),
+    m_engine(engine),
     m_networkAccessManager(0),
     m_state(INITIALIZED),
     m_errorString(""),
@@ -192,8 +195,12 @@ CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent) :
 /*!
  * \internal
  */
-CanvasTextureImage::CanvasTextureImage(const QImage &source, int width, int height, QObject *parent) :
+CanvasTextureImage::CanvasTextureImage(const QImage &source,
+                                       int width, int height,
+                                       QObject *parent,
+                                       QQmlEngine *engine) :
     CanvasAbstractObject(parent),
+    m_engine(engine),
     m_networkAccessManager(0),
     m_state(INITIALIZED),
     m_errorString(""),
@@ -216,14 +223,6 @@ CanvasTextureImage::~CanvasTextureImage()
 {
     delete m_networkAccessManager;
     delete m_pixelCache;
-}
-
-/*!
- * \internal
- */
-CanvasTextureImage *CanvasTextureImage::create()
-{
-    return new CanvasTextureImage();
 }
 
 /*!
@@ -510,18 +509,32 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format,
 }
 
 /*!
+ * \qmlmethod TextureImage TextureImage::create()
+ * Returns a new texture image.
+ */
+/*!
+ * \internal
+ */
+QJSValue CanvasTextureImage::create()
+{
+    return m_engine->newQObject(new CanvasTextureImage(m_parentFactory, m_engine));
+}
+
+/*!
  * \qmlmethod TextureImage TextureImage::resize(int width, int height)
  * Returns a copy of the texture image resized to the given \a width and \a height.
  */
 /*!
  * \internal
  */
-CanvasTextureImage *CanvasTextureImage::resize(int width, int height)
+QJSValue CanvasTextureImage::resize(int width, int height)
 {
     if (m_state != LOADING_FINISHED)
         return 0;
 
-    return new CanvasTextureImage(m_image, width, height);
+    return m_engine->newQObject(new CanvasTextureImage(m_image,
+                                                       width, height,
+                                                       m_parentFactory, m_engine));
 }
 
 /*!

@@ -56,6 +56,7 @@
 #include <QtNetwork/QNetworkReply>
 
 QT_BEGIN_NAMESPACE
+
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasTextureImageFactory : public QObject
@@ -72,7 +73,7 @@ public:
     void handleImageLoadingStarted(CanvasTextureImage *image);
     void notifyLoadedImages();
 
-    Q_INVOKABLE CanvasTextureImage* newTexImage();
+    Q_INVOKABLE QJSValue newTexImage();
 private:
     QQmlEngine *m_qmlEngine;
     QList<CanvasTextureImage *> m_loadingImagesList;
@@ -98,12 +99,12 @@ public:
         LOADING_ERROR
     };
 
-    Q_INVOKABLE explicit CanvasTextureImage(CanvasTextureImageFactory *parent = 0);
+    explicit CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEngine *engine);
     virtual ~CanvasTextureImage();
 
-    Q_INVOKABLE CanvasTextureImage *create();
+    Q_INVOKABLE QJSValue create();
     Q_INVOKABLE ulong id();
-    Q_INVOKABLE CanvasTextureImage *resize(int width, int height);
+    Q_INVOKABLE QJSValue resize(int width, int height);
 
     QVariant *anything() const;
     void setAnything(QVariant *value);
@@ -127,7 +128,8 @@ public:
 
 private:
     void setImageState(TextureImageState state);
-    explicit CanvasTextureImage(const QImage &source, int width, int height, QObject *parent = 0);
+    explicit CanvasTextureImage(const QImage &source, int width, int height,
+                                QObject *parent, QQmlEngine *engine);
 
 signals:
     void srcChanged(QUrl source);
@@ -141,6 +143,7 @@ signals:
     void imageLoadingFailed(CanvasTextureImage *image);
 
 private:
+    QQmlEngine *m_engine;
     QNetworkAccessManager *m_networkAccessManager;
     QImage m_image;
     QUrl m_source;
@@ -155,6 +158,7 @@ private:
 };
 
 QT_CANVAS3D_END_NAMESPACE
+
 QT_END_NAMESPACE
 
 #endif // TEXIMAGE3D_P_H

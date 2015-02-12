@@ -44,80 +44,19 @@ Item {
     width: 150
 
     Canvas3D {
-        id: empty
-    }
-
-    Canvas3D {
         id: log_only_calls
         logAllCalls: true
         logAllErrors: false
     }
 
-    Canvas3D {
-        id: log_only_errors
-        logAllErrors: true
-    }
-
-    Canvas3D {
-        id: basic_context
-        anchors.fill: parent
-        function initGL() {}
-        function renderGL() {}
-    }
-
-    Canvas3D {
-        id: depth_context
-        anchors.fill: parent
-        function initGL() {}
-        function renderGL() {}
-    }
-
-    Canvas3D {
-        id: aa_context
-        anchors.fill: parent
-        function initGL() {}
-        function renderGL() {}
-    }
-
     TestCase {
-        name: "Canvas3D"
+        name: "Canvas3D_creation_log_only_calls"
         when: windowShown
-
-        function test_empty() {
-            compare(empty.width, 0)
-            compare(empty.height, 0)
-            compare(empty.logAllCalls, false)
-            compare(empty.logAllErrors, false)
-            compare(empty.context, null)
-        }
 
         function test_log_only_calls() {
             compare(log_only_calls.logAllCalls, true)
             compare(log_only_calls.logAllErrors, false)
             log_only_calls.logAllCalls = false
-        }
-
-        function log_only_errors() {
-            compare(no_logs.logAllCalls, false)
-            compare(no_logs.logAllErrors, true)
-        }
-
-        function test_basic_context() {
-            waitForRendering(basic_context)
-            basic_context.getContext("basic")
-            compare(basic_context.context.canvas, basic_context)
-        }
-
-        function test_depth_context() {
-            waitForRendering(depth_context)
-            depth_context.getContext("depth", {depth:true})
-            compare(depth_context.context.canvas, depth_context)
-        }
-
-        function test_aa_context() {
-            waitForRendering(aa_context)
-            aa_context.getContext("antialias", {antialias:true})
-            compare(aa_context.context.canvas, aa_context)
         }
     }
 }

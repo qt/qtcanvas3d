@@ -39,6 +39,7 @@
 #include <QtQml/qqml.h>
 
 QT_BEGIN_NAMESPACE
+
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 void QtCanvas3DPlugin::registerTypes(const char *uri)
@@ -51,9 +52,10 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                         "TextureImageFactory",
                                                         CanvasTextureImageFactory::texture_image_factory_provider);
 
-    qmlRegisterType<CanvasTextureImage>(uri,
+    qmlRegisterUncreatableType<CanvasTextureImage>(uri,
                                         1, 0,
-                                        "TextureImage");
+                                        "TextureImage",
+                                        QLatin1String("Trying to create uncreatable: TextureImage, use TextureImageFactory.newTexImage() instead."));
     qmlRegisterType<Canvas>(uri,
                             1, 0,
                             "Canvas3D");
@@ -109,4 +111,5 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
 }
 
 QT_CANVAS3D_END_NAMESPACE
+
 QT_END_NAMESPACE

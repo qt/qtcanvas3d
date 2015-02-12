@@ -34,29 +34,29 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.2
 import QtCanvas3D 1.0
-
-import "cube.js" as GLCode
+import QtTest 1.0
 
 Item {
-    id: mainview
-    width: 1280
-    height: 768
-    visible: true
+    id: top
+    height: 150
+    width: 150
 
     Canvas3D {
-        id: canvas3d
-        anchors.fill: parent
-        focus: true
+        id: empty
+    }
 
-        onInitGL: {
-            GLCode.initGL(canvas3d);
-        }
+    TestCase {
+        name: "Canvas3D_creation_empty"
+        when: windowShown
 
-        onRenderGL: {
-            GLCode.renderGL(canvas3d);
+        function test_empty() {
+            compare(empty.width, 0)
+            compare(empty.height, 0)
+            compare(empty.logAllCalls, false)
+            compare(empty.logAllErrors, false)
+            compare(empty.context, null)
         }
     }
 }
-

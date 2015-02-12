@@ -239,7 +239,7 @@ float Canvas::devicePixelRatio()
 /*!
  * \internal
  */
-CanvasContext *Canvas::getContext(const QString &type)
+QJSValue Canvas::getContext(const QString &type)
 {
     QVariantMap map;
     return getContext(type, map);
@@ -259,7 +259,7 @@ CanvasContext *Canvas::getContext(const QString &type)
 /*!
  * \internal
  */
-CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &options)
+QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 {
     Q_UNUSED(type);
 
@@ -357,7 +357,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
         m_glContext->setShareContext(m_glContextQt);
         if (!m_glContext->create()) {
             qWarning("Failed to create context for FBO");
-            return Q_NULLPTR;
+            return QJSValue(QJSValue::NullValue);
         }
 
         m_offscreenSurface = new QOffscreenSurface();
@@ -366,7 +366,7 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
 
         if (!m_glContext->makeCurrent(m_offscreenSurface)) {
             qWarning("Failed to make offscreen surface current");
-            return Q_NULLPTR;
+            return QJSValue(QJSValue::NullValue);
         }
 
         // Initialize OpenGL functions using the created GL context
@@ -423,7 +423,8 @@ CanvasContext *Canvas::getContext(const QString &type, const QVariantMap &option
     glFlush();
     glFinish();
 
-    return m_context3D;
+    QJSValue value = QQmlEngine::contextForObject(this)->engine()->newQObject(m_context3D);
+    return value;
 }
 
 /*!

@@ -53,9 +53,10 @@
 #include <QQuickItem>
 #include <QQuickWindow>
 
+QT_BEGIN_NAMESPACE
+
 class QOffscreenSurface;
 
-QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
@@ -85,8 +86,8 @@ public:
 
     uint fps();
 
-    Q_INVOKABLE CanvasContext *getContext(const QString &name);
-    Q_INVOKABLE CanvasContext *getContext(const QString &name, const QVariantMap &options);
+    Q_INVOKABLE QJSValue getContext(const QString &name);
+    Q_INVOKABLE QJSValue getContext(const QString &name, const QVariantMap &options);
     CanvasContext *context();
 
 public slots:
