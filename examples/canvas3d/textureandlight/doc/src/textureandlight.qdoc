@@ -41,15 +41,40 @@
     \ingroup qtcanvas3d-examples
     \brief A simple cube with texturing and lighting
 
-    The Lit and Textured Cube differs only a little from \l {Textured Cube Example} on QML side, so
-    in this example we'll focus a bit more on the js object.
+    The Lit and Textured Cube example that goes through basics of how to use QtCanvas3D.
 
     \image textureandlight-example.png
 
-    \section1 Matrix Library
+    \section1 QtQuick Side
+
+    \section2 Creating Canvas3D
+
+    We'll add a Canvas3D component into the main component:
+
+    \snippet textureandlight/qml/textureandlight/main.qml 0
+    \dots
+
+    Inside it, we catch the \c initGL and \c renderGL signals to forward the initialization
+    and rendering calls to the js object:
+
+    \snippet textureandlight/qml/textureandlight/main.qml 1
+
+    \section2 Importing the JavaScript file
+    We import the JavaScript file in the QML:
+
+    \snippet textureandlight/qml/textureandlight/main.qml 4
+
+    In the \c initGL function of the JavaScript, we initialize the OpenGL state. We also create the
+    TextureImage and register handlers for image load success and fail signals. In the case of
+    load success the OpenGL texture is created and the loaded image is used to fill the texture
+    with pixel data.
+
+    \section1 The JavaScript File
+
+    \section2 Matrix Library
 
     First we'll include a fast matrix library. Using this makes it a lot easier to
-    handle all matrix transformations:
+    handle all the 3D mathematics like for example the matrix transformations:
 
     \snippet textureandlight/qml/textureandlight/textureandlight.js 0
 
@@ -99,7 +124,7 @@
 
     \snippet textureandlight/qml/textureandlight/textureandlight.js 8
 
-    \section1 renderGL function
+    \section2 renderGL function
 
     \c renderGL is called by Canvas3D whenever it is ready to receive a new frame. Let's go through
     the steps that are done in each render cycle.
@@ -125,5 +150,13 @@
     And finally we'll draw the cube:
 
     \snippet textureandlight/qml/textureandlight/textureandlight.js 13
+
+    \section1 Logging
+
+    QtCanvas3D uses the Qt's categorized logging, this example enables all QtCanvas3D log output
+    with the code shown below. For more on Canvas3D's logging features refer to
+    \l {QtCanvas3D Logging}.
+
+    \snippet textureandlight/main.cpp 0
 
  */

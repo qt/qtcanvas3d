@@ -52,15 +52,15 @@
 
     \snippet doc_src_qtcanvas3d.cpp 0
 
-    See the \l{QML Canvas 3D Getting Started}{Getting started} page for further information on
-    how to use QML 3D Canvas in your application.
+    See the \l{QtCanvas3D Getting Started}{Getting started} page for further information on
+    how to use QtCanvas3D in your application.
 
     \section1 References
 
     \list
-        \li \l{QML Canvas 3D QML Types}
-        \li \l{QML Canvas 3D Examples}
-        \li \l {QML Canvas 3D Known Issues}
+        \li \l{QtCanvas3D QML Types}
+        \li \l{QtCanvas3D Examples}
+        \li \l {QtCanvas3D Logging}
     \endlist
 
 */

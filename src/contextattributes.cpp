@@ -53,7 +53,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * method call. It can also be requested from the Context3D later on to verify what exact
  * attributes are in fact enabled/disabled in the created context.
  *
- * \sa Context3D, Canvas3D, {QML Canvas 3D QML Types}
+ * \sa Context3D, Canvas3D, {QtCanvas3D QML Types}
  */
 
 /*!

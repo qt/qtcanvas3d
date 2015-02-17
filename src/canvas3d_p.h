@@ -59,14 +59,24 @@ class QOffscreenSurface;
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
+// Logs on high level information about the OpenGL driver and context.
+Q_DECLARE_LOGGING_CATEGORY(canvas3dinfo)
+
+// Debug: logs all the calls made in to Canvas3D and Context3D
+// Warning: debugs all warnings on failures in verifications
+Q_DECLARE_LOGGING_CATEGORY(canvas3drendering)
+
+// Debug: Logs all the OpenGL errors, this means calling glGetError()
+// after each OpenGL call and this will cause a negative performance hit.
+Q_DECLARE_LOGGING_CATEGORY(canvas3dglerrors)
+
+
 class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
 {
     Q_OBJECT
     Q_DISABLE_COPY(Canvas)
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
-    Q_PROPERTY(bool logAllCalls READ logAllCalls WRITE setLogAllCalls NOTIFY logAllCallsChanged)
-    Q_PROPERTY(bool logAllErrors READ logAllErrors WRITE setLogAllErrors NOTIFY logAllErrorsChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
 
@@ -99,8 +109,6 @@ signals:
     void needRender();
     void devicePixelRatioChanged(float ratio);
     void animatedChanged(bool animated);
-    void logAllCallsChanged(bool logCalls);
-    void logAllErrorsChanged(bool logErrors);
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
 
@@ -119,8 +127,6 @@ private:
     void updateWindowParameters();
 
     bool m_renderNodeReady;
-    bool m_logAllCalls;
-    bool m_logAllErrors;
     QThread *m_mainThread;
     QThread *m_contextThread;
     QRectF m_cachedGeometry;

@@ -37,7 +37,9 @@
 import QtQuick 2.0
 import QtCanvas3D 1.0
 
+//! [4]
 import "textureandlight.js" as GLCode
+//! [4]
 
 Item {
     id: mainview
@@ -45,15 +47,18 @@ Item {
     height: 768
     visible: true
 
+    //! [0]
     Canvas3D {
         id: canvas3d
         anchors.fill:parent
+        //! [0]
         focus: true
         property double xRotAnim: 0
         property double yRotAnim: 0
         property double zRotAnim: 0
         property bool isRunning: true
 
+        //! [1]
         // Emitted when one time initializations should happen
         onInitGL: {
             GLCode.initGL(canvas3d);
@@ -63,6 +68,7 @@ Item {
         onRenderGL: {
             GLCode.renderGL(canvas3d);
         }
+        //! [1]
 
         Keys.onSpacePressed: {
             canvas3d.isRunning = !canvas3d.isRunning
@@ -77,6 +83,7 @@ Item {
             }
         }
 
+        //! [5]
         SequentialAnimation {
             id: objAnimationX
             loops: Animation.Infinite
@@ -98,6 +105,7 @@ Item {
                 easing.type: Easing.InOutQuad
             }
         }
+        //! [5]
 
         SequentialAnimation {
             id: objAnimationY

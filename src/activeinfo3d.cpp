@@ -48,7 +48,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * The ActiveInfo3D interface represents the information returned from the getActiveAttrib and
  * getActiveUniform calls.
  *
- * \sa Context3D, Canvas3D, {QML Canvas 3D QML Types}
+ * \sa Context3D, Canvas3D, {QtCanvas3D QML Types}
  */
 
 CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
