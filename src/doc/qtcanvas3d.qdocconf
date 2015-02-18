@@ -1,7 +1,7 @@
 include($QT_INSTALL_DOCS/global/qt-module-defaults.qdocconf)
 
 project             = QtCanvas3D
-description         = QML 3D Canvas Reference Documentation
+description         = QtCanvas3D Reference Documentation
 version             = 1.0.0
 
 exampledirs = ../../examples/canvas3d \
@@ -44,6 +44,6 @@ qhp.QtCanvas3D.subprojects.types.indexTitle            = QtCanvas3D QML Types
 qhp.QtCanvas3D.subprojects.types.selectors             = qmlclass
 qhp.QtCanvas3D.subprojects.types.sortPages             = true
 
-navigation.landingpage = QML 3D Canvas
-navigation.qmltypespage = QML Canvas 3D QML Types
-navigation.examplespage = QML Canvas 3D Examples
+navigation.landingpage = QtCanvas3D
+navigation.qmltypespage = QtCanvas3D QML Types
+navigation.examplespage = QtCanvas3D Examples

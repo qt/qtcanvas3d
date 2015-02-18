@@ -48,7 +48,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * An uncreatable QML type that contains the information returned from the
  * \l{Context3D::getShaderPrecisionFormat()} call.
  *
- * \sa Context3D, {QML Canvas 3D QML Types}
+ * \sa Context3D, {QtCanvas3D QML Types}
  */
 
 /*!

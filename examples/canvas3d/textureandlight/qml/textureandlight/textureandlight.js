@@ -206,8 +206,6 @@ function initBuffers()
                 gl.STATIC_DRAW);
     gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
-    if (canvas3d.logAllCalls)
-        console.log("        cubeVertexIndexBuffer");
     //! [7]
     var cubeVertexIndexBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);

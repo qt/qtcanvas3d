@@ -54,8 +54,6 @@ Item {
         function test_empty() {
             compare(empty.width, 0)
             compare(empty.height, 0)
-            compare(empty.logAllCalls, false)
-            compare(empty.logAllErrors, false)
             compare(empty.context, null)
         }
     }

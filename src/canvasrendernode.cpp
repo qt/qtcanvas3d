@@ -51,7 +51,7 @@ CanvasRenderNode::CanvasRenderNode(Canvas *canvas, QQuickWindow *window) :
     m_texture(0),
     m_window(window)
 {
-    if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__;
 
     // Our texture node must have a texture, so use the default 0 texture.
     m_texture = m_window->createTextureFromId(0, QSize(1, 1));
@@ -67,7 +67,7 @@ CanvasRenderNode::~CanvasRenderNode()
 
 void CanvasRenderNode::newTexture(int id, const QSize &size)
 {
-    if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__ << "(" << id << ", " << size << ")";
+    qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__ << "(" << id << ", " << size << ")";
     m_mutex.lock();
     m_id = id;
     m_size = size;
@@ -81,7 +81,7 @@ void CanvasRenderNode::newTexture(int id, const QSize &size)
 // Before the scene graph starts to render, we update to the pending texture
 void CanvasRenderNode::prepareNode()
 {
-    if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__;
     m_mutex.lock();
     int newId = m_id;
     QSize size = m_size;
@@ -89,17 +89,17 @@ void CanvasRenderNode::prepareNode()
     m_mutex.unlock();
 
     if (newId) {
-        if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__ << " showing new texture:" << newId << " size:" << size << " targetRect:" << rect();
+        qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__ << " showing new texture:" << newId << " size:" << size << " targetRect:" << rect();
         delete m_texture;
         m_texture = m_window->createTextureFromId(newId, size);
         setTexture(m_texture);
-        if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__ << " SGTexture size:" << m_texture->textureSize() << " normalizedTextureSubRect:" << m_texture->normalizedTextureSubRect();
+        qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__ << " SGTexture size:" << m_texture->textureSize() << " normalizedTextureSubRect:" << m_texture->normalizedTextureSubRect();
 
         // This will notify the main thread that the texture is now being rendered
         // and it can start rendering to the other one.
         emit textureInUse();
     } else {
-        if (m_canvas->logAllCalls()) qDebug() << "CanvasRenderNode::" << __FUNCTION__ << " showing previous texture";
+        qCDebug(canvas3drendering) << "CanvasRenderNode::" << __FUNCTION__ << " showing previous texture";
     }
 }
 

@@ -1209,9 +1209,6 @@ private:
     GLuint currentFramebuffer();
     void logAllGLErrors(const QString &funcName);
 
-    void setLogAllCalls(bool logCalls);
-    void setLogAllErrors(bool logErrors);
-
     uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
                         int bytesPerPixel, int width, int height);
 
@@ -1222,12 +1219,7 @@ private:
     QV4::ExecutionEngine *m_v4engine;
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
-
-    bool m_logAllCalls;
-    bool m_logAllErrors;
     QRect m_glViewportRect;
-
-
     qreal m_devicePixelRatio;
     CanvasProgram *m_currentProgram;
     CanvasBuffer *m_currentArrayBuffer;

@@ -38,9 +38,19 @@
 #include <QtCore/QDir>
 #include <QtQuick/QQuickView>
 #include <QtQml/QQmlEngine>
+#include <QtCore/QLoggingCategory>
 
 int main(int argc, char *argv[])
 {
+    //! [0]
+    // Turns on all logging of Canvas3D
+    QString loggingFilter = QString("qt.canvas3d.info.debug=true\n");
+    loggingFilter += QStringLiteral("qt.canvas3d.rendering.debug=true\n")
+            + QStringLiteral("qt.canvas3d.rendering.warning=true\n")
+            + QStringLiteral("qt.canvas3d.glerrors.debug=true");
+    QLoggingCategory::setFilterRules(loggingFilter);
+    //! [0]
+
     QGuiApplication app(argc, argv);
 
     QQuickView viewer;

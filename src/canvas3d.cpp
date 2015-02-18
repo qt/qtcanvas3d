@@ -51,6 +51,10 @@
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
+Q_LOGGING_CATEGORY(canvas3dinfo, "qt.canvas3d.info")
+Q_LOGGING_CATEGORY(canvas3drendering, "qt.canvas3d.rendering")
+Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
+
 /*!
  * \qmltype Canvas3D
  * \since QtCanvas3D 1.0
@@ -69,7 +73,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * submit 3D rendering calls to draw whatever 3D content you want to be displayed.
  * \endlist
  *
- * \sa Context3D, {QML Canvas 3D QML Types}
+ * \sa Context3D, {QtCanvas3D QML Types}
  */
 
 /*!
@@ -78,8 +82,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_renderNodeReady(false),
-    m_logAllCalls(false),
-    m_logAllErrors(false),
     m_mainThread(QThread::currentThread()),
     m_contextThread(0),
     m_context3D(0),
@@ -98,7 +100,6 @@ Canvas::Canvas(QQuickItem *parent):
     m_displayFbo(0),
     m_offscreenSurface(0)
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
     setAntialiasing(false);
@@ -128,7 +129,6 @@ Canvas::Canvas(QQuickItem *parent):
  */
 Canvas::~Canvas()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
     shutDown();
 }
 
@@ -137,8 +137,6 @@ Canvas::~Canvas()
  */
 void Canvas::shutDown()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
-
     if (!m_glContext)
         return;
 
@@ -152,7 +150,7 @@ void Canvas::shutDown()
     delete m_context3D;
     m_glContext->doneCurrent();
 
-    if (m_logAllCalls) qDebug() << m_contextThread << m_mainThread;
+    qCDebug(canvas3drendering) << m_contextThread << m_mainThread;
 
     if (m_contextThread && m_contextThread != m_mainThread) {
         m_glContext->deleteLater();
@@ -163,44 +161,6 @@ void Canvas::shutDown()
     }
     m_glContext = 0;
     m_glContextQt = 0;
-}
-
-/*!
- * \qmlproperty bool Canvas3D::logAllCalls
- * Specifies if all Canvas3D method calls (including internal ones) are logged to the console.
- * Defaults to \c{false}.
- */
-void Canvas::setLogAllCalls(bool logCalls)
-{
-    if (m_logAllCalls != logCalls) {
-        m_logAllCalls = logCalls;
-        emit logAllCallsChanged(logCalls);
-    }
-}
-
-bool Canvas::logAllCalls() const
-{
-    return m_logAllCalls;
-}
-
-/*!
- * \qmlproperty bool Canvas3D::logAllErrors
- * Specifies if all GL errors are checked and logged to the console. Defaults to \c{false}.
- * WARNING! Enabling this flag will have severe negative performance impact due to use of
- * \c{glGetError()} after each function call, so only enable it while debugging an issue during
- * development.
- */
-void Canvas::setLogAllErrors(bool logErrors)
-{
-    if (m_logAllErrors != logErrors) {
-        m_logAllErrors = logErrors;
-        emit logAllErrorsChanged(logErrors);
-    }
-}
-
-bool Canvas::logAllErrors() const
-{
-    return m_logAllErrors;
 }
 
 /*!
@@ -222,7 +182,7 @@ bool Canvas::logAllErrors() const
  */
 float Canvas::devicePixelRatio()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__;
     QQuickWindow *win = window();
     if (win)
         return win->devicePixelRatio();
@@ -263,16 +223,16 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 {
     Q_UNUSED(type);
 
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                << "("
-                                << type << ", " << options
-                                << ")";
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                               << "("
+                               << type << ", " << options
+                               << ")";
 
     if (!m_isContextAttribsSet) {
         // Accept passed attributes only from first call and ignore for subsequent calls
         m_isContextAttribsSet = true;
         m_contextAttribs.setFrom(options);
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
+        qCDebug(canvas3drendering)  << "Canvas3D::" << __FUNCTION__
                                     << " Attribs:" << m_contextAttribs;
 
         // If we can't do antialiasing, ensure we don't even try to enable it
@@ -313,7 +273,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
             antialiasFboFormat.setSamples(m_maxSamples);
 
             if (antialiasFboFormat.samples() != m_maxSamples) {
-                qDebug() << "Failed to use " << m_maxSamples << " will use " << antialiasFboFormat.samples();
+                qCWarning(canvas3drendering)  << "Failed to use " << m_maxSamples
+                                              << " will use " << antialiasFboFormat.samples();
             }
 
             if (m_contextAttribs.depth() && m_contextAttribs.stencil())
@@ -346,9 +307,9 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         if (m_contextAttribs.antialias())
             surfaceFormat.setSamples(antialiasFboFormat.samples());
 
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Creating QOpenGLContext with surfaceFormat :"
-                                    << surfaceFormat;
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Creating QOpenGLContext with surfaceFormat :"
+                                   << surfaceFormat;
 
         m_contextWindow = window();
         m_contextThread = QThread::currentThread();
@@ -356,7 +317,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_glContext->setFormat(surfaceFormat);
         m_glContext->setShareContext(m_glContextQt);
         if (!m_glContext->create()) {
-            qWarning("Failed to create context for FBO");
+            qCWarning(canvas3drendering) << "Failed to create context for FBO";
             return QJSValue(QJSValue::NullValue);
         }
 
@@ -365,7 +326,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_offscreenSurface->create();
 
         if (!m_glContext->makeCurrent(m_offscreenSurface)) {
-            qWarning("Failed to make offscreen surface current");
+            qCWarning(canvas3drendering) << "Failed to make offscreen surface current";
             return QJSValue(QJSValue::NullValue);
         }
 
@@ -373,9 +334,9 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         initializeOpenGLFunctions();
 
         // Create the FBOs
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Creating front and back FBO's with attachment format of :"
-                                    << format.attachment();
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Creating front and back FBO's with attachment format of :"
+                                   << format.attachment();
         m_displayFbo = new QOpenGLFramebufferObject(m_initialisedSize, format);
         m_renderFbo  = new QOpenGLFramebufferObject(m_initialisedSize,  format);
 
@@ -386,20 +347,20 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_renderFbo->bind();
         glClear(GL_COLOR_BUFFER_BIT);
 
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Render FBO handle:" << m_renderFbo->handle()
-                                    << " isValid:" << m_renderFbo->isValid();
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Render FBO handle:" << m_renderFbo->handle()
+                                   << " isValid:" << m_renderFbo->isValid();
 
         if (m_contextAttribs.antialias()) {
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Creating MSAA buffer with "
-                                        << antialiasFboFormat.samples() << "samples "
-                                        << "and attachment format of :"
-                                        << antialiasFboFormat.attachment();
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " Creating MSAA buffer with "
+                                       << antialiasFboFormat.samples() << "samples "
+                                       << "and attachment format of :"
+                                       << antialiasFboFormat.attachment();
             m_antialiasFbo = new QOpenGLFramebufferObject(m_initialisedSize, antialiasFboFormat);
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Antialias FBO handle:" << m_antialiasFbo->handle()
-                                        << " isValid:" << m_antialiasFbo->isValid();
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " Antialias FBO handle:" << m_antialiasFbo->handle()
+                                       << " isValid:" << m_antialiasFbo->isValid();
             m_antialiasFbo->bind();
             glClear(GL_COLOR_BUFFER_BIT);
         }
@@ -412,10 +373,6 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_context3D->setCanvas(this);
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
         m_context3D->setContextAttributes(m_contextAttribs);
-        m_context3D->setLogAllCalls(this->logAllCalls());
-        m_context3D->setLogAllErrors(this->logAllErrors());
-        connect(this, &Canvas::logAllCallsChanged, m_context3D, &CanvasContext::setLogAllCalls);
-        connect(this, &Canvas::logAllErrorsChanged, m_context3D, &CanvasContext::setLogAllErrors);
 
         emit contextChanged(m_context3D);
     }
@@ -432,7 +389,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
  */
 void Canvas::handleWindowChanged(QQuickWindow *window)
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << "(" << window << ")";
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__ << "(" << window << ")";
     if (!window)
         return;
 
@@ -444,7 +401,7 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
  */
 void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__;
     QQuickItem::geometryChanged(newGeometry, oldGeometry);
 
     m_cachedGeometry = newGeometry;
@@ -457,7 +414,7 @@ void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometr
  */
 void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << change;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__ << change;
     QQuickItem::itemChange(change, value);
 
     emit needRender();
@@ -468,7 +425,7 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
  */
 CanvasContext *Canvas::context()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__ << "()";
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__ << "()";
     return m_context3D;
 }
 
@@ -477,7 +434,7 @@ CanvasContext *Canvas::context()
  */
 void Canvas::updateWindowParameters()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__;
 
     // Update the device pixel ratio, window size and bounding box
     QQuickWindow *win = window();
@@ -502,7 +459,7 @@ void Canvas::updateWindowParameters()
  */
 void Canvas::ready()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__;
 
     connect(window(), &QQuickWindow::sceneGraphInvalidated,
             this, &Canvas::shutDown);
@@ -515,20 +472,20 @@ void Canvas::ready()
  */
 QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                << "("
-                                << oldNode <<", " << data
-                                << ")";
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                               << "("
+                               << oldNode <<", " << data
+                               << ")";
     updateWindowParameters();
     m_initialisedSize = boundingRect().size().toSize()  * m_devicePixelRatio;
-    if (m_logAllCalls) qDebug() << "    m_initialisedSize:" << m_initialisedSize
-                                << " devicePixelRatio:" << m_devicePixelRatio;
+    qCDebug(canvas3drendering) << "    m_initialisedSize:" << m_initialisedSize
+                               << " devicePixelRatio:" << m_devicePixelRatio;
     if (m_runningInDesigner
             || m_initialisedSize.width() <= 0
             || m_initialisedSize.height() <= 0
             || !window()) {
         delete oldNode;
-        if (m_logAllCalls) qDebug() << "    Returns null";
+        qCDebug(canvas3drendering) << "    Returns null";
         return 0;
     }
 
@@ -599,20 +556,20 @@ void Canvas::bindCurrentRenderTarget()
     if (m_context3D->currentFramebuffer() == 0) {
         // Bind default framebuffer
         if (m_antialiasFbo) {
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Binding current FBO to antialias FBO:"
-                                        << m_antialiasFbo->handle();
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " Binding current FBO to antialias FBO:"
+                                       << m_antialiasFbo->handle();
             m_antialiasFbo->bind();
         } else {
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Binding current FBO to render FBO:"
-                                        << m_renderFbo->handle();
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " Binding current FBO to render FBO:"
+                                       << m_renderFbo->handle();
             m_renderFbo->bind();
         }
     } else {
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Binding current FBO to current context FBO:"
-                                    << m_context3D->currentFramebuffer();
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Binding current FBO to current context FBO:"
+                                   << m_context3D->currentFramebuffer();
         glBindFramebuffer(GL_FRAMEBUFFER, m_context3D->currentFramebuffer());
     }
 }
@@ -632,14 +589,14 @@ uint Canvas::fps()
  */
 void Canvas::renderNext()
 {
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__;
 
     updateWindowParameters();
 
     // Don't try to do anything before the render node has been created
     if (!m_renderNodeReady) {
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Render node not ready, returning";
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Render node not ready, returning";
         return;
     }
 
@@ -650,14 +607,14 @@ void Canvas::renderNext()
         emit initGL();
 
         if (!m_isContextAttribsSet) {
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " Context attributes not set, returning";
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " Context attributes not set, returning";
             return;
         }
 
         if (!m_glContext) {
-            if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                        << " QOpenGLContext not created, returning";
+            qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                       << " QOpenGLContext not created, returning";
             return;
         }
     }
@@ -671,13 +628,13 @@ void Canvas::renderNext()
     // Ensure we have correct clip rect set in the context
     QRect viewport = m_context3D->glViewportRect();
     glViewport(viewport.x(), viewport.y(), viewport.width(), viewport.height());
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                << " viewport set to " << viewport;
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                               << " viewport set to " << viewport;
 
     // Check that we're complete component before drawing
     if (!isComponentComplete()) {
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Component is not complete, skipping drawing";
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Component is not complete, skipping drawing";
         return;
     }
 
@@ -691,9 +648,9 @@ void Canvas::renderNext()
 
     // Resolve MSAA
     if (m_contextAttribs.antialias()) {
-        if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                    << " Resolving MSAA from FBO:" << m_antialiasFbo->handle()
-                                     << " to FBO:" << m_renderFbo->handle();
+        qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                                   << " Resolving MSAA from FBO:" << m_antialiasFbo->handle()
+                                   << " to FBO:" << m_renderFbo->handle();
         QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
     }
 
@@ -724,9 +681,9 @@ void Canvas::renderNext()
 
     // Swap
     qSwap(m_renderFbo, m_displayFbo);
-    if (m_logAllCalls) qDebug() << "Canvas3D::" << __FUNCTION__
-                                << " Displaying texture: " << m_displayFbo->texture()
-                                << " From FBO: " << m_displayFbo->handle();
+    qCDebug(canvas3drendering) << "Canvas3D::" << __FUNCTION__
+                               << " Displaying texture: " << m_displayFbo->texture()
+                               << " From FBO: " << m_displayFbo->handle();
 
     // Rebind default FBO
     QOpenGLFramebufferObject::bindDefault();

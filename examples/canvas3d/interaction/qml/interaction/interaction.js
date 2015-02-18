@@ -60,9 +60,10 @@ var nMatrix  = mat4.create();
 var startTime;
 
 var canvas3d;
+var isLogEnabled = false;
 
 function log(message) {
-    if (canvas3d.logAllCalls)
+    if (isLogEnabled)
         console.log(message)
 }
 

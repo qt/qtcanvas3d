@@ -1,34 +1,31 @@
 /****************************************************************************
 **
-** Copyright (C) 2014 Digia Plc and/or its subsidiary(-ies).
-** Contact: http://www.qt-project.org/legal
+** Copyright (C) 2015 The Qt Company Ltd.
+** Contact: http://www.qt.io/licensing/
 **
 ** This file is part of the QtCanvas3D module of the Qt Toolkit.
 **
-** $QT_BEGIN_LICENSE:LGPL$
+** $QT_BEGIN_LICENSE:LGPL21$
 ** Commercial License Usage
 ** Licensees holding valid commercial Qt licenses may use this file in
 ** accordance with the commercial license agreement provided with the
 ** Software or, alternatively, in accordance with the terms contained in
-** a written agreement between you and Digia.  For licensing terms and
-** conditions see http://qt.digia.com/licensing.  For further information
-** use the contact form at http://qt.digia.com/contact-us.
+** a written agreement between you and The Qt Company. For licensing terms
+** and conditions see http://www.qt.io/terms-conditions. For further
+** information use the contact form at http://www.qt.io/contact-us.
 **
 ** GNU Lesser General Public License Usage
 ** Alternatively, this file may be used under the terms of the GNU Lesser
-** General Public License version 3 as published by the Free Software
-** Foundation and appearing in the file LICENSE.LGPLv3 included in the
-** packaging of this file.  Please review the following information to
-** ensure the GNU Lesser General Public License version 3 requirements
-** will be met: https://www.gnu.org/licenses/lgpl.html.
+** General Public License version 2.1 or version 3 as published by the Free
+** Software Foundation and appearing in the file LICENSE.LGPLv21 and
+** LICENSE.LGPLv3 included in the packaging of this file. Please review the
+** following information to ensure the GNU Lesser General Public License
+** requirements will be met: https://www.gnu.org/licenses/lgpl.html and
+** http://www.gnu.org/licenses/old-licenses/lgpl-2.1.html.
 **
-** GNU General Public License Usage
-** Alternatively, this file may be used under the terms of the GNU
-** General Public License version 2.0 or later as published by the Free 
-** Software Foundation and appearing in the file LICENSE.GPL included in 
-** the packaging of this file.  Please review the following information to
-** ensure the GNU General Public License version 2.0 requirements will be
-** met: http://www.gnu.org/licenses/gpl-2.0.html.
+** As a special exception, The Qt Company gives you certain additional
+** rights. These rights are described in The Qt Company LGPL Exception
+** version 1.1, included in the file LGPL_EXCEPTION.txt in this package.
 **
 ** $QT_END_LICENSE$
 **
@@ -36,7 +33,7 @@
 
 /*!
     \qmlmodule QtCanvas3D 1.0
-    \title QML Canvas 3D QML Types
+    \title QtCanvas3D QML Types
     \ingroup qmlmodules
 
     \brief QML types for the QtCanvas3D API.
@@ -51,7 +48,7 @@
 /*!
     \group qtcanvas3d-examples
     \ingroup all-examples
-    \title QML Canvas 3D Examples
+    \title QtCanvas3D Examples
 
     \brief Examples for the QtCanvas3D.
 
@@ -62,7 +59,7 @@
 
 /*!
     \group qtcanvas3d-getting-started
-    \title QML Canvas 3D Getting Started
+    \title QtCanvas3D Getting Started
 
     \section1 Building QtCanvas3D
 
@@ -155,39 +152,26 @@
 
     \section1 A Basic Example
 
-    For a simple Canvas3D example concentrating on the QML side see the \l {Textured Cube Example},
-    or for one concentrating on the JavaScript side see the \l {Lit and Textured Cube Example}.
+    For a simple Canvas3D example see the \l {Lit and Textured Cube Example}.
 
-    For all the QtCanvas3D examples, check out \l {QML Canvas 3D Examples}
+    For all the QtCanvas3D examples, check out \l {QtCanvas3D Examples}
 */
 
 /*!
-    \group qtcanvas3d-known-issues
-    \title QML Canvas 3D Known Issues
+    \group qtcanvas3d-logging
+    \title QtCanvas3D Logging
 
-    \brief The known issues of QML 3D Canvas.
+    \brief The logging features in QtCanvas3D.
+
+    Logging in QtCanvas3D uses the Qt categorized logging. The following categories are supported:
 
     \list
-        \li QObject based TypedArray implementation is a temporary stop gap solution and will be removed from QtCanvas3D later on.
-        \li Texturing does not work perfectly in all of the examples.
-        \li Resizing window works incorrectly if viewport is updated during rendering to match
-            the window size (try \l{Framebuffer Example} for reference).
-        \li These methods are named for Tech Preview with “a” postfix to denote “array” versions taking a JavaScript array instead of TypedArray.
-            This is to resolve method overloading problems with the current QObject based TypedArray implementation and will be rectified before final release:
-   \code
-    void uniform1fva(CanvasUniformLocation *location, QVariantList array)
-    void uniform2fva(CanvasUniformLocation *location, QVariantList array)
-    void uniform3fva(CanvasUniformLocation *location, QVariantList array)
-    void uniform4fva(CanvasUniformLocation *location, QVariantList array)
-    void uniform1iva(CanvasUniformLocation *location, QVariantList array)
-    void uniform2iva(CanvasUniformLocation *location, QVariantList array)
-    void uniform3iva(CanvasUniformLocation *location, QVariantList array)
-    void uniform4iva(CanvasUniformLocation *location, QVariantList array)
-    void vertexAttrib1fva(uint indx, QVariantList values)
-    void vertexAttrib2fva(uint indx, QVariantList values)
-    void vertexAttrib3fva(uint indx, QVariantList values)
-    void vertexAttrib4fva(uint indx, QVariantList values)
-    \endcode
-
+    \li "qt.canvas3d.info.debug" Logs on high level information about the OpenGL driver.
+    \li "qt.canvas3d.rendering.debug" Logs all the method calls in QtCanvas3D.
+    \li "qt.canvas3d.rendering.warning" Logs all warnings on from QtCanvas3D internal verifications
+    that happen before a OpenGL method call is made to the actual graphics driver.
+    \li "qt.canvas3d.glerrors.debug" Logs all the OpenGL driver level errors. This entails calling
+        \c{glGetError()} after each OpenGL driver call and this will cause a negative performance
+        hit. Please use only when necessary to find root causes of rendering errors.
     \endlist
 */

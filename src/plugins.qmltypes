@@ -14,8 +14,6 @@ Module {
         exports: ["QtCanvas3D/Canvas3D 1.0"]
         exportMetaObjectRevisions: [0]
         Property { name: "context"; type: "CanvasContext"; isReadonly: true; isPointer: true }
-        Property { name: "logAllCalls"; type: "bool" }
-        Property { name: "logAllErrors"; type: "bool" }
         Property { name: "devicePixelRatio"; type: "float"; isReadonly: true }
         Property { name: "fps"; type: "uint"; isReadonly: true }
         Signal { name: "needRender" }
@@ -56,12 +54,12 @@ Module {
         Method { name: "renderNext" }
         Method {
             name: "getContext"
-            type: "CanvasContext*"
+            type: "QJSValue"
             Parameter { name: "name"; type: "string" }
         }
         Method {
             name: "getContext"
-            type: "CanvasContext*"
+            type: "QJSValue"
             Parameter { name: "name"; type: "string" }
             Parameter { name: "options"; type: "QVariantMap" }
         }
@@ -362,6 +360,8 @@ Module {
                 "VERTEX_ATTRIB_ARRAY_NORMALIZED": 34922,
                 "VERTEX_ATTRIB_ARRAY_POINTER": 34373,
                 "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING": 34975,
+                "IMPLEMENTATION_COLOR_READ_TYPE": 35738,
+                "IMPLEMENTATION_COLOR_READ_FORMAT": 35739,
                 "COMPILE_STATUS": 35713,
                 "FRAGMENT_SHADER_DERIVATIVE_HINT_OES": 35723,
                 "LOW_FLOAT": 36336,
@@ -1082,6 +1082,16 @@ Module {
         }
         Property {
             name: "VERTEX_ATTRIB_ARRAY_BUFFER_BINDING"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "IMPLEMENTATION_COLOR_READ_TYPE"
+            type: "QtCanvas3D::CanvasContext::glEnums"
+            isReadonly: true
+        }
+        Property {
+            name: "IMPLEMENTATION_COLOR_READ_FORMAT"
             type: "QtCanvas3D::CanvasContext::glEnums"
             isReadonly: true
         }
@@ -1827,7 +1837,7 @@ Module {
         }
         Method {
             name: "getParameter"
-            type: "QVariant"
+            type: "QJSValue"
             Parameter { name: "pname"; type: "glEnums" }
         }
         Method {
@@ -2173,6 +2183,7 @@ Module {
         name: "QtCanvas3D::CanvasTextureImage"
         prototype: "QtCanvas3D::CanvasAbstractObject"
         exports: ["QtCanvas3D/TextureImage 1.0"]
+        isCreatable: false
         exportMetaObjectRevisions: [0]
         Enum {
             name: "TextureImageState"
@@ -2225,11 +2236,11 @@ Module {
             name: "imageLoadingFailed"
             Parameter { name: "image"; type: "CanvasTextureImage"; isPointer: true }
         }
-        Method { name: "create"; type: "CanvasTextureImage*" }
+        Method { name: "create"; type: "QJSValue" }
         Method { name: "id"; type: "ulong" }
         Method {
             name: "resize"
-            type: "CanvasTextureImage*"
+            type: "QJSValue"
             Parameter { name: "width"; type: "int" }
             Parameter { name: "height"; type: "int" }
         }
@@ -2241,7 +2252,7 @@ Module {
         isCreatable: false
         isSingleton: true
         exportMetaObjectRevisions: [0]
-        Method { name: "newTexImage"; type: "CanvasTextureImage*" }
+        Method { name: "newTexImage"; type: "QJSValue" }
     }
     Component {
         name: "QtCanvas3D::CanvasUniformLocation"
