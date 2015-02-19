@@ -895,7 +895,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     bool deleteTempPixels = false;
     if (pixels.isNull()) {
         deleteTempPixels = true;
-        int size = getSufficientSize(internalformat, width, height);
+        int size = getSufficientSize(type, width, height);
         srcData = new uchar[size];
         memset(srcData, 0, size);
     }
