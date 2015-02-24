@@ -50,8 +50,9 @@
 #include "canvas3dcommon_p.h"
 #include "context3d_p.h"
 
-#include <QQuickItem>
-#include <QQuickWindow>
+#include <QtQuick/QQuickItem>
+#include <QtQuick/QQuickWindow>
+#include <QtGui/QOpenGLFramebufferObject>
 
 QT_BEGIN_NAMESPACE
 
@@ -79,6 +80,7 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
+    Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
 
 public:
     Canvas(QQuickItem *parent = 0);
@@ -86,13 +88,11 @@ public:
 
     void handleWindowChanged(QQuickWindow *win);
     float devicePixelRatio();
+    QSize pixelSize();
+    void setPixelSize(QSize pixelSize);
+    void createFBOs();
 
     void bindCurrentRenderTarget();
-
-    void setLogAllCalls(bool logCalls);
-    bool logAllCalls() const;
-    void setLogAllErrors(bool logErrors);
-    bool logAllErrors() const;
 
     uint fps();
 
@@ -111,6 +111,7 @@ signals:
     void animatedChanged(bool animated);
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
+    void pixelSizeChanged(QSize pixelSize);
 
     void initGL();
     void renderGL();
@@ -132,7 +133,8 @@ private:
     QRectF m_cachedGeometry;
     CanvasContext *m_context3D;
     bool m_isFirstRender;
-    QSize m_initialisedSize;
+    QSize m_fboSize;
+    QSize m_initializedSize;
 
     QOpenGLContext *m_glContext;
     QOpenGLContext *m_glContextQt;
@@ -151,6 +153,8 @@ private:
     QOpenGLFramebufferObject *m_antialiasFbo;
     QOpenGLFramebufferObject *m_renderFbo;
     QOpenGLFramebufferObject *m_displayFbo;
+    QOpenGLFramebufferObjectFormat m_fboFormat;
+    QOpenGLFramebufferObjectFormat m_antialiasFboFormat;
 
     QOffscreenSurface *m_offscreenSurface;
 };

@@ -234,6 +234,12 @@ function renderGL(canvas) {
     //! [9]
 }
 
+function onCanvasResize(canvas)
+{
+    canvas.pixelSize = Qt.size(canvas.width * canvas.devicePixelRatio,
+                               canvas.height * canvas.devicePixelRatio);
+}
+
 function initBuffers()
 {
     log("        cubeVertexPositionBuffer");
