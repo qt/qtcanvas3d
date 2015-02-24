@@ -46,7 +46,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Contains an OpenGL texture.
  *
  * An uncreatable QML type that contains an OpenGL texture. You can get it by calling
- * \l{Context3D::createTexture()}{Context3D.createTexture()} method.
+ * the \l{Context3D::createTexture()}{Context3D.createTexture()} method.
  */
 
 /*!

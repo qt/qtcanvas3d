@@ -69,7 +69,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Provides the 3D rendering API and context.
  *
  * An uncreatable QML type that provides a WebGL-like API that can be used to draw 3D graphics to
- * the Canvas3D element. You can get it by calling \l{Canvas3D::getContext}{Canvas3D.getContext}
+ * the Canvas3D element. You can get it by calling the \l{Canvas3D::getContext}{Canvas3D.getContext}
  * method.
  *
  * \sa Canvas3D
@@ -165,7 +165,7 @@ Canvas *CanvasContext::canvas()
 
 /*!
  * \qmlproperty int Context3D::drawingBufferWidth
- * Holds the current read-only logical pixel width of the drawing buffer. To get width in physical pixels
+ * Holds the current read-only logical pixel width of the drawing buffer. To get the width in physical pixels
  * you need to multiply this with the \c devicePixelRatio.
  */
 uint CanvasContext::drawingBufferWidth()
@@ -181,7 +181,7 @@ uint CanvasContext::drawingBufferWidth()
 
 /*!
  * \qmlproperty int Context3D::drawingBufferHeight
- * Holds the current read-only logical pixel height of the drawing buffer. To get height in physical pixels
+ * Holds the current read-only logical pixel height of the drawing buffer. To get the height in physical pixels
  * you need to multiply this with the \c devicePixelRatio.
  */
 uint CanvasContext::drawingBufferHeight()
@@ -467,7 +467,7 @@ void CanvasContext::scissor(int x, int y, int width, int height)
 
 /*!
  * \qmlmethod void Context3D::activeTexture(glEnums texture)
- * Sets the given texture unit as active. Number of texture units is implementation dependent,
+ * Sets the given texture unit as active. The number of texture units is implementation dependent,
  * but must be at least 8. Initially \c Context3D.TEXTURE0 is active.
  * \a texture must be one of \c Context3D.TEXTUREi values where \c i ranges from \c 0 to
  * \c{(Context3D.MAX_COMBINED_TEXTURE_IMAGE_UNITS-1)}.
@@ -2520,7 +2520,7 @@ void CanvasContext::blendColor(float red, float green, float blue, float alpha)
 
 /*!
  * \qmlmethod void Context3D::blendEquation(glEnums mode)
- * Sets the equation used for both the RGB blend equation and the alpha blend equation
+ * Sets the equation used for both the RGB blend equation. The alpha blend equation
  * \a mode specifies how source and destination colors are to be combined. Must be
  * \c{Context3D.FUNC_ADD}, \c{Context3D.FUNC_SUBTRACT} or \c{Context3D.FUNC_REVERSE_SUBTRACT}.
  */
@@ -4282,7 +4282,8 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 
 /*!
  * \qmlmethod bool Context3D::isBuffer(Object anyObject)
- * Returns \c true if the given \a anyObect is a valid Canvas3DBuffer object and \c false otherwise.
+ * Returns \c true if the given \a anyObect is a valid Canvas3DBuffer object,
+ * \c false otherwise.
  */
 /*!
  * \internal

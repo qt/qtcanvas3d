@@ -46,7 +46,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Contains uniform location id.
  *
  * An uncreatable QML type that contains an uniform location id. You can get it by calling
- * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
+ * the \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
  */
 
 /*!

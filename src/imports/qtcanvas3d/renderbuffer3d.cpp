@@ -46,7 +46,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Contains an OpenGL renderbuffer.
  *
  * An uncreatable QML type that contains an OpenGL renderbuffer. You can get it by calling
- * \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
+ * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
  */
 
 /*!

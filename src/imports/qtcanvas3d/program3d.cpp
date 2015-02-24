@@ -46,7 +46,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Contains a shader program.
  *
  * An uncreatable QML type that contains a compiled shader program. You can get it by calling
- * \l{Context3D::createProgram()}{Context3D.createProgram()} method.
+ * the \l{Context3D::createProgram()}{Context3D.createProgram()} method.
  */
 
 /*!

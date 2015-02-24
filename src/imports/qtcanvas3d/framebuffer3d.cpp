@@ -45,7 +45,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL framebuffer.
  *
- * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling
+ * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling the
  * \l{Context3D::createFramebuffer()}{Context3D.createFramebuffer()} method.
  */
 
