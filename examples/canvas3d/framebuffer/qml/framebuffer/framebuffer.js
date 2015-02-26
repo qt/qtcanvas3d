@@ -236,8 +236,9 @@ function renderGL(canvas) {
 
 function onCanvasResize(canvas)
 {
-    canvas.pixelSize = Qt.size(canvas.width * canvas.devicePixelRatio,
-                               canvas.height * canvas.devicePixelRatio);
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
 }
 
 function initBuffers()

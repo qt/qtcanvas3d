@@ -172,6 +172,13 @@ function initGL(canvas) {
     }
 }
 
+function onCanvasResize(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+}
+
 function renderGL(canvas) {
     // draw
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);

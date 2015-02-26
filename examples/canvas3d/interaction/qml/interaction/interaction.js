@@ -177,6 +177,12 @@ function initGL(canvas) {
     log("*******************************************************************************************");
 }
 
+function onCanvasResize(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+}
 
 function renderGL(canvas) {
     // draw
