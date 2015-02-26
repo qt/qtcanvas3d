@@ -89,6 +89,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_initializedSize(1, 1),
     m_glContext(0),
     m_glContextQt(0),
+    m_glContextShare(0),
     m_contextWindow(0),
     m_fps(0),
     m_maxSamples(0),
@@ -162,6 +163,8 @@ void Canvas::shutDown()
     }
     m_glContext = 0;
     m_glContextQt = 0;
+    m_glContextShare->deleteLater();
+    m_glContextShare = 0;
 }
 
 /*!
@@ -284,7 +287,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         }
 
         // Create the offscreen surface
-        QSurfaceFormat surfaceFormat = m_glContextQt->format();
+        QSurfaceFormat surfaceFormat = m_glContextShare->format();
         if (!m_isOpenGLES2) {
             surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
             surfaceFormat.setSwapInterval(0);
@@ -314,7 +317,13 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
                                    << surfaceFormat;
         m_glContext = new QOpenGLContext();
         m_glContext->setFormat(surfaceFormat);
-        m_glContext->setShareContext(m_glContextQt);
+
+        // Share with m_glContextShare which in turn shares with m_glContextQt.
+        // In case of threaded rendering both of these live on the render
+        // thread of the scenegraph. m_glContextQt may be current on that
+        // thread at this point, which would fail the context creation with
+        // some drivers. Hence the need for m_glContextShare.
+        m_glContext->setShareContext(m_glContextShare);
         if (!m_glContext->create()) {
             qCWarning(canvas3drendering) << "Failed to create context for FBO";
             return QJSValue(QJSValue::NullValue);
@@ -575,6 +584,14 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
         m_isOpenGLES2 = m_glContextQt->isOpenGLES();
         if (!m_isOpenGLES2 || m_glContextQt->format().majorVersion() >= 3)
             m_maxSamples = 4;
+        m_glContextShare = new QOpenGLContext;
+        m_glContextShare->setFormat(m_glContextQt->format());
+        m_glContextShare->setShareContext(m_glContextQt);
+        QSurface *surface = m_glContextQt->surface();
+        m_glContextQt->doneCurrent();
+        if (!m_glContextShare->create())
+            qCWarning(canvas3drendering) << "Failed to create share context";
+        m_glContextQt->makeCurrent(surface);
         ready();
         return 0;
     }

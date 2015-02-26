@@ -138,6 +138,7 @@ private:
 
     QOpenGLContext *m_glContext;
     QOpenGLContext *m_glContextQt;
+    QOpenGLContext *m_glContextShare;
     QQuickWindow *m_contextWindow;
 
     uint m_fps;
