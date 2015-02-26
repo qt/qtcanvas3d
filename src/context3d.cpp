@@ -50,7 +50,6 @@
 #include "shaderprecisionformat_p.h"
 #include "enumtostringmap_p.h"
 #include "canvas3dcommon_p.h"
-#include "contextextensions_p.h"
 
 #include <QtGui/QOpenGLShader>
 #include <QtQml/private/qv4typedarray_p.h>
@@ -5920,7 +5919,7 @@ QVariantList CanvasContext::getSupportedExtensions()
     qCDebug(canvas3drendering).nospace() << Q_FUNC_INFO;
 
     QVariantList list;
-    list.append(QVariant::fromValue(QStringLiteral(QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME)));
+    list.append(QVariant::fromValue(QStringLiteral("QTCANVAS3D_gl_state_dump")));
 
     if (!m_isOpenGLES2 ||
             (m_context->format().majorVersion() >= 3
@@ -5970,7 +5969,7 @@ QVariant CanvasContext::getExtension(const QString &name)
 
     QString upperCaseName = name.toUpper();
 
-    if (upperCaseName == QStringLiteral(QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME).toUpper()) {
+    if (upperCaseName == QStringLiteral("QTCANVAS3D_GL_STATE_DUMP")) {
         if (!m_stateDumpExt)
             m_stateDumpExt = new CanvasGLStateDump(m_context, this);
         return QVariant::fromValue(m_stateDumpExt);
