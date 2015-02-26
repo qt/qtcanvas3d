@@ -328,6 +328,7 @@ function initShaders()
                                                                                                           \
                                  highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0); \
                                  vLighting = ambientLight + (directionalLightColor * directional);                  \
+                                 gl_PointSize = 1.0; \
                              }", gl.VERTEX_SHADER);
 
     fragmentShader = getShader(gl,
