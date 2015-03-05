@@ -45,48 +45,69 @@ Item {
     height: 300
     width: 300
 
-    Canvas3D {
-        id: render_simple
-        property bool heightChanged: false
-        property bool widthChanged: false
-        property bool initOk: false
-        property bool renderOk: false
-        anchors.fill: parent
-        onInitGL: initOk = Content.initGL(render_simple)
-        onRenderGL: {
-            Content.renderGL(render_simple)
-            renderOk = true
-        }
-        onHeightChanged: heightChanged = true
-        onWidthChanged: widthChanged = true
+    property var canvas3d: null
+    property var activeContent: Content
+    property bool initOk: false
+    property bool renderOk: false
+
+    function createCanvas() {
+        canvas3d = Qt.createQmlObject("
+        import QtQuick 2.2
+        import QtCanvas3D 1.0
+        Canvas3D {
+            onInitGL: initOk = activeContent.initGL(canvas3d)
+            onRenderGL: {
+                renderOk = true
+                activeContent.renderGL(canvas3d)
+            }
+        }", top)
+        canvas3d.anchors.fill = top
     }
 
     TestCase {
-        name: "Canvas3D_render_simple"
+        name: "Canvas3D_render_dynamic"
         when: windowShown
 
-        function test_render_1_simple() {
-            waitForRendering(render_simple)
-            tryCompare(render_simple, "initOk", true)
-            tryCompare(render_simple, "renderOk", true)
+        function test_render_1_dynamic_creation() {
+            verify(canvas3d === null)
+            verify(initOk === false)
+            verify(renderOk === false)
+            createCanvas()
+            verify(canvas3d !== null)
+            waitForRendering(canvas3d)
+            tryCompare(top, "initOk", true)
+            tryCompare(top, "renderOk", true)
         }
 
-        function test_render_2_resize() {
-            render_simple.heightChanged = false
-            render_simple.widthChanged = false
-            render_simple.renderOk = false
-            top.height = 200
-            waitForRendering(render_simple)
-            verify(render_simple.heightChanged === true)
-            verify(render_simple.widthChanged === false)
-            tryCompare(render_simple, "renderOk", true)
+        function test_render_2_dynamic_deletion() {
+            verify(canvas3d !== null)
+            verify(initOk === true)
+            verify(renderOk === true)
+            canvas3d.destroy()
+            waitForRendering(canvas3d)
+            verify(canvas3d === null)
+        }
 
-            render_simple.renderOk = false
-            top.width = 200
-            waitForRendering(render_simple)
-            verify(render_simple.heightChanged === true)
-            verify(render_simple.widthChanged === true)
-            tryCompare(render_simple, "renderOk", true)
+        function test_render_3_dynamic_recreation() {
+            initOk = false
+            renderOk = false
+            createCanvas()
+            tryCompare(top, "initOk", true)
+            tryCompare(top, "renderOk", true)
+            waitForRendering(canvas3d)
+            verify(canvas3d !== null)
+
+            canvas3d.destroy()
+            waitForRendering(canvas3d)
+            verify(canvas3d === null)
+
+            initOk = false
+            renderOk = false
+            createCanvas()
+            waitForRendering(canvas3d)
+            verify(canvas3d !== null)
+            tryCompare(top, "initOk", true)
+            tryCompare(top, "renderOk", true)
         }
     }
 }

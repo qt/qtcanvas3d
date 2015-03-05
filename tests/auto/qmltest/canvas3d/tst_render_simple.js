@@ -42,6 +42,7 @@ var vertexShader;
 var fragmentShader;
 
 function initGL(canvas) {
+    var initOk = true
     try {
         gl = canvas.getContext("3d");
         buffer = gl.createBuffer();
@@ -55,25 +56,27 @@ function initGL(canvas) {
                     gl.STATIC_DRAW);
 
         if (!initShaders()) {
-            return;
+            initOk = false;
+        } else {
+            gl.useProgram(shaderProgram);
+
+            positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
+            gl.enableVertexAttribArray(positionLocation);
+            gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
+
+            gl.clearColor(0.0, 0.0, 0.0, 1.0);
+
+            gl.viewport(0, 0,
+                        canvas.width * canvas.devicePixelRatio,
+                        canvas.height * canvas.devicePixelRatio);
         }
-
-        gl.useProgram(shaderProgram);
-
-        positionLocation = gl.getAttribLocation(shaderProgram, "a_position");
-        gl.enableVertexAttribArray(positionLocation);
-        gl.vertexAttribPointer(positionLocation, 2, gl.FLOAT, false, 0, 0);
-
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
-
-        gl.viewport(0, 0,
-                    canvas.width * canvas.devicePixelRatio,
-                    canvas.height * canvas.devicePixelRatio);
     } catch(e) {
         console.log("initGL(): FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
+        initOk = false;
     }
+    return initOk;
 }
 
 function renderGL(canvas) {
