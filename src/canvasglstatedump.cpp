@@ -97,6 +97,9 @@ CanvasGLStateDump::~CanvasGLStateDump()
  */
 QString CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int type)
 {
+    if (!arrayObject)
+        return "no buffer bound";
+
     QString stateDumpStr;
     glBindBuffer(target, arrayObject);
 
