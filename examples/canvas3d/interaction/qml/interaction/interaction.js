@@ -101,8 +101,6 @@ function initGL(canvas) {
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_WRITE);
-        gl.depthMask(true);
 
         gl.frontFace(gl.CCW);
         gl.cullFace(gl.BACK);
