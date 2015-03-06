@@ -127,11 +127,11 @@ function initGL(canvas, textureLoader) {
         gl.bindTexture(gl.TEXTURE_2D, rttTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
         gl.texImage2D(gl.TEXTURE_2D, 0,
                       gl.RGBA, rttWidth, rttHeight,
                       0, gl.RGBA, gl.UNSIGNED_BYTE,
                       null);
+        gl.generateMipmap(gl.TEXTURE_2D);
         //! [2]
 
         //! [3]
