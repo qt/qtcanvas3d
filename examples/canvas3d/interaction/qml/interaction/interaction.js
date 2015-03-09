@@ -180,6 +180,10 @@ function onCanvasResize(canvas)
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
                                canvas.height * pixelRatio);
+    if (gl)
+        gl.viewport(0, 0,
+                    canvas.width * canvas.devicePixelRatio,
+                    canvas.height * canvas.devicePixelRatio);
 }
 
 function renderGL(canvas) {
