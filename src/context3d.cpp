@@ -402,7 +402,7 @@ void CanvasContext::deleteTexture(QJSValue texture3D)
                                          << "(texture:" << texture3D.toString()
                                          << ")";
     CanvasTexture *texture = getAsTexture3D(texture3D);
-    if (!texture) {
+    if (texture) {
         texture->del();
         logAllGLErrors(__FUNCTION__);
     } else {
@@ -580,7 +580,6 @@ CanvasTexture *CanvasContext::getAsTexture3D(QJSValue anyObject)
         return 0;
 
     return texture;
-
 }
 
 /*!
