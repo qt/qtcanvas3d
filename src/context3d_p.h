@@ -1226,12 +1226,12 @@ private:
     CanvasBuffer *m_currentElementArrayBuffer;
     CanvasTexture *m_currentTexture2D;
     CanvasTexture *m_currentTextureCubeMap;
+    CanvasFrameBuffer *m_currentFramebuffer;
+    CanvasRenderBuffer *m_currentRenderbuffer;
     QOpenGLContext *m_context;
     QSet<QByteArray> m_extensions;
     QSurface *m_surface;
     glEnums m_error;
-    CanvasFrameBuffer *m_currentFramebuffer;
-    CanvasRenderBuffer *m_currentRenderbuffer;
     CanvasContextAttributes m_contextAttributes;
     QMap<int, CanvasBuffer*> m_idToCanvasBufferMap;
     friend class Canvas;
