@@ -92,7 +92,7 @@ CanvasContext::CanvasContext(QOpenGLContext *context, QSurface *surface, QQmlEng
     m_currentRenderbuffer(0),
     m_context(context),
     m_surface(surface),
-    m_error(NO_ERROR),
+    m_error(CANVAS_NO_ERRORS),
     m_map(EnumToStringMap::newInstance()),
     m_canvas(0),
     m_maxVertexAttribs(0),
@@ -210,6 +210,27 @@ void CanvasContext::logAllGLErrors(const QString &funcName)
 
     GLenum err;
     while ((err = glGetError()) != GL_NO_ERROR) {
+        // Merge any GL errors with internal errors so that we don't lose them
+        switch (err) {
+        case GL_INVALID_ENUM:
+            m_error |= CANVAS_INVALID_ENUM;
+            break;
+        case GL_INVALID_VALUE:
+            m_error |= CANVAS_INVALID_VALUE;
+            break;
+        case GL_INVALID_OPERATION:
+            m_error |= CANVAS_INVALID_OPERATION;
+            break;
+        case GL_OUT_OF_MEMORY:
+            m_error |= CANVAS_OUT_OF_MEMORY;
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            m_error |= CANVAS_INVALID_FRAMEBUFFER_OPERATION;
+            break;
+        default:
+            break;
+        }
+
         qCWarning(canvas3dglerrors).nospace() << "Context3D::" << funcName
                                               << ": OpenGL ERROR: "
                                               << glEnumToString(CanvasContext::glEnums(err));
@@ -408,7 +429,7 @@ void CanvasContext::deleteTexture(QJSValue texture3D)
         texture->del();
         logAllGLErrors(__FUNCTION__);
     } else {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID texture handle:" << texture3D.toString();
     }
@@ -516,13 +537,13 @@ void CanvasContext::generateMipmap(glEnums target)
     if (target == TEXTURE_2D) {
         if (!m_currentTexture2D) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION No current TEXTURE_2D bound";
-            m_error = INVALID_OPERATION;
+                                                   << ":INVALID_OPERATION:No current TEXTURE_2D bound";
+            m_error |= CANVAS_INVALID_OPERATION;
         } else if (!m_currentTexture2D->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_2D is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
         } else {
             glGenerateMipmap(target);
             logAllGLErrors(__FUNCTION__);
@@ -530,14 +551,14 @@ void CanvasContext::generateMipmap(glEnums target)
     } else if (target == TEXTURE_CUBE_MAP) {
         if (!m_currentTextureCubeMap) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "No current TEXTURE_CUBE_MAP bound";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
         } else if (!m_currentTextureCubeMap->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_CUBE_MAP is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
         } else {
             glGenerateMipmap(target);
             logAllGLErrors(__FUNCTION__);
@@ -609,29 +630,29 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
     if (target == TEXTURE_2D) {
         if (!m_currentTexture2D) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "No current TEXTURE_2D bound";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         } else if (!m_currentTexture2D->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_2D is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
     } else if (target == TEXTURE_CUBE_MAP) {
         if (!m_currentTextureCubeMap) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "No current TEXTURE_CUBE_MAP bound";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         } else if (!m_currentTextureCubeMap->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_CUBE_MAP is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
     }
@@ -650,8 +671,8 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE pixels must be TypedArray";
-        m_error = INVALID_VALUE;
+                                               << ":INVALID_VALUE:pixels must be TypedArray";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 }
@@ -685,28 +706,29 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
     if (target == TEXTURE_2D) {
         if (!m_currentTexture2D) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION No current TEXTURE_2D bound";
-            m_error = INVALID_OPERATION;
+                                                   << ":INVALID_OPERATION:"
+                                                   << "No current TEXTURE_2D bound";
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         } else if (!m_currentTexture2D->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_2D is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
     } else if (target == TEXTURE_CUBE_MAP) {
         if (!m_currentTextureCubeMap) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "No current TEXTURE_CUBE_MAP bound";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         } else if (!m_currentTextureCubeMap->isAlive()) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION "
+                                                   << ":INVALID_OPERATION:"
                                                    << "Currently bound TEXTURE_CUBE_MAP is deleted";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
     }
@@ -726,8 +748,8 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE pixels must be TypedArray";
-        m_error = INVALID_VALUE;
+                                               << ":INVALID_VALUE:pixels must be TypedArray";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 }
@@ -775,12 +797,14 @@ void CanvasContext::copyTexImage2D(glEnums target, int level, glEnums internalfo
 
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:"
+                                               << "No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:"
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else {
         glCopyTexImage2D(target, level, internalformat, x, y, width, height, border);
         logAllGLErrors(__FUNCTION__);
@@ -827,12 +851,14 @@ void CanvasContext::copyTexSubImage2D(glEnums target, int level,
 
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:"
+                                               << "No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:"
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else {
         copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
         logAllGLErrors(__FUNCTION__);
@@ -888,14 +914,15 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:"
+                                               << "No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
-                                               << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -936,7 +963,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         if (bytesPerPixel == 0) {
             m_error = INVALID_ENUM;
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_ENUM Invalid format supplied "
+                                                   << ":INVALID_ENUM:Invalid format supplied "
                                                    << glEnumToString(format);
             return;
         }
@@ -947,9 +974,9 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
-                                                   << ":INVALID_OPERATION Expected Uint8Array,"
+                                                   << ":INVALID_OPERATION:Expected Uint8Array,"
                                                    << " received " << pixels.toString();
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
 
@@ -968,9 +995,9 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
-                                                   << ":INVALID_OPERATION Expected Uint16Array,"
+                                                   << ":INVALID_OPERATION:Expected Uint16Array,"
                                                    << " received " << pixels.toString();
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         unpackedData = unpackPixels(srcData, false, 2, width, height);
@@ -982,7 +1009,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                << __FUNCTION__
-                                               << ":INVALID_ENUM Invalid type enum";
+                                               << ":INVALID_ENUM:Invalid type enum";
         m_error = INVALID_ENUM;
         break;
     }
@@ -1074,21 +1101,21 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
                                          << ")";
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
-                                               << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
     if (pixels.isNull()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE pixels was null";
-        m_error = INVALID_VALUE;
+                                               << ":INVALID_VALUE:pixels was null";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
@@ -1121,7 +1148,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         if (bytesPerPixel == 0) {
             m_error = INVALID_ENUM;
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_ENUM Invalid format supplied "
+                                                   << ":INVALID_ENUM:Invalid format "
                                                    << glEnumToString(format);
             return;
         }
@@ -1130,9 +1157,9 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
-                                                   << ":INVALID_OPERATION Expected Uint8Array,"
+                                                   << ":INVALID_OPERATION:Expected Uint8Array,"
                                                    << " received " << pixels.toString();
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
 
@@ -1148,9 +1175,9 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
-                                                   << ":INVALID_OPERATION Expected Uint16Array, "
+                                                   << ":INVALID_OPERATION:Expected Uint16Array, "
                                                    << "received " << pixels.toString();
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         unpackedData = unpackPixels(srcData, false, 2, width, height);
@@ -1160,7 +1187,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         break;
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM Invalid type enum";
+                                               << ":INVALID_ENUM:Invalid type enum";
         m_error = INVALID_ENUM;
         break;
     }
@@ -1253,14 +1280,14 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
-                                               << " No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << "No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
-                                               << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1268,8 +1295,8 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     if (!image) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:"
-                                               << " invalid texImage " << texImage.toString();
-        m_error = INVALID_VALUE;
+                                               << "Invalid texImage " << texImage.toString();
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
@@ -1285,7 +1312,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         break;
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM Invalid type enum";
+                                               << ":INVALID_ENUM:Invalid type enum";
         m_error = INVALID_ENUM;
         return;
     }
@@ -1359,23 +1386,23 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
 
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
-                                               << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+                                               << "Currently bound texture is deleted";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
     CanvasTextureImage *image = getAsTextureImage(texImage);
     if (!image) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE invalid texImage "
+                                               << ":INVALID_VALUE:invalid texImage "
                                                << texImage.toString();
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
@@ -1395,7 +1422,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         break;
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM Invalid type enum";
+                                               << ":INVALID_ENUM:Invalid type enum";
         m_error = INVALID_ENUM;
         return;
     }
@@ -1434,14 +1461,14 @@ void CanvasContext::texParameterf(glEnums target, glEnums pname, float param)
 
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
                                                << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1471,14 +1498,14 @@ void CanvasContext::texParameteri(glEnums target, glEnums pname, int param)
                                          << ")";
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No current texture bound";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No current texture bound";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
                                                << " Currently bound texture is deleted";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1592,7 +1619,7 @@ CanvasContext::glEnums CanvasContext::checkFramebufferStatus(glEnums target)
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_OPERATION no current framebuffer bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return FRAMEBUFFER_UNSUPPORTED;
     }
 }
@@ -1628,7 +1655,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
     if (!m_currentFramebuffer) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_OPERATION no framebuffer bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1640,7 +1667,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
                                                << "(): INVALID_OPERATION attachment must be one of "
                                                << "COLOR_ATTACHMENT0, DEPTH_ATTACHMENT, "
                                                << "STENCIL_ATTACHMENT or DEPTH_STENCIL_ATTACHMENT";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1649,7 +1676,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_OPERATION renderbuffertarget must be"
                                                << " RENDERBUFFER for non null renderbuffers";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1694,7 +1721,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_OPERATION:"
                                                << " no current framebuffer bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1704,7 +1731,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
                                                << "(): INVALID_OPERATION attachment must be one of "
                                                << "COLOR_ATTACHMENT0, DEPTH_ATTACHMENT"
                                                << " or STENCIL_ATTACHMENT";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1725,14 +1752,14 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
                                                    << "TEXTURE_CUBE_MAP_NEGATIVE_X, "
                                                    << "TEXTURE_CUBE_MAP_NEGATIVE_Y or "
                                                    << "TEXTURE_CUBE_MAP_NEGATIVE_Z";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
 
         if (level != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << "(): INVALID_VALUE level must be 0";
-            m_error = INVALID_VALUE;
+            m_error |= CANVAS_INVALID_VALUE;
             return;
         }
     }
@@ -1803,7 +1830,7 @@ void CanvasContext::deleteFramebuffer(QJSValue buffer)
         fbo->del();
         logAllGLErrors(__FUNCTION__);
     } else {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_VALUE buffer handle";
     }
@@ -1953,7 +1980,7 @@ void CanvasContext::deleteRenderbuffer(QJSValue renderbuffer3D)
         renderbuffer->del();
         logAllGLErrors(__FUNCTION__);
     } else {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_VALUE renderbuffer handle";
     }
@@ -2054,7 +2081,7 @@ void CanvasContext::deleteProgram(QJSValue program3D)
         program->del();
         logAllGLErrors(__FUNCTION__);
     } else {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_VALUE program handle:"
                                                << program3D.toString();
@@ -2450,7 +2477,7 @@ void CanvasContext::blendFunc(glEnums sfactor, glEnums dfactor)
          && (dfactor == CONSTANT_ALPHA || dfactor == ONE_MINUS_CONSTANT_ALPHA))
             || ((dfactor == CONSTANT_COLOR || dfactor == ONE_MINUS_CONSTANT_COLOR)
                 && (sfactor == CONSTANT_ALPHA || sfactor == ONE_MINUS_CONSTANT_ALPHA))) {
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_OPERATION illegal combination";
         return;
@@ -2513,7 +2540,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
          && (dstRGB == CONSTANT_ALPHA || dstRGB == ONE_MINUS_CONSTANT_ALPHA ))
             || ((dstRGB == CONSTANT_COLOR || dstRGB == ONE_MINUS_CONSTANT_COLOR )
                 && (srcRGB == CONSTANT_ALPHA || srcRGB == ONE_MINUS_CONSTANT_ALPHA ))) {
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_OPERATION illegal combination";
         return;
@@ -2597,7 +2624,7 @@ QJSValue CanvasContext::createShader(glEnums type)
         return m_engine->newQObject(new CanvasShader(QOpenGLShader::Fragment, this));
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM unknown shader type:"
+                                               << ":INVALID_ENUM:unknown shader type:"
                                                << glEnumToString(type);
         m_error = INVALID_ENUM;
         return m_engine->newObject();
@@ -2662,9 +2689,10 @@ void CanvasContext::deleteShader(QJSValue shader3D)
         shader->del();
         logAllGLErrors(__FUNCTION__);
     } else {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": invalid shader handle:" << shader3D.toString();
+                                               << ":INVALID_VALUE:"
+                                               << "Invalid shader handle:" << shader3D.toString();
     }
 }
 
@@ -2691,9 +2719,10 @@ void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
 
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": invalid shader handle:" << shader3D.toString();
+                                               << ":INVALID_VALUE:"
+                                               << "Invalid shader handle:" << shader3D.toString();
         return;
     }
 
@@ -2717,9 +2746,10 @@ QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
 
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               <<": invalid shader handle:" << shader3D.toString();
+                                               << ":INVALID_VALUE:"
+                                               << "Invalid shader handle:" << shader3D.toString();
         return m_engine->newObject();
     }
 
@@ -2740,9 +2770,10 @@ void CanvasContext::compileShader(QJSValue shader3D)
                                          << ")";
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": invalid shader handle:" << shader3D.toString();
+                                               << ":INVALID_VALUE:"
+                                               << "Invalid shader handle:" << shader3D.toString();
         return;
     }
 
@@ -3629,7 +3660,8 @@ int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               <<": invalid shader handle:" << shader3D.toString();
+                                               << ":INVALID_VALUE:"
+                                               <<"Invalid shader handle:" << shader3D.toString();
         return 0;
     }
 
@@ -4064,24 +4096,25 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
                                                << " No ARRAY_BUFFER currently bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
     if (offset < 0) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE: Offset must be positive, was "
+                                               << ":INVALID_VALUE:"
+                                               << "Offset must be positive, was "
                                                << offset;
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
     if (stride > 255) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE: "
+                                               << ":INVALID_VALUE:"
                                                << "stride must be less than 255, was "
                                                << stride;
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
@@ -4093,40 +4126,40 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
     case UNSIGNED_SHORT:
         if (offset % 2 != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION: "
+                                                   << ":INVALID_OPERATION:"
                                                    << "offset with UNSIGNED_SHORT"
                                                    << "type must be multiple of 2";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         if (stride % 2 != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION: "
+                                                   << ":INVALID_OPERATION:"
                                                    << "stride with UNSIGNED_SHORT"
                                                    << "type must be multiple of 2";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         break;
     case FLOAT:
         if (offset % 4 != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION: "
+                                                   << ":INVALID_OPERATION:"
                                                    << "offset with FLOAT type must be multiple of 4";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         if (stride % 4 != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION: "
+                                                   << ":INVALID_OPERATION:"
                                                    << "stride with FLOAT type must be multiple of 4";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         break;
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM: "
+                                               << ":INVALID_ENUM:"
                                                << "Invalid type enumeration of "
                                                << glEnumToString(type);
         m_error = INVALID_ENUM;
@@ -4160,24 +4193,24 @@ void CanvasContext::bufferData(glEnums target, long size, glEnums usage)
     case ARRAY_BUFFER:
         if (!m_currentArrayBuffer) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION called "
-                                                   << "with no ARRAY_BUFFER bound";
-            m_error = INVALID_OPERATION;
+                                                   << ":INVALID_OPERATION:"
+                                                   << "called with no ARRAY_BUFFER bound";
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         break;
     case ELEMENT_ARRAY_BUFFER:
         if (!m_currentElementArrayBuffer) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION called with no "
-                                                   << "ELEMENT_ARRAY_BUFFER bound";
-            m_error = INVALID_OPERATION;
+                                                   << ":INVALID_OPERATION:"
+                                                   << "called with no ELEMENT_ARRAY_BUFFER bound";
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
         break;
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM unknown target";
+                                               << ":INVALID_ENUM:Unknown target";
         m_error = INVALID_ENUM;
         return;
     }
@@ -4206,14 +4239,14 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
 
     if (data.isNull()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID_VALUE called with null data";
-        m_error = INVALID_VALUE;
+                                               << ": INVALID_VALUE:Called with null data";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
     if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM target must be either ARRAY_BUFFER"
+                                               << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
         m_error = INVALID_ENUM;
         return;
@@ -4240,9 +4273,9 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE data must be either"
+                                               << ":INVALID_VALUE:data must be either"
                                                << "TypedArray or ArrayBuffer";
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 }
@@ -4266,7 +4299,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
 
     if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM target must be either ARRAY_BUFFER"
+                                               << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
         m_error = INVALID_ENUM;
         return;
@@ -4274,8 +4307,8 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
 
     if (data.isNull()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID_VALUE called with null data";
-        m_error = INVALID_VALUE;
+                                               << ": INVALID_VALUE:Called with null data";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
@@ -4299,9 +4332,9 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE data must be either"
+                                               << ":INVALID_VALUE:data must be either"
                                                << "TypedArray or ArrayBuffer";
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 }
@@ -4324,7 +4357,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 
     if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM target must be either ARRAY_BUFFER"
+                                               << ":INVALID_ENUM:target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
         m_error = INVALID_ENUM;
         return m_engine->newObject();
@@ -4342,7 +4375,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
         break;
     }
 
-    qCWarning(canvas3drendering).nospace() << "getBufferParameter() : UNKNOWN pname";
+    qCWarning(canvas3drendering).nospace() << "getBufferParameter():INVALID_ENUM:Unknown pname";
     m_error = INVALID_ENUM;
     return m_engine->newObject();
 }
@@ -4418,10 +4451,64 @@ void CanvasContext::deleteBuffer(QJSValue buffer3D)
 CanvasContext::glEnums CanvasContext::getError()
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__;
-    glEnums retVal = m_error;
-    m_error = NO_ERROR;
-    if (retVal == NO_ERROR)
-        retVal = glEnums(glGetError());
+
+    // Merge any GL errors with internal errors
+    switch (glGetError()) {
+    case GL_NO_ERROR:
+        break;
+    case GL_INVALID_ENUM:
+        m_error |= CANVAS_INVALID_ENUM;
+        break;
+    case GL_INVALID_VALUE:
+        m_error |= CANVAS_INVALID_VALUE;
+        break;
+    case GL_INVALID_OPERATION:
+        m_error |= CANVAS_INVALID_OPERATION;
+        break;
+    case GL_OUT_OF_MEMORY:
+        m_error |= CANVAS_OUT_OF_MEMORY;
+        break;
+    case GL_INVALID_FRAMEBUFFER_OPERATION:
+        m_error |= CANVAS_INVALID_FRAMEBUFFER_OPERATION;
+        break;
+#if defined(GL_STACK_OVERFLOW)
+    case GL_STACK_OVERFLOW:
+        qCWarning(canvas3dglerrors).nospace() << "Context3D::" << __FUNCTION__
+                                              << ":GL_STACK_OVERFLOW error ignored";
+        break;
+#endif
+#if defined(GL_STACK_UNDERFLOW)
+    case GL_STACK_UNDERFLOW:
+        qCWarning(canvas3dglerrors).nospace() << "Context3D::" << __FUNCTION__
+                                              << ": GL_CANVAS_STACK_UNDERFLOW error ignored";
+        break;
+#endif
+    default:
+        break;
+    }
+
+    glEnums retVal = NO_ERROR;
+    if (m_error != CANVAS_NO_ERRORS) {
+        // Return set error flags one by one and clear the flags.
+        // Note that stack overflow/underflow flags are never returned.
+        if ((m_error & CANVAS_INVALID_ENUM) != 0) {
+            retVal = INVALID_ENUM;
+            m_error &= ~(CANVAS_INVALID_ENUM);
+        } else if ((m_error & CANVAS_INVALID_VALUE) != 0) {
+            retVal = INVALID_VALUE;
+            m_error &= ~(CANVAS_INVALID_VALUE);
+        }else if ((m_error & CANVAS_INVALID_OPERATION) != 0) {
+            retVal = INVALID_OPERATION;
+            m_error &= ~(CANVAS_INVALID_OPERATION);
+        } else if ((m_error & CANVAS_OUT_OF_MEMORY) != 0) {
+            retVal = OUT_OF_MEMORY;
+            m_error &= ~(CANVAS_OUT_OF_MEMORY);
+        } else if ((m_error & CANVAS_INVALID_FRAMEBUFFER_OPERATION) != 0) {
+            retVal = INVALID_FRAMEBUFFER_OPERATION;
+            m_error &= ~(CANVAS_INVALID_FRAMEBUFFER_OPERATION);
+        }
+    }
+
     return retVal;
 }
 
@@ -4807,7 +4894,7 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 
     if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM target must be either "
+                                               << ":INVALID_ENUM:target must be either "
                                                << "ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER.";
         m_error = INVALID_ENUM;
         return;
@@ -4821,9 +4908,9 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 
             if (buffer->target() != CanvasBuffer::ARRAY_BUFFER) {
                 qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                       << ":INVALID_OPERATION can't rebind "
+                                                       << ":INVALID_OPERATION:can't rebind "
                                                        << "ELEMENT_ARRAY_BUFFER as ARRAY_BUFFER";
-                m_error = INVALID_OPERATION;
+                m_error |= CANVAS_INVALID_OPERATION;
                 return;
             }
             m_currentArrayBuffer = buffer;
@@ -4833,9 +4920,9 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 
             if (buffer->target() != CanvasBuffer::ELEMENT_ARRAY_BUFFER) {
                 qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                       << ":INVALID_OPERATION can't rebind "
+                                                       << ":INVALID_OPERATION:can't rebind "
                                                        << "ARRAY_BUFFER as ELEMENT_ARRAY_BUFFER";
-                m_error = INVALID_OPERATION;
+                m_error |= CANVAS_INVALID_OPERATION;
                 return;
             }
             m_currentElementArrayBuffer = buffer;
@@ -5161,7 +5248,7 @@ void CanvasContext::drawElements(glEnums mode, int count, glEnums type, long off
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION: "
                                                << "No ELEMENT_ARRAY_BUFFER currently bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -5173,7 +5260,7 @@ void CanvasContext::drawElements(glEnums mode, int count, glEnums type, long off
                                                    << ":INVALID_OPERATION: "
                                                    << "Offset with UNSIGNED_SHORT"
                                                    << "type must be multiple of 2";
-            m_error = INVALID_OPERATION;
+            m_error |= CANVAS_INVALID_OPERATION;
             return;
         }
     case UNSIGNED_BYTE:
@@ -5205,30 +5292,30 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
 {
     if (format != RGBA) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM format must be RGBA.";
+                                               << ":INVALID_ENUM:format must be RGBA.";
         m_error = INVALID_ENUM;
         return;
     }
 
     if (type != UNSIGNED_BYTE) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM type must be UNSIGNED_BYTE.";
+                                               << ":INVALID_ENUM:type must be UNSIGNED_BYTE.";
         m_error = INVALID_ENUM;
         return;
     }
 
     if (pixels.isNull()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE pixels was null.";
-        m_error = INVALID_VALUE;
+                                               << ":INVALID_VALUE:pixels was null.";
+        m_error |= CANVAS_INVALID_VALUE;
         return;
     }
 
     uchar *bufferPtr = getAsUint8ArrayRawPtr(pixels);
     if (!bufferPtr) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION pixels must be Uint8Array.";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:pixels must be Uint8Array.";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -5652,14 +5739,14 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
     GLint parameter = 0;
     if (!m_currentTexture2D) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION "
+                                               << ":INVALID_OPERATION:"
                                                << "No current texture bound";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
     } else if (!m_currentTexture2D->isAlive()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION Currently"
+                                               << ":INVALID_OPERATION:Currently"
                                                << " bound texture is deleted";
-        m_error = INVALID_OPERATION;
+        m_error |= CANVAS_INVALID_OPERATION;
     } else {
         switch (pname) {
         case TEXTURE_MAG_FILTER:
@@ -5675,7 +5762,7 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
         default:
             // Intentional flow through
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_ENUM invalid pname "
+                                                   << ":INVALID_ENUM:invalid pname "
                                                    << glEnumToString(pname)
                                                    << " must be one of: TEXTURE_MAG_FILTER, "
                                                    << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S"
@@ -5713,7 +5800,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
     uint offset = 0;
     if (pname != VERTEX_ATTRIB_ARRAY_POINTER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM pname must be "
+                                               << ":INVALID_ENUM:pname must be "
                                                << "VERTEX_ATTRIB_ARRAY_POINTER";
         m_error = INVALID_ENUM;
         return 0;
@@ -5721,9 +5808,9 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
 
     if (index >= m_maxVertexAttribs) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE index must be smaller than "
+                                               << ":INVALID_VALUE:index must be smaller than "
                                                << m_maxVertexAttribs;
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
         return 0;
     }
 
@@ -5775,9 +5862,9 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
 
     if (index >= MAX_VERTEX_ATTRIBS) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE index must be smaller than "
+                                               << ":INVALID_VALUE:index must be smaller than "
                                                << "MAX_VERTEX_ATTRIBS = " << MAX_VERTEX_ATTRIBS;
-        m_error = INVALID_VALUE;
+        m_error |= CANVAS_INVALID_VALUE;
     } else {
         switch (pname) {
         case VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
@@ -5838,7 +5925,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         }
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_ENUM pname " << pname;
+                                                   << ":INVALID_ENUM:pname " << pname;
             m_error = INVALID_ENUM;
         }
     }
@@ -5922,12 +6009,12 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 
     if (!program) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No program was specified";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No program was specified";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else  if (!location) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_OPERATION No location3D was specified";
-        m_error = INVALID_OPERATION;
+                                               << ":INVALID_OPERATION:No location3D was specified";
+        m_error |= CANVAS_INVALID_OPERATION;
     } else {
         uint programId = program->id();
         uint locationId = location->id();

@@ -1214,6 +1214,15 @@ private:
 
     bool isOfType(const QJSValue &value, const QString &classname) const;
 
+    typedef enum {
+        CANVAS_NO_ERRORS = 0,
+        CANVAS_INVALID_ENUM = 1 << 0,
+        CANVAS_INVALID_VALUE = 1 << 1,
+        CANVAS_INVALID_OPERATION = 1 << 2,
+        CANVAS_OUT_OF_MEMORY = 1 << 3,
+        CANVAS_INVALID_FRAMEBUFFER_OPERATION = 1 << 4
+    } errorBits;
+
 private:
     QQmlEngine *m_engine;
     QV4::ExecutionEngine *m_v4engine;
@@ -1231,17 +1240,26 @@ private:
     QOpenGLContext *m_context;
     QSet<QByteArray> m_extensions;
     QSurface *m_surface;
-    glEnums m_error;
     CanvasContextAttributes m_contextAttributes;
     QMap<int, CanvasBuffer*> m_idToCanvasBufferMap;
     friend class Canvas;
     friend class QFBOCanvas3D;
     QString m_emptyString;
+    int m_error;
     EnumToStringMap *m_map;
     Canvas *m_canvas;
     uint m_maxVertexAttribs;
     float **m_vertexAttribPointers;
     bool m_isOpenGLES2;
+
+    bool invalidEnumFlag;
+    bool invalidValueFlag;
+    bool invalidOperationFlag;
+    bool invalidStackOverflowFlag;
+    bool invalidStackUnderflowFlag;
+    bool invalidOutOfMemoryFlag;
+    bool invalidFramebufferFlag;
+    bool invalidContextLostFlag;
 
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;
