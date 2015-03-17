@@ -101,8 +101,6 @@ function initGL(canvas) {
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
-        gl.enable(gl.DEPTH_WRITE);
-        gl.depthMask(true);
 
         gl.frontFace(gl.CCW);
         gl.cullFace(gl.BACK);
@@ -177,6 +175,16 @@ function initGL(canvas) {
     log("*******************************************************************************************");
 }
 
+function onCanvasResize(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+    if (gl)
+        gl.viewport(0, 0,
+                    canvas.width * canvas.devicePixelRatio,
+                    canvas.height * canvas.devicePixelRatio);
+}
 
 function renderGL(canvas) {
     // draw
@@ -328,6 +336,7 @@ function initShaders()
                                                                                                           \
                                  highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0); \
                                  vLighting = ambientLight + (directionalLightColor * directional);                  \
+                                 gl_PointSize = 1.0; \
                              }", gl.VERTEX_SHADER);
 
     fragmentShader = getShader(gl,

@@ -51,8 +51,6 @@
 
 #define VERBOSE_ALL_TYPED_ARRAY_CALLS false
 
-#define QT_CANVAS3D_GL_STATE_DUMP_EXT_NAME "QTCANVAS3D_gl_state_dump"
-
 #define QT_CANVAS3D_BEGIN_NAMESPACE namespace QtCanvas3D {
 #define QT_CANVAS3D_END_NAMESPACE }
 

@@ -23,7 +23,6 @@ SOURCES += arrayutils.cpp \
     canvasrendernode.cpp \
     context3d.cpp \
     contextattributes.cpp \
-    contextextensions.cpp \
     framebuffer3d.cpp \
     program3d.cpp \
     renderbuffer3d.cpp \
@@ -45,7 +44,6 @@ HEADERS += arrayutils_p.h \
     canvasrendernode_p.h \
     context3d_p.h \
     contextattributes_p.h \
-    contextextensions_p.h \
     framebuffer3d_p.h \
     program3d_p.h \
     renderbuffer3d_p.h \

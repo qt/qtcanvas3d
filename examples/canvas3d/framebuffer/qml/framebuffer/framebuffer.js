@@ -81,8 +81,6 @@ function initGL(canvas, textureLoader) {
         gl.enable(gl.DEPTH_TEST);
         gl.enable(gl.CULL_FACE);
         gl.cullFace(gl.BACK);
-        gl.enable(gl.DEPTH_WRITE);
-        gl.depthMask(true);
         gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
 
         // Initialize the shader program
@@ -127,11 +125,11 @@ function initGL(canvas, textureLoader) {
         gl.bindTexture(gl.TEXTURE_2D, rttTexture);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.generateMipmap(gl.TEXTURE_2D);
         gl.texImage2D(gl.TEXTURE_2D, 0,
                       gl.RGBA, rttWidth, rttHeight,
                       0, gl.RGBA, gl.UNSIGNED_BYTE,
                       null);
+        gl.generateMipmap(gl.TEXTURE_2D);
         //! [2]
 
         //! [3]
@@ -232,6 +230,13 @@ function renderGL(canvas) {
     // Draw the on-screen cube
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
     //! [9]
+}
+
+function onCanvasResize(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
 }
 
 function initBuffers()

@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 //! [0]
-Qt.include("../../../3rdparty/gl-matrix.js")
+Qt.include("/gl-matrix.js")
 //! [0]
 
 //
@@ -58,6 +58,7 @@ var nUniform;
 var width = 0;
 var height = 0;
 var canvas3d;
+var pixelSize;
 
 function initGL(canvas) {
     canvas3d = canvas;
@@ -115,6 +116,12 @@ function initGL(canvas) {
     qtLogoImage.src = "qrc:/qml/textureandlight/qtlogo.png";
 }
 
+function onCanvasResize(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+}
 
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
@@ -122,13 +129,13 @@ function degToRad(degrees) {
 
 function renderGL(canvas) {
     //! [9]
-    // Check for resize
     var pixelRatio = canvas.devicePixelRatio;
     var currentWidth = canvas.width * pixelRatio;
     var currentHeight = canvas.height * pixelRatio;
     if (currentWidth !== width || currentHeight !== height ) {
         width = currentWidth;
         height = currentHeight;
+        gl.viewport(0, 0, width, height);
         mat4.perspective(pMatrix, degToRad(45), width / height, 0.1, 500.0);
         gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
     }

@@ -70,6 +70,20 @@ Item {
         }
         //! [1]
 
+        // If width or height or pixel ratio changes
+        // we need to react to that in the rendering code
+        onWidthChanged: {
+            GLCode.onCanvasResize(canvas3d);
+        }
+
+        onHeightChanged: {
+            GLCode.onCanvasResize(canvas3d);
+        }
+
+        onDevicePixelRatioChanged: {
+            GLCode.onCanvasResize(canvas3d);
+        }
+
         Keys.onSpacePressed: {
             canvas3d.isRunning = !canvas3d.isRunning
             if (canvas3d.isRunning) {
