@@ -140,7 +140,6 @@ void CanvasContext::setCanvas(Canvas *canvas)
             disconnect(m_canvas, &QQuickItem::heightChanged, this, 0);
         }
 
-
         m_canvas = canvas;
         emit canvasChanged(canvas);
 
@@ -4073,6 +4072,7 @@ void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bo
  * \list
  * \li \c{Context3D.BYTE}
  * \li \c{Context3D.UNSIGNED_BYTE}
+ * \li \c{Context3D.SHORT}
  * \li \c{Context3D.UNSIGNED_SHORT}
  * \li \c{Context3D.FLOAT}
  * \endlist
@@ -4123,6 +4123,7 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
     case BYTE:
     case UNSIGNED_BYTE:
         break;
+    case SHORT:
     case UNSIGNED_SHORT:
         if (offset % 2 != 0) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
