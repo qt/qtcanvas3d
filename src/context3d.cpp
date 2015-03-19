@@ -960,7 +960,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         }
 
         if (bytesPerPixel == 0) {
-            m_error = INVALID_ENUM;
+            m_error |= CANVAS_INVALID_ENUM;
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:Invalid format supplied "
                                                    << glEnumToString(format);
@@ -1009,7 +1009,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                << __FUNCTION__
                                                << ":INVALID_ENUM:Invalid type enum";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         break;
     }
 
@@ -1145,7 +1145,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
         }
 
         if (bytesPerPixel == 0) {
-            m_error = INVALID_ENUM;
+            m_error |= CANVAS_INVALID_ENUM;
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:Invalid format "
                                                    << glEnumToString(format);
@@ -1187,7 +1187,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Invalid type enum";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         break;
     }
 
@@ -1312,7 +1312,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Invalid type enum";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1422,7 +1422,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Invalid type enum";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1576,7 +1576,7 @@ void CanvasContext::bindFramebuffer(glEnums target, QJSValue buffer)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_ENUM:"
                                                << " bind target, must be FRAMEBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1609,7 +1609,7 @@ CanvasContext::glEnums CanvasContext::checkFramebufferStatus(glEnums target)
     if (target != FRAMEBUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM bind target, must be FRAMEBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return FRAMEBUFFER_UNSUPPORTED;
     }
 
@@ -1647,7 +1647,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
     if (target != FRAMEBUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM  bind target, must be FRAMEBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1712,7 +1712,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): INVALID_ENUM:"
                                                << " bind target, must be FRAMEBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1871,7 +1871,7 @@ void CanvasContext::bindRenderbuffer(glEnums target, QJSValue renderbuffer3D)
     if (target != RENDERBUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM target must be RENDERBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -1912,7 +1912,7 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
     if (target != RENDERBUFFER) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM target must be RENDERBUFFER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -2314,7 +2314,7 @@ void CanvasContext::hint(glEnums target, glEnums mode)
             glHint(GLenum(target), GLenum(mode));
             logAllGLErrors(__FUNCTION__);
         } else {
-            m_error = INVALID_ENUM;
+            m_error |= CANVAS_INVALID_ENUM;
         }
         break;
     default:
@@ -2596,7 +2596,7 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         return QVariant::fromValue(value);
     }
     default: {
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM illegal parameter name ";
         return QVariant::fromValue(0);
@@ -2625,7 +2625,7 @@ QJSValue CanvasContext::createShader(glEnums type)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:unknown shader type:"
                                                << glEnumToString(type);
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return m_engine->newObject();
     }
 }
@@ -4163,7 +4163,7 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
                                                << ":INVALID_ENUM:"
                                                << "Invalid type enumeration of "
                                                << glEnumToString(type);
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -4212,7 +4212,7 @@ void CanvasContext::bufferData(glEnums target, long size, glEnums usage)
     default:
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Unknown target";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -4249,7 +4249,7 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -4302,7 +4302,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -4360,7 +4360,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return m_engine->newObject();
     }
 
@@ -4377,7 +4377,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
     }
 
     qCWarning(canvas3drendering).nospace() << "getBufferParameter():INVALID_ENUM:Unknown pname";
-    m_error = INVALID_ENUM;
+    m_error |= CANVAS_INVALID_ENUM;
     return m_engine->newObject();
 }
 
@@ -4581,7 +4581,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
             logAllGLErrors(__FUNCTION__);
             return QJSValue(value);
         }
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return QJSValue(QJSValue::NullValue);
 
 #if !defined(QT_OPENGL_ES_2)
@@ -4897,7 +4897,7 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:target must be either "
                                                << "ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -5271,7 +5271,7 @@ void CanvasContext::drawElements(glEnums mode, int count, glEnums type, long off
                                                << ":INVALID_ENUM: "
                                                << "Invalid type enumeration of "
                                                << glEnumToString(type);
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -5294,14 +5294,14 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
     if (format != RGBA) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:format must be RGBA.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
     if (type != UNSIGNED_BYTE) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:type must be UNSIGNED_BYTE.";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return;
     }
 
@@ -5768,7 +5768,7 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                                    << " must be one of: TEXTURE_MAG_FILTER, "
                                                    << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S"
                                                    << " or TEXTURE_WRAP_T";
-            m_error = INVALID_ENUM;
+            m_error |= CANVAS_INVALID_ENUM;
             break;
         }
     }
@@ -5803,7 +5803,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_ENUM:pname must be "
                                                << "VERTEX_ATTRIB_ARRAY_POINTER";
-        m_error = INVALID_ENUM;
+        m_error |= CANVAS_INVALID_ENUM;
         return 0;
     }
 
@@ -5927,7 +5927,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:pname " << pname;
-            m_error = INVALID_ENUM;
+            m_error |= CANVAS_INVALID_ENUM;
         }
     }
 
