@@ -204,7 +204,7 @@ QString CanvasContext::glEnumToString(glEnums value) const
  */
 void CanvasContext::logAllGLErrors(const QString &funcName)
 {
-    if (!((QLoggingCategory &) canvas3dglerrors()).isDebugEnabled())
+    if (!canvas3dglerrors().isDebugEnabled())
         return;
 
     GLenum err;
@@ -4985,7 +4985,7 @@ void CanvasContext::useProgram(QJSValue program3D)
  */
 void CanvasContext::clear(glEnums flags)
 {
-    if (!((QLoggingCategory &) canvas3drendering()).isDebugEnabled()) {
+    if (!canvas3drendering().isDebugEnabled()) {
         QString flagStr;
         if (flags && COLOR_BUFFER_BIT != 0)
             flagStr.append(" COLOR_BUFFER_BIT ");
