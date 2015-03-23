@@ -35,6 +35,9 @@
 ****************************************************************************/
 
 Qt.include("../../../../3rdparty/js-test-pre.js")
+Qt.include("../../../../3rdparty/test-eval.js")
+
+"use strict";
 
 var gl;
 
@@ -86,7 +89,7 @@ function running(str) {
 }
 
 function output(str) {
-    //console.log(str);
+    //output(str);
 }
 
 function pass(str) {
@@ -130,7 +133,7 @@ var subArray;
 function testSlice() {
     function test(subBuf, starts, size) {
         byteLength = size;
-        subBuffer = eval(subBuf);
+        subBuffer = TestEval(subBuf);
         subArray = new Int8Array(subBuffer);
         assertEq(subBuf, subBuffer.byteLength, byteLength);
         for (var i = 0; i < size; ++i)
@@ -444,14 +447,14 @@ function testIntegralArrayTruncationBehavior(type, name, unsigned) {
 //
 function testGetWithOutOfRangeIndices(type, name) {
     var retval = true;
-    console.log('Testing ' + name + ' GetWithOutOfRangeIndices');
+    output('Testing ' + name + ' GetWithOutOfRangeIndices');
     // See below for declaration of this global variable
-    array = new type([2, 3]);
-    retval = shouldBeUndefined("array[2]");//(array[2] === undefined);
+    var array = new type([2, 3]);
+    retval = (array[2] === undefined);
     if (retval)
-        retval = shouldBeUndefined("array[-1]");//(array[-1] === undefined);
+        retval = (array[-1] === undefined);
     if (retval)
-        retval = shouldBeUndefined("array[0x20000000]");//(array[0x20000000] === undefined);
+        retval = (array[0x20000000] === undefined);
     return retval;
 }
 
@@ -594,7 +597,7 @@ function negativeTestSubarray(type, name) {
     running('negativeTest ' + name + ' Subarray');
     try {
         var array = new type([0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
-        subarray = array.subarray(5, 11);
+        var subarray = array.subarray(5, 11);
         if (subarray.length !== 5) {
             return fail();
         }
@@ -604,7 +607,7 @@ function negativeTestSubarray(type, name) {
         }
         return pass();
     } catch (e) {
-        console.log("subarrayfail")
+        output("subarrayfail")
         return fail(e);
     }
 }
@@ -723,7 +726,7 @@ function testConstructionOfHugeArray(type, name, sz) {
     try {
         // Construction of huge arrays must fail because byteLength is
         // an unsigned long
-        array = new type(3000000000);
+        var array = new type(3000000000);
         return fail("Construction of huge " + name + " should throw exception");
     } catch (e) {
         return pass("Construction of huge " + name + " threw exception");
@@ -742,22 +745,21 @@ function testConstructionWithBothArrayBufferAndLength(type, name, elementSizeInB
     }
 }
 
-// These need to be global for shouldBe to see them
-var array;
-var typeSize;
 function testSubarrayWithOutOfRangeValues(type, name, sz) {
-    console.log("Testing subarray of " + name);
+    var array;
+    var typeSize;
+    output("Testing subarray of " + name);
     var retval = true;
     try {
         var buffer = new ArrayBuffer(32);
         array = new type(buffer);
         typeSize = sz;
-        retval = shouldBe("array.length", "32 / typeSize");
+        retval = (array.length === 32 / typeSize);
         try {
             if (retval)
-                retval = shouldBe("array.subarray(4, 0x3FFFFFFF).length", "(32 / typeSize) - 4");
+                retval = (array.subarray(4, 0x3FFFFFFF).length === (32 / typeSize) - 4);
             if (retval)
-                retval = shouldBe("array.subarray(4, -2147483648).length", "0");
+                retval = (array.subarray(4, -2147483648).length === 0);
             // Test subarray() against overflows.
             array = array.subarray(2);
             if (sz > 1) {
@@ -767,7 +769,7 @@ function testSubarrayWithOutOfRangeValues(type, name, sz) {
                 var start = 4294967296 / sz - 2;
                 array = array.subarray(start, start + 1);
                 if (retval)
-                    retval = shouldBe("array.length", "0");
+                    retval = (array.length === 0);
             }
         } catch (e) {
             return fail("Subarray of " + name + " threw exception");
@@ -779,22 +781,22 @@ function testSubarrayWithOutOfRangeValues(type, name, sz) {
 }
 
 function testSubarrayWithDefaultValues(type, name, sz) {
-    console.log("Testing subarray with default inputs of " + name);
+    output("Testing subarray with default inputs of " + name);
     var retval = true;
     try {
         var buffer = new ArrayBuffer(32);
-        array = new type(buffer);
-        typeSize = sz;
-        retval = shouldBe("array.length", "32 / typeSize");
+        var array = new type(buffer);
+        var typeSize = sz;
+        retval = (array.length === 32 / typeSize);
         try {
             if (retval)
-                retval = shouldBe("array.subarray(0).length", "(32 / typeSize)");
+                retval = (array.subarray(0).length === (32 / typeSize));
             if (retval)
-                retval = shouldBe("array.subarray(2).length", "(32 / typeSize) - 2");
+                retval = (array.subarray(2).length === (32 / typeSize) - 2);
             if (retval)
-                retval = shouldBe("array.subarray(-2).length", "2");
+                retval = (array.subarray(-2).length === 2);
             if (retval)
-                retval = shouldBe("array.subarray(-2147483648).length", "(32 / typeSize)");
+                retval = (array.subarray(-2147483648).length === (32 / typeSize));
         } catch (e) {
             return fail("Subarray of " + name + " threw exception");
         }
@@ -844,9 +846,10 @@ function testSettingFromTypedArrayWithOutOfRangeOffset(type, name) {
     }
 }
 
+var setgetarray; // Needs to be global for shouldBe to find it
 function negativeTestGetAndSetMethods(type, name) {
-    array = new type([2, 3]);
-    shouldBeUndefined("array.get");
+    setgetarray = new type([2, 3]);
+    shouldBeUndefined("setgetarray.get");
     var exceptionThrown = false;
     // We deliberately check for an exception here rather than using
     // shouldThrow here because the precise contents of the syntax
@@ -856,7 +859,7 @@ function negativeTestGetAndSetMethods(type, name) {
     } catch (e) {
         exceptionThrown = true;
     }
-    var txt = "array.set(0, 1) ";
+    var txt = "setgetarray.set(0, 1) ";
     if (exceptionThrown) {
         return pass(txt + "threw exception.");
     } else {

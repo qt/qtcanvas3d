@@ -149,7 +149,7 @@ Item {
                 verify(Content.testSetFromArray(type, name));
                 verify(Content.negativeTestSetFromArray(type, name));
                 verify(Content.testSubarray(type, name));
-                //verify(Content.negativeTestSubarray(type, name)); // V4VM? Float32Array Subarray: Error: Invalid write to global property "subarray". Something to check in V4VM?
+                verify(Content.negativeTestSubarray(type, name));
                 verify(Content.testSetBoundaryConditions(type,
                                                          name,
                                                          testCase.testValues,
