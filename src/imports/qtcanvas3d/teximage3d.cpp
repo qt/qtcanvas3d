@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
+static ulong m_texId = 0;
 
 class StaticFactoryMapDeleter
 {
@@ -260,7 +261,7 @@ void CanvasTextureImage::setSrc(const QUrl &url)
  */
 ulong CanvasTextureImage::id()
 {
-    return ulong(this);
+    return m_texId++;
 }
 
 /*!
