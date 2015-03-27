@@ -1071,7 +1071,7 @@ public:
                                                           const QString &name);
     Q_INVOKABLE int getAttribLocation(QJSValue program, const QString &name);
     Q_INVOKABLE void bindAttribLocation(QJSValue program, int index, const QString &name);
-    Q_INVOKABLE QString getProgramInfoLog(QJSValue program) const;
+    Q_INVOKABLE QJSValue getProgramInfoLog(QJSValue program) const;
     Q_INVOKABLE bool isProgram(QJSValue anyObject) const;
     Q_INVOKABLE void deleteProgram(QJSValue program);
 

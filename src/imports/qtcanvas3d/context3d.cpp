@@ -4864,17 +4864,21 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D) const
 /*!
  * \internal
  */
-QString CanvasContext::getProgramInfoLog(QJSValue program3D) const
+QJSValue CanvasContext::getProgramInfoLog(QJSValue program3D) const
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program3D:" << program3D.toString()
                                          << ")";
     CanvasProgram *program = getAsProgram3D(program3D);
 
-    if (!program)
-        return QString();
+    if (!program) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << "WARNING: invalid program handle:"
+                                               << program3D.toString();
+        return m_engine->newObject();
+    }
 
-    return program->log();
+    return QJSValue(program->log());
 }
 
 /*!
