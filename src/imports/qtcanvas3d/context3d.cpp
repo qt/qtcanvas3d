@@ -168,7 +168,7 @@ uint CanvasContext::drawingBufferWidth()
 {
     uint width = 0;
     if (m_canvas)
-        width = m_canvas->width();
+        width = m_canvas->pixelSize().width() / m_devicePixelRatio;
 
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(): " << width;
@@ -184,7 +184,7 @@ uint CanvasContext::drawingBufferHeight()
 {
     uint height = 0;
     if (m_canvas)
-        height = m_canvas->height();
+        height = m_canvas->pixelSize().height() / m_devicePixelRatio;
 
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(): " << height;

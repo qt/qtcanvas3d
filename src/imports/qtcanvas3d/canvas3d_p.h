@@ -135,6 +135,7 @@ private:
     bool m_isFirstRender;
     QSize m_fboSize;
     QSize m_initializedSize;
+    QSize m_maxSize;
 
     QOpenGLContext *m_glContext;
     QOpenGLContext *m_glContextQt;

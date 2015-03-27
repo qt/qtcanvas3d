@@ -87,6 +87,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isFirstRender(true),
     m_fboSize(0, 0),
     m_initializedSize(1, 1),
+    m_maxSize(128,128),
     m_glContext(0),
     m_glContextQt(0),
     m_glContextShare(0),
@@ -345,6 +346,12 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         // Initialize OpenGL functions using the created GL context
         initializeOpenGLFunctions();
 
+        // Get the maximum drawable size
+        GLint viewportDims[2];
+        glGetIntegerv(GL_MAX_VIEWPORT_DIMS, viewportDims);
+        m_maxSize.setWidth(viewportDims[0]);
+        m_maxSize.setHeight(viewportDims[1]);
+
         // Set the size and create FBOs
         setPixelSize(m_initializedSize);
 
@@ -369,8 +376,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
 /*!
  * \qmlproperty size Canvas3D::pixelSize
- * Specifies the size of the render target surface in pixels. If between logical pixels
- * (used by the Qt Quick) and actual physical on-screen pixels (used by the 3D rendering).
+ * Specifies the size of the render target surface in physical on-screen pixels used by
+ * the 3D rendering.
  */
 /*!
  * \internal
@@ -388,6 +395,22 @@ void Canvas::setPixelSize(QSize pixelSize)
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << "(pixelSize:" << pixelSize
                                          << ")";
+
+    if (pixelSize.width() > m_maxSize.width()) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum pixel width exceeded limiting to "
+                                             << m_maxSize.width();
+        pixelSize.setWidth(m_maxSize.width());
+    }
+
+    if (pixelSize.height() > m_maxSize.height()) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum pixel height exceeded limiting to "
+                                             << m_maxSize.height();
+        pixelSize.setHeight(m_maxSize.height());
+    }
 
     if (m_fboSize == pixelSize && m_renderFbo != 0)
         return;
