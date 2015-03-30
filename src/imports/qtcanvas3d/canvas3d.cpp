@@ -618,8 +618,8 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
                                          << " size:" << m_initializedSize
                                          << " devicePixelRatio:" << m_devicePixelRatio;
     if (m_runningInDesigner
-            || m_initializedSize.width() <= 0
-            || m_initializedSize.height() <= 0
+            || m_initializedSize.width() < 0
+            || m_initializedSize.height() < 0
             || !window()) {
         delete oldNode;
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
