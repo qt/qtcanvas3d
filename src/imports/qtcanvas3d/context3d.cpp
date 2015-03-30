@@ -1613,14 +1613,7 @@ CanvasContext::glEnums CanvasContext::checkFramebufferStatus(glEnums target)
         return FRAMEBUFFER_UNSUPPORTED;
     }
 
-    if (m_currentFramebuffer) {
-        return glEnums(glCheckFramebufferStatus(GL_FRAMEBUFFER));
-    } else {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID_OPERATION no current framebuffer bound";
-        m_error |= CANVAS_INVALID_OPERATION;
-        return FRAMEBUFFER_UNSUPPORTED;
-    }
+    return glEnums(glCheckFramebufferStatus(GL_FRAMEBUFFER));
 }
 
 /*!
