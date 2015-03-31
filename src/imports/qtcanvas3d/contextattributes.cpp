@@ -45,7 +45,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype ContextAttributes
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Attribute set for Context3D
  *
  * ContextAttributes is an attribute set that can be given as parameter on first call to
@@ -53,7 +53,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * method call. It can also be requested from the Context3D later on to verify what exact
  * attributes are in fact enabled/disabled in the created context.
  *
- * \sa Context3D, Canvas3D, {QtCanvas3D QML Types}
+ * \sa Context3D, Canvas3D
  */
 
 /*!

@@ -42,13 +42,13 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype ActiveInfo3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Active attribute or uniform information.
  *
  * The ActiveInfo3D interface represents the information returned from the getActiveAttrib and
  * getActiveUniform calls.
  *
- * \sa Context3D, Canvas3D, {QtCanvas3D QML Types}
+ * \sa Context3D, Canvas3D
  */
 
 CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,

@@ -41,26 +41,27 @@
     \ingroup qtcanvas3d-examples
     \brief Load and display several JSON models
 
-    The JSON Models Example simply demonstrates loading and displaying more than one JSON model
-    and more than one texture. A simple mouse input handling has also been added, to allow rotating
-    the scene and zooming into it.
+    The JSON Models Example demonstrates loading and displaying more than
+    one JSON model and more than one texture. It also implements simple
+    mouse input handling to allow rotating the scene and zooming into it.
 
-    The example optionally incorporates some Qt Quick Enterprise Controls, which you can switch on
-    by commenting out the \c{#define NO_ENTERPRISE} line in \c{main.cpp}. The controls
-    are used to toggle some optional animations and draw options, as well as displaying camera
+    The example optionally incorporates some Qt Quick Enterprise Controls,
+    which you can switch on by commenting out the \c{#define NO_ENTERPRISE}
+    line in \l{jsonmodels/main.cpp}{main.cpp}. The controls are used to toggle
+    some optional animations and draw options, as well as displaying camera
     rotations and distance.
 
     \image jsonmodels-example.png
 
     \section1 JSON Model Loader
 
-    First we'll include a JSON model parser, which handles parsing the json models into our internal
-    models:
+    First we include a JSON model parser, which handles parsing the JSON
+    models into our internal models:
 
     \snippet jsonmodels/jsonmodels.js 0
 
-    The \c{ThreeJSLoader.js} includes a reimplementation of the json parser in \c{three.js}, but
-    we will not go into the implementation details on that.
+    The \c{ThreeJSLoader.js} includes a reimplementation of the JSON parser
+    in \c{three.js}, but we will not go into its implementation details.
 
     \section1 Loading the Models
 
@@ -85,8 +86,9 @@
 
     \section1 Loading the Textures
 
-    First we create the TextureImage objects for each of the images we are going to load and register
-    handlers for the \c imageLoaded and \c imageLoadingFailed signals. In the \c imageLoaded signal
+    First we create the TextureImage objects for each of the images we are
+    going to load and register handlers for the \c imageLoaded and
+    \c imageLoadingFailed signals. In the \c imageLoaded signal
     handlers we create the OpenGL textures:
 
     \snippet jsonmodels/jsonmodels.js 5
@@ -99,30 +101,32 @@
     \snippet jsonmodels/jsonmodels.qml 0
     \dots
 
-    Then we'll add some functionality on it. But first we need to add properties to the canvas
-    with initial values set:
+    Before adding some functionality on it, we need to add properties to the
+    canvas with initial values set:
 
     \snippet jsonmodels/jsonmodels.qml 1
 
-    After that, let's do rotation on mouse movement when the left button is pressed:
+    After that, we add rotation on mouse movement when the left mouse button
+    is pressed:
 
     \snippet jsonmodels/jsonmodels.qml 2
 
-    We need to keep the previous x and y to avoid rotation jumping when the mouse button is released
-    and repressed. These are the properties for them:
+    We need to keep the previous x and y values to avoid rotation jumping
+    when the mouse button is released and pressed again. We store them in
+    these properties:
 
     \snippet jsonmodels/jsonmodels.qml 3
 
-    Then we'll add zooming by mouse wheel:
+    Then we add zooming by mouse wheel:
 
     \snippet jsonmodels/jsonmodels.qml 4
 
-    These are then used in the JavaScript side for eye/camera movement calculations:
+    These properties are then used in the JavaScript side when calculating
+    eye/camera movement:
 
     \snippet jsonmodels/jsonmodels.js 7
 
-    We want to convert the rotation values into movement, and we do it like this:
+    Converting the rotation values into movement is done as follows:
 
     \snippet jsonmodels/jsonmodels.js 8
-
- */
+*/

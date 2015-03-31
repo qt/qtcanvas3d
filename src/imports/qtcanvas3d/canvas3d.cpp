@@ -57,7 +57,7 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
 /*!
  * \qmltype Canvas3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Canvas that provides a 3D rendering context.
  *
  * The Canvas3D is a QML element that, when placed in your Qt Quick 2 scene, allows you to
@@ -72,7 +72,7 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  * submit 3D rendering calls to draw whatever 3D content you want to be displayed.
  * \endlist
  *
- * \sa Context3D, {QtCanvas3D QML Types}
+ * \sa Context3D
  */
 
 /*!

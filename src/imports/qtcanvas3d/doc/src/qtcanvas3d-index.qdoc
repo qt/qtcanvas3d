@@ -35,35 +35,36 @@
 ****************************************************************************/
 
 /*!
-    \title QtCanvas3D
+    \title Qt Canvas 3D
     \page qtcanvas3d-index.html
     \brief Provides functionality for 3D drawing inside Qt Quick 2.
 
-    QtCanvas3D module provides a way to make OpenGL-like 3D drawing calls from Qt Quick JavaScript.
+    Qt Canvas 3D module provides a way to make OpenGL-like 3D drawing calls
+    from Qt Quick JavaScript.
 
     \section1 Features
 
     \list
-        \li Uses OpenGL or OpenGL ES2 for rendering.
-        \li Qt Quick 2 support
+        \li Uses OpenGL or OpenGL ES 2 for rendering.
+        \li Qt Quick 2 support.
     \endlist
 
     \section1 Getting Started
 
-    To import QtCanvas3D QML types, add the following import statement to your \c .qml
-    file:
+    To import Qt Canvas 3D QML types, add the following import statement to
+    your \c .qml file:
 
     \snippet doc_src_qtcanvas3d.cpp 0
 
-    See the \l{QtCanvas3D Getting Started}{Getting started} page for further information on
-    how to use QtCanvas3D in your application.
+    See the \l{Qt Canvas 3D Getting Started}{Getting Started} page for further
+    information on how to use Qt Canvas 3D in your application.
 
     \section1 References
 
     \list
-        \li \l{QtCanvas3D QML Types}
-        \li \l{QtCanvas3D Examples}
-        \li \l {QtCanvas3D Logging}
+        \li \l{Qt Canvas 3D Getting Started}
+        \li \l{Qt Canvas 3D QML Types}
+        \li \l{Qt Canvas 3D Examples}
+        \li \l{Qt Canvas 3D Logging}
     \endlist
-
 */

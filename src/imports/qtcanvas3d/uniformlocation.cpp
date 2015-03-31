@@ -42,7 +42,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype UniformLocation
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains uniform location id.
  *
  * An uncreatable QML type that contains an uniform location id. You can get it by calling

@@ -81,7 +81,7 @@ CanvasTextureImageFactory::~CanvasTextureImageFactory()
 /*!
  * \qmltype TextureImageFactory
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Create TextureImage elements.
  *
  * This static QML type is used for creating TextureImage instances by calling the
@@ -165,7 +165,7 @@ QJSValue CanvasTextureImageFactory::newTexImage()
 /*!
  * \qmltype TextureImage
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains a texture image.
  *
  * An uncreatable QML type that contains a texture image created by calling

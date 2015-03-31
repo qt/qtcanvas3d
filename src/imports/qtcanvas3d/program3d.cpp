@@ -42,7 +42,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype Program3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains a shader program.
  *
  * An uncreatable QML type that contains a compiled shader program. You can get it by calling

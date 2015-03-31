@@ -63,7 +63,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype Context3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Provides the 3D rendering API and context.
  *
  * An uncreatable QML type that provides a WebGL-like API that can be used to draw 3D graphics to

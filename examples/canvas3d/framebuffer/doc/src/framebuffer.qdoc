@@ -41,17 +41,20 @@
     \ingroup qtcanvas3d-examples
     \brief Render into a framebuffer and use it as a texture
 
-    The Framebuffer Example shows how to render into a framebuffer, create a texture of it, and
-    apply the texture to an object in normal on-screen rendering.
+    The Framebuffer Example shows how to render into a framebuffer, create a
+    texture of it, and apply the texture to an object in normal on-screen
+    rendering.
 
-    The example has a moving and rotating cube, which has another textured cube drawn into it via
-    the framebuffer object. The cube in the frambuffer can be rotated using the Qt Quick sliders.
+    The example has a moving and rotating cube, which has another textured
+    cube drawn into it via the framebuffer object. The cube in the framebuffer
+    can be rotated using \l [QML] {Slider}s from \l {Qt Quick Controls}.
 
     \image framebuffer-example.png
 
     \section1 Preparing the Framebuffer
 
-    We'll first define the variables we need for the render-to-texture framebuffer:
+    We first define the variables we need for the render-to-texture
+    framebuffer:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 0
 
@@ -65,20 +68,21 @@
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 2
 
-    Then we'll need to bind the texture as a color attachment, create and bind a render buffer, and
-    bind the depth attachment:
+    Then we need to bind the texture as a color attachment, create and bind
+    a render buffer, and bind the depth attachment:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 3
 
     \section1 Rendering into the Framebuffer
 
-    In \c renderGL function, we'll first need to draw the scene into the framebuffer. We'll start
-    by binding the framebuffer object and setting a viewport:
+    In \c renderGL function, we first need to draw the scene into the
+    framebuffer. We start by binding the framebuffer object and setting a
+    viewport:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 4
 
-    Then, we'll need to bind the loaded texture we want to use in rendering into the framebuffer
-    object:
+    Then, we need to bind the loaded texture we want to use in rendering
+    into the framebuffer object:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 5
 
@@ -88,16 +92,17 @@
 
     \section1 Using the Framebuffer as a Texture
 
-    First we'll bind the render-to-texture right after drawing, and generate mipmaps:
+    First, we bind the render-to-texture right after drawing, and generate
+    mipmaps:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 7
 
-    Then we need to bind the default framebuffer (= screen), and set up viewport:
+    Then we need to bind the default framebuffer (screen), and set up the
+    viewport:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 8
 
-    And finally draw the on-screen view:
+    And finally, we draw the on-screen view:
 
     \snippet framebuffer/qml/framebuffer/framebuffer.js 9
-
  */

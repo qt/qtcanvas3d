@@ -45,7 +45,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype Buffer3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL buffer.
  *
  * An uncreatable QML type that contains an OpenGL buffer. You can get it by calling

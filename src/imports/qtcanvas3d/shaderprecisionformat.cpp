@@ -42,13 +42,13 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \qmltype ShaderPrecisionFormat
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains the shader precision format attributes.
  *
  * An uncreatable QML type that contains the information returned from the
  * \l{Context3D::getShaderPrecisionFormat()} call.
  *
- * \sa Context3D, {QtCanvas3D QML Types}
+ * \sa Context3D
  */
 
 /*!
