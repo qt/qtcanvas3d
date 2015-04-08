@@ -70,7 +70,7 @@
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-#define ENUM_AS_PROPERTY(A) Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums A READ A ## _read); inline QtCanvas3D::CanvasContext::glEnums A ## _read() { return CanvasContext::A; }
+#define ENUM_AS_PROPERTY(A) Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums A READ A ## _read); inline QtCanvas3D::CanvasContext::glEnums A ## _read() { return QtCanvas3D::CanvasContext::A; }
 
 class Canvas;
 class CanvasActiveInfo;
@@ -84,7 +84,8 @@ class CanvasUniformLocation;
 class CanvasTextureImage;
 class CanvasShaderPrecisionFormat;
 class EnumToStringMap;
-
+class CompressedTextureS3TC;
+class CompressedTexturePVRTC;
 
 class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected QOpenGLFunctions
 {
@@ -527,7 +528,19 @@ public:
 
         /* WEBGL_debug_renderer_info */
         UNMASKED_VENDOR_WEBGL            = 0x9245,
-        UNMASKED_RENDERER_WEBGL          = 0x9246
+        UNMASKED_RENDERER_WEBGL          = 0x9246,
+
+        /* S3TC */
+        COMPRESSED_RGB_S3TC_DXT1_EXT        = 0x83F0,
+        COMPRESSED_RGBA_S3TC_DXT1_EXT       = 0x83F1,
+        COMPRESSED_RGBA_S3TC_DXT3_EXT       = 0x83F2,
+        COMPRESSED_RGBA_S3TC_DXT5_EXT       = 0x83F3,
+
+        /* PVRTC */
+        COMPRESSED_RGB_PVRTC_4BPPV1_IMG      = 0x8C00,
+        COMPRESSED_RGB_PVRTC_2BPPV1_IMG      = 0x8C01,
+        COMPRESSED_RGBA_PVRTC_4BPPV1_IMG     = 0x8C02,
+        COMPRESSED_RGBA_PVRTC_2BPPV1_IMG     = 0x8C03
     };
 
     /* ClearBufferMask */
@@ -1214,6 +1227,8 @@ private:
 
     bool isOfType(const QJSValue &value, const QString &classname) const;
 
+    bool isValidTextureBound(glEnums target, const QString &funcName);
+
     typedef enum {
         CANVAS_NO_ERRORS = 0,
         CANVAS_INVALID_ENUM = 1 << 0,
@@ -1264,6 +1279,8 @@ private:
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;
     QObject *m_standardDerivatives;
+    CompressedTextureS3TC *m_compressedTextureS3TC;
+    CompressedTexturePVRTC *m_compressedTexturePVRTC;
 };
 
 QT_CANVAS3D_END_NAMESPACE

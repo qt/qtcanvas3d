@@ -217,7 +217,6 @@ QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums opti
     glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &boundElementArrayBuffer);
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &arrayBufferBinding);
 
-
 #if !defined(QT_OPENGL_ES_2)
     if (!m_isOpenGLES2) {
         stateDumpStr.append("GL_DRAW_FRAMEBUFFER_BINDING.....");

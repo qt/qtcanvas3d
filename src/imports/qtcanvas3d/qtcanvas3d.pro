@@ -1,4 +1,4 @@
-QT += qml quick qml-private core-private
+QT += openglextensions qml quick qml-private core-private
 DEFINES += QTCANVAS3D_LIBRARY
 TARGETPATH = QtCanvas3D
 IMPORT_VERSION = $$MODULE_VERSION
@@ -25,7 +25,9 @@ SOURCES += arrayutils.cpp \
     texture3d.cpp \
     uniformlocation.cpp \
     activeinfo3d.cpp \
-    canvasglstatedump.cpp
+    canvasglstatedump.cpp \
+    compressedtextures3tc.cpp \
+    compressedtexturepvrtc.cpp
 
 HEADERS += arrayutils_p.h \
     qcanvas3d_plugin.h \
@@ -46,7 +48,9 @@ HEADERS += arrayutils_p.h \
     texture3d_p.h \
     uniformlocation_p.h \
     activeinfo3d_p.h \
-    canvasglstatedump_p.h
+    canvasglstatedump_p.h \
+    compressedtextures3tc_p.h \
+    compressedtexturepvrtc_p.h
 
 OTHER_FILES = qmldir \
     doc/* \
