@@ -34,7 +34,7 @@
 **
 ****************************************************************************/
 
-Qt.include("../../../3rdparty/gl-matrix.js")
+Qt.include("../../3rdparty/gl-matrix.js")
 
 //
 // Draws a cube that has the Qt logo as decal texture on each face in to a texture.
