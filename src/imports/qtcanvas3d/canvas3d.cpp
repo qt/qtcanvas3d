@@ -80,6 +80,7 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  */
 Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
+    m_isNeedRenderQueued(false),
     m_renderNodeReady(false),
     m_mainThread(QThread::currentThread()),
     m_contextThread(0),
@@ -101,10 +102,13 @@ Canvas::Canvas(QQuickItem *parent):
     m_antialiasFbo(0),
     m_renderFbo(0),
     m_displayFbo(0),
+    m_oldDisplayFbo(0),
     m_offscreenSurface(0)
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
+    connect(this, &QQuickItem::widthChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::heightChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -167,18 +171,6 @@ void Canvas::shutDown()
     m_glContextShare->deleteLater();
     m_glContextShare = 0;
 }
-
-/*!
- * \qmlsignal Canvas3D::needRender()
- * This signal, if emitted, causes a re-rendering cycle to happen. Usually this is needed
- * if a value that affects the look of the 3D scene has changed, but no other mechanism
- * triggers the re-render cycle.
- */
-
-/*!
- * \qmlsignal Canvas3D::textureReady(int id, size size, float devicePixelRatio)
- * Emitted when a new texture is ready to inform the render node.
- */
 
 /*!
  * \qmlproperty float Canvas3D::devicePixelRatio
@@ -417,6 +409,7 @@ void Canvas::setPixelSize(QSize pixelSize)
     m_fboSize = pixelSize;
     createFBOs();
     emit pixelSizeChanged(pixelSize);
+    emitNeedRender();
 }
 
 /*!
@@ -447,9 +440,9 @@ void Canvas::createFBOs()
     glGetIntegerv(GL_TEXTURE_BINDING_2D, &texBinding2D);
     glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
 
-    // Store existing FBOs, don't delete before we've created the new ones
-    // so that we get fresh texture and FBO id's for the newly created objects.
-    QOpenGLFramebufferObject *displayFBO = m_displayFbo;
+    // Store existing display FBO, don't delete before next updatePaintNode call
+    // Store existing render and antialias FBO's for a moment so we get new id's for new ones
+    m_oldDisplayFbo = m_displayFbo;
     QOpenGLFramebufferObject *renderFbo = m_renderFbo;
     QOpenGLFramebufferObject *antialiasFbo = m_antialiasFbo;
 
@@ -500,7 +493,6 @@ void Canvas::createFBOs()
     }
 
     // FBO ids and texture id's have been generated, we can now free the existing ones.
-    delete displayFBO;
     delete renderFbo;
     delete antialiasFbo;
 
@@ -510,7 +502,7 @@ void Canvas::createFBOs()
 
     if (m_context3D) {
         bindCurrentRenderTarget();
-        emit needRender();
+        emitNeedRender();
     }
 }
 
@@ -523,7 +515,7 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
     if (!window)
         return;
 
-    emit needRender();
+    emitNeedRender();
 }
 
 /*!
@@ -539,7 +531,7 @@ void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometr
 
     m_cachedGeometry = newGeometry;
 
-    emit needRender();
+    emitNeedRender();
 }
 
 /*!
@@ -552,7 +544,7 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
                                          << ")";
     QQuickItem::itemChange(change, value);
 
-    emit needRender();
+    emitNeedRender();
 }
 
 /*!
@@ -579,6 +571,7 @@ void Canvas::updateWindowParameters()
         if (pixelRatio != m_devicePixelRatio) {
             m_devicePixelRatio = pixelRatio;
             emit devicePixelRatioChanged(pixelRatio);
+            emitResizeGL();
             win->update();
         }
     }
@@ -675,17 +668,17 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
                 Qt::DirectConnection);
 
         connect(node, &CanvasRenderNode::textureInUse,
-                this, &Canvas::renderNext,
+                this, &Canvas::emitNeedRender,
                 Qt::QueuedConnection);
 
         // Get the production of FBO textures started..
-        emit needRender();
+        emitNeedRender();
 
         update();
     }
 
     node->setRect(boundingRect());
-    emit needRender();
+    emitNeedRender();
 
     m_renderNodeReady = true;
 
@@ -736,6 +729,8 @@ uint Canvas::fps()
 void Canvas::renderNext()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    m_isNeedRenderQueued = false;
 
     updateWindowParameters();
 
@@ -837,11 +832,53 @@ void Canvas::renderNext()
                                          << m_displayFbo->texture()
                                          << " from FBO:" << m_displayFbo->handle();
 
+    // FBO ids and texture id's have been generated, we can now free the old display FBO
+    delete m_oldDisplayFbo;
+    m_oldDisplayFbo = 0;
+
     // Rebind default FBO
     QOpenGLFramebufferObject::bindDefault();
 
     // Notify the render node of new texture
     emit textureReady(m_displayFbo->texture(), m_fboSize, m_devicePixelRatio);
+}
+
+/*!
+ * \internal
+ */
+void Canvas::emitResizeGL()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    // Wait until render node has been created
+    if (!m_renderNodeReady) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << " Render node not ready, returning";
+        return;
+    }
+
+    if (m_glContext) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << " Emit resizeGL() signal";
+        emit resizeGL(int(width()), int(height()), m_devicePixelRatio);
+    }
+}
+
+/*!
+ * \internal
+ */
+void Canvas::emitNeedRender()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    if (m_isNeedRenderQueued) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << " needRender already queued, returning";
+        return;
+    }
+
+    m_isNeedRenderQueued = true;
+    emit needRender();
 }
 
 QT_CANVAS3D_END_NAMESPACE

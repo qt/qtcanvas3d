@@ -104,17 +104,19 @@ public slots:
     void ready();
     void shutDown();
     void renderNext();
+    void emitResizeGL();
+    void emitNeedRender();
 
 signals:
     void needRender();
     void devicePixelRatioChanged(float ratio);
-    void animatedChanged(bool animated);
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
 
     void initGL();
     void renderGL();
+    void resizeGL(int width, int height, float devicePixelRatio);
 
     void textureReady(int id, const QSize &size, float devicePixelRatio);
 
@@ -127,6 +129,7 @@ private:
     void setupAntialiasing();
     void updateWindowParameters();
 
+    bool m_isNeedRenderQueued;
     bool m_renderNodeReady;
     QThread *m_mainThread;
     QThread *m_contextThread;
@@ -157,6 +160,7 @@ private:
     QOpenGLFramebufferObject *m_displayFbo;
     QOpenGLFramebufferObjectFormat m_fboFormat;
     QOpenGLFramebufferObjectFormat m_antialiasFboFormat;
+    QOpenGLFramebufferObject *m_oldDisplayFbo;
 
     QOffscreenSurface *m_offscreenSurface;
 };
