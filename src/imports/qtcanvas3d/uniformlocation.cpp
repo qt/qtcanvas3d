@@ -34,91 +34,55 @@
 **
 ****************************************************************************/
 
-#include "texture3d_p.h"
+#include "uniformlocation_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype Texture3D
+ * \qmltype UniformLocation
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
- * \brief Contains an OpenGL texture.
+ * \inqmlmodule QtCanvas3D
+ * \brief Contains uniform location id.
  *
- * An uncreatable QML type that contains an OpenGL texture. You can get it by calling
- * \l{Context3D::createTexture()}{Context3D.createTexture()} method.
+ * An uncreatable QML type that contains an uniform location id. You can get it by calling
+ * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
  */
 
 /*!
  * \internal
  */
-CanvasTexture::CanvasTexture(QObject *parent) :
+CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
     CanvasAbstractObject(parent),
-    m_textureId(0),
-    m_isAlive(true)
+    m_location(location)
 {
-    initializeOpenGLFunctions();
-    glGenTextures(1, &m_textureId);
 }
 
 /*!
  * \internal
  */
-CanvasTexture::~CanvasTexture()
+CanvasUniformLocation::~CanvasUniformLocation()
 {
-    if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
 }
 
 /*!
  * \internal
  */
-void CanvasTexture::bind(CanvasContext::glEnums target)
+int CanvasUniformLocation::id()
 {
-    if (!m_textureId)
-        return;
-
-    glBindTexture(GLenum(target), m_textureId);
+    return m_location;
 }
 
 /*!
  * \internal
  */
-GLuint CanvasTexture::textureId() const
+QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
-    if (!m_isAlive)
-        return 0;
-
-    return m_textureId;
-}
-
-/*!
- * \internal
- */
-bool CanvasTexture::isAlive() const
-{
-    return bool(m_textureId);
-}
-
-/*!
- * \internal
- */
-void CanvasTexture::del()
-{
-    if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
-    m_textureId = 0;
-}
-
-/*!
- * \internal
- */
-QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
-{
-    if (texture)
-        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ", id:" << texture->textureId() << ")";
+    if (uLoc)
+        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
     else
-        dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
+        dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
+
     return dbg.maybeSpace();
 }
 

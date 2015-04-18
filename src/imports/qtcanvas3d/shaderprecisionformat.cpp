@@ -34,55 +34,45 @@
 **
 ****************************************************************************/
 
-#include "activeinfo3d_p.h"
+#include "shaderprecisionformat_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype ActiveInfo3D
+ * \qmltype ShaderPrecisionFormat
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
- * \brief Active attribute or uniform information.
+ * \inqmlmodule QtCanvas3D
+ * \brief Contains the shader precision format attributes.
  *
- * The ActiveInfo3D interface represents the information returned from the getActiveAttrib and
- * getActiveUniform calls.
+ * An uncreatable QML type that contains the information returned from the
+ * \l{Context3D::getShaderPrecisionFormat()} call.
  *
- * \sa Context3D, Canvas3D, {QtCanvas3D QML Types}
+ * \sa Context3D
  */
-
-CanvasActiveInfo::CanvasActiveInfo(int size, CanvasContext::glEnums type,
-                                   QString name, QObject *parent) :
-    QObject(parent),
-    m_size(size),
-    m_type(type),
-    m_name(name)
-{
-}
 
 /*!
  * \internal
  */
-const QString CanvasActiveInfo::name() const
+CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
+    CanvasAbstractObject(parent)
 {
-    return m_name;
 }
 
 /*!
- * \internal
+ * \qmlproperty int ShaderPrecisionFormat::rangeMin
+ * The base 2 log of the absolute value of the minimum value that can be represented.
  */
-int CanvasActiveInfo::size() const
-{
-    return m_size;
-}
 
 /*!
- * \internal
+ * \qmlproperty int ShaderPrecisionFormat::rangeMax
+ * The base 2 log of the absolute value of the maximum value that can be represented.
  */
-CanvasContext::glEnums CanvasActiveInfo::type() const
-{
-    return m_type;
-}
+
+/*!
+ * \qmlproperty int ShaderPrecisionFormat::precision
+ * The number of bits of precision that can be represented. 0 for integer formats.
+ */
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE

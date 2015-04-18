@@ -34,42 +34,18 @@
 **
 ****************************************************************************/
 
-#include <QtGui/QGuiApplication>
-#include <QtCore/QDir>
-#include <QtQuick/QQuickView>
-#include <QtQml/QQmlEngine>
-#include <QtCore/QLoggingCategory>
+#include "compressedtextures3tc_p.h"
 
-int main(int argc, char *argv[])
+QT_BEGIN_NAMESPACE
+QT_CANVAS3D_BEGIN_NAMESPACE
+
+CompressedTextureS3TC::CompressedTextureS3TC(QObject *parent) : QObject(parent)
 {
-    //! [0]
-    // Uncomment to turn on all the logging categories of Canvas3D
-//    QString loggingFilter = QString("qt.canvas3d.info.debug=true\n");
-//    loggingFilter += QStringLiteral("qt.canvas3d.rendering.debug=true\n")
-//            + QStringLiteral("qt.canvas3d.rendering.warning=true\n")
-//            + QStringLiteral("qt.canvas3d.glerrors.debug=true");
-//    QLoggingCategory::setFilterRules(loggingFilter);
-    //! [0]
-
-    QGuiApplication app(argc, argv);
-
-    QQuickView viewer;
-
-    // The following are needed to make examples run without having to install the module
-    // in desktop environments.
-#ifdef Q_OS_WIN
-    QString extraImportPath(QStringLiteral("%1/../../../../%2"));
-#else
-    QString extraImportPath(QStringLiteral("%1/../../../%2"));
-#endif
-    viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
-                                                       QString::fromLatin1("qml")));
-
-    viewer.setSource(QUrl("qrc:/qml/textureandlight/main.qml"));
-
-    viewer.setTitle(QStringLiteral("Textured and Lit Cube"));
-    viewer.setResizeMode(QQuickView::SizeRootObjectToView);
-    viewer.show();
-
-    return app.exec();
 }
+
+CompressedTextureS3TC::~CompressedTextureS3TC()
+{
+}
+
+QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

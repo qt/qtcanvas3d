@@ -34,87 +34,59 @@
 **
 ****************************************************************************/
 
-#include "shader3d_p.h"
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the QtCanvas3D API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
+
+#ifndef COMPRESSEDTEXTURES3TC_H
+#define COMPRESSEDTEXTURES3TC_H
+
+#include "canvas3dcommon_p.h"
+#include "context3d_p.h"
+
+#include <QObject>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-/*!
- * \qmltype Shader3D
- * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
- * \brief Contains a shader.
- *
- * An uncreatable QML type that contains a shader. You can get it by calling
- * \l{Context3D::createShader()}{Context3D.createShader()} method.
- */
-
-/*!
- * \internal
- */
-CanvasShader::CanvasShader(QOpenGLShader::ShaderType type, QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_shader(new QOpenGLShader(type, this)),
-    m_sourceCode("")
+class CompressedTextureS3TC : public QObject
 {
-}
+    Q_OBJECT
+    Q_DISABLE_COPY(CompressedTextureS3TC)
 
-/*!
- * \internal
- */
-CanvasShader::~CanvasShader()
-{
-    delete m_shader;
-}
+    Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGB_S3TC_DXT1_EXT READ COMPRESSED_RGB_S3TC_DXT1_EXT_read);
+    Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT1_EXT READ COMPRESSED_RGBA_S3TC_DXT1_EXT_read);
+    Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT3_EXT READ COMPRESSED_RGBA_S3TC_DXT3_EXT_read);
+    Q_PROPERTY(QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT5_EXT READ COMPRESSED_RGBA_S3TC_DXT5_EXT_read);
 
-/*!
- * \internal
- */
-GLuint CanvasShader::id()
-{
-    return m_shader->shaderId();
-}
+public:
+    explicit CompressedTextureS3TC(QObject *parent = 0);
+    ~CompressedTextureS3TC();
 
-/*!
- * \internal
- */
-bool CanvasShader::isAlive()
-{
-    return bool(m_shader);
-}
+    inline QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGB_S3TC_DXT1_EXT_read() {
+        return QtCanvas3D::CanvasContext::COMPRESSED_RGB_S3TC_DXT1_EXT;
+    }
 
-/*!
- * \internal
- */
-void CanvasShader::del()
-{
-    delete m_shader;
-    m_shader = 0;
-}
+    inline QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT1_EXT_read() {
+        return QtCanvas3D::CanvasContext::COMPRESSED_RGBA_S3TC_DXT1_EXT;
+    }
 
-/*!
- * \internal
- */
-QOpenGLShader *CanvasShader::qOGLShader()
-{
-    return m_shader;
-}
+    inline QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT3_EXT_read() {
+        return QtCanvas3D::CanvasContext::COMPRESSED_RGBA_S3TC_DXT3_EXT;
+    }
 
-/*!
- * \internal
- */
-QString CanvasShader::sourceCode()
-{
-    return m_sourceCode;
-}
-
-/*!
- * \internal
- */
-void CanvasShader::setSourceCode(const QString &source)
-{
-    m_sourceCode = source;
-}
+    inline QtCanvas3D::CanvasContext::glEnums COMPRESSED_RGBA_S3TC_DXT5_EXT_read() {
+        return QtCanvas3D::CanvasContext::COMPRESSED_RGBA_S3TC_DXT5_EXT;
+    }
+};
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE
+
+#endif // COMPRESSEDTEXTURES3TC_H

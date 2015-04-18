@@ -36,40 +36,34 @@
 
 /*!
     \qmlmodule QtCanvas3D 1.0
-    \title QtCanvas3D QML Types
+    \title Qt Canvas 3D QML Types
     \ingroup qmlmodules
 
-    \brief QML types for the QtCanvas3D API.
+    \brief QML types for the Qt Canvas 3D API.
 
-    The QtCanvas3D functionality can be accessed via these QML types.
-
-    \section1 QML Types
-
-    \annotatedlist qtcanvas3d-qml-types
+    The Qt Canvas 3D functionality can be accessed via these QML types.
 */
 
 /*!
     \group qtcanvas3d-examples
     \ingroup all-examples
-    \title QtCanvas3D Examples
+    \title Qt Canvas 3D Examples
 
-    \brief Examples for the QtCanvas3D.
-
-    For some code examples, see one of the QtCanvas3D examples:
-
-    \section1 Examples
+    \brief Examples for the Qt Canvas 3D module.
 */
 
 /*!
-    \group qtcanvas3d-getting-started
-    \title QtCanvas3D Getting Started
+    \page qtcanvas3d-getting-started.html
+    \title Qt Canvas 3D Getting Started
 
-    \section1 Building QtCanvas3D
+    \section1 Building Qt Canvas 3D
 
-    To build the QtCanvas3D module from source code, set up a command prompt
-    with an environment for building Qt applications, navigate to the directory containing
-    \c {qtcanvas3d.pro}, and configure the project with qmake:
-    \code
+    To build the Qt Canvas 3D module from source code, set up a command prompt
+    with an environment for building Qt applications, navigate to the
+    directory containing \c {qtcanvas3d.pro}, and configure the project with
+    qmake:
+
+    \badcode
     qmake
     \endcode
 
@@ -87,94 +81,104 @@
       \li OSX                      \li make
     \endtable
 
-    The above generates the default makefiles for your configuration, which is typically
-    the release build if you are using precompiled binary Qt distribution. To build both debug
-    and release, or one specifically, use one of the following qmake lines instead.
+    The above generates the default makefiles for your configuration, which is
+    typically the release build if you are using precompiled binary Qt
+    distribution. To build both debug and release, or one specifically, use
+    one of the following qmake lines instead.
 
     For debug builds:
-    \code
+    \badcode
     qmake CONFIG+=debug
     make
     \endcode
     or
-    \code
+    \badcode
     qmake CONFIG+=debug_and_release
     make debug
     \endcode
 
     For release builds:
-    \code
+    \badcode
     qmake CONFIG+=release
     make
     \endcode
     or
-    \code
+    \badcode
     qmake CONFIG+=debug_and_release
     make release
     \endcode
 
     For both builds (Windows/Mac only):
-    \code
+    \badcode
     qmake CONFIG+="debug_and_release build_all"
     make
     \endcode
 
     After building, install the module to your Qt directory:
-    \code
+    \badcode
     make install
     \endcode
 
     If you want to uninstall the module:
-    \code
+    \badcode
     make uninstall
     \endcode
 
-    To build a statically linked version of the QtCanvas3D module, give the following
-    commands:
+    To build a statically linked version of the QtCanvas3D module, give the
+    following commands:
 
-    \code
+    \badcode
     qmake CONFIG+=static
     make
     make install
     \endcode
 
-    \section1 Running examples
+    \section1 Running the Examples
 
-    QtCanvas3D examples are found under the \c examples subdirectory. To build and run a
-    single example, in this case \c{interaction}, navigate to the example directory and enter the
+    Examples for Qt Canvas 3D are found under the \c examples/canvas3d
+    subdirectory. To build and run a single example, in this case
+    \c{interaction}, navigate to the example directory and enter the
     following commands:
 
-    \code
+    \badcode
     qmake
     make
     ./interaction
     \endcode
 
-    \note On some platforms, such as Windows, the executable can be generated under debug or
-    release folders, depending on your build.
+    \note On some platforms, such as Windows, the executable can be generated
+    under \c debug or \c release folders, depending on your build.
 
     \section1 A Basic Example
 
-    For a simple Canvas3D example see the \l {Lit and Textured Cube Example}.
+    For a simple Canvas3D example, see the \l {Lit and Textured Cube Example}.
 
-    For all the QtCanvas3D examples, check out \l {QtCanvas3D Examples}
+    For all examples, check out \l {Qt Canvas 3D Examples}.
 */
 
 /*!
-    \group qtcanvas3d-logging
-    \title QtCanvas3D Logging
+    \page qtcanvas3d-logging.html
+    \title Qt Canvas 3D Logging
 
-    \brief The logging features in QtCanvas3D.
+    \brief The logging features in Qt Canvas 3D.
 
-    Logging in QtCanvas3D uses the Qt categorized logging. The following categories are supported:
+    Qt Canvas 3D makes use of Qt's \l {QLoggingCategory}{categorized logging}.
+    The following categories are supported:
 
-    \list
-    \li "qt.canvas3d.info.debug" Logs on high level information about the OpenGL driver.
-    \li "qt.canvas3d.rendering.debug" Logs all the method calls in QtCanvas3D.
-    \li "qt.canvas3d.rendering.warning" Logs all warnings on from QtCanvas3D internal verifications
-    that happen before a OpenGL method call is made to the actual graphics driver.
-    \li "qt.canvas3d.glerrors.debug" Logs all the OpenGL driver level errors. This entails calling
-        \c{glGetError()} after each OpenGL driver call and this will cause a negative performance
-        hit. Please use only when necessary to find root causes of rendering errors.
-    \endlist
+    \table
+    \header \li Category \li Description
+    \row \li \c qt.canvas3d.info.debug
+         \li Logs on high level information about the OpenGL driver.
+    \row \li \c qt.canvas3d.rendering.debug
+         \li Logs all the method calls in Qt Canvas 3D.
+    \row \li \c qt.canvas3d.rendering.warning
+         \li Logs all warnings on from Qt Canvas 3D internal verifications
+             that happen before a OpenGL method call is made to the actual
+             graphics driver.
+    \row \li \c qt.canvas3d.glerrors.debug
+         \li Logs all the OpenGL driver level errors. This entails calling
+             \c{glGetError()} after each OpenGL driver call and this will
+             cause a negative performance hit. Please use only when necessary
+             to find root causes of rendering errors.
+    \endtable
 */

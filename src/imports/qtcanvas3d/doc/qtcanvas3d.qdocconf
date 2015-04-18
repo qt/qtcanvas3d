@@ -4,7 +4,7 @@ project             = QtCanvas3D
 description         = QtCanvas3D Reference Documentation
 version             = 1.0.0
 
-exampledirs = ../../examples/canvas3d \
+exampledirs = ../../../../examples/canvas3d \
               snippets
 
 imagedirs  += images
@@ -13,37 +13,34 @@ sourcedirs += ..
 
 examplesinstallpath = canvas3d
 
-indexes += $QT_INSTALL_DOCS/qtcore/qtcore.index \
-           $QT_INSTALL_DOCS/qtgui/qtgui.index \
-           $QT_INSTALL_DOCS/qtqml/qtqml.index \
-           $QT_INSTALL_DOCS/qtquick/qtquick.index \
-           $QT_INSTALL_DOCS/qtmultimedia/qtmultimedia.index
+depends     = qtcore qtgui qtqml qtquick qtquickcontrols qtquicklayouts qtdoc qtmultimedia
 
 qhp.projects                   = QtCanvas3D
 
 qhp.QtCanvas3D.file            = qtcanvas3d.qhp
 qhp.QtCanvas3D.namespace       = org.qt-project.qtcanvas3d.100
 qhp.QtCanvas3D.virtualFolder   = qtcanvas3d
-qhp.QtCanvas3D.indexTitle      = QML 3D Canvas
+qhp.QtCanvas3D.indexTitle      = Qt Canvas 3D
 qhp.QtCanvas3D.indexRoot       =
+
 
 qhp.QtCanvas3D.filterAttributes                        = qtcanvas3d 1.0.0 qtrefdoc
 qhp.QtCanvas3D.customFilters.Qt.name                   = QtCanvas3D 1.0.0
 qhp.QtCanvas3D.customFilters.Qt.filterAttributes       = qtcanvas3d 1.0.0
 qhp.QtCanvas3D.subprojects                             = gettingstarted examples types
 qhp.QtCanvas3D.subprojects.gettingstarted.title        = Getting Started
-qhp.QtCanvas3D.subprojects.gettingstarted.indexTitle   = QtCanvas3D Getting Started
+qhp.QtCanvas3D.subprojects.gettingstarted.indexTitle   = Qt Canvas 3D Getting Started
 qhp.QtCanvas3D.subprojects.gettingstarted.selectors    = fake:page
 qhp.QtCanvas3D.subprojects.gettingstarted.sortPages    = true
 qhp.QtCanvas3D.subprojects.examples.title              = Examples
-qhp.QtCanvas3D.subprojects.examples.indexTitle         = QtCanvas3D Examples
+qhp.QtCanvas3D.subprojects.examples.indexTitle         = Qt Canvas 3D Examples
 qhp.QtCanvas3D.subprojects.examples.selectors          = fake:example
 qhp.QtCanvas3D.subprojects.examples.sortPages          = true
 qhp.QtCanvas3D.subprojects.types.title                 = QML Types
-qhp.QtCanvas3D.subprojects.types.indexTitle            = QtCanvas3D QML Types
+qhp.QtCanvas3D.subprojects.types.indexTitle            = Qt Canvas 3D QML Types
 qhp.QtCanvas3D.subprojects.types.selectors             = qmlclass
 qhp.QtCanvas3D.subprojects.types.sortPages             = true
 
-navigation.landingpage = QtCanvas3D
-navigation.qmltypespage = QtCanvas3D QML Types
-navigation.examplespage = QtCanvas3D Examples
+navigation.landingpage = Qt Canvas 3D
+navigation.qmltypespage = Qt Canvas 3D QML Types
+navigation.examplespage = Qt Canvas 3D Examples

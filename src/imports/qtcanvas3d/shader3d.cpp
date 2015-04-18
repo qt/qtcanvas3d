@@ -34,56 +34,86 @@
 **
 ****************************************************************************/
 
-#include "uniformlocation_p.h"
+#include "shader3d_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype UniformLocation
+ * \qmltype Shader3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
- * \brief Contains uniform location id.
+ * \inqmlmodule QtCanvas3D
+ * \brief Contains a shader.
  *
- * An uncreatable QML type that contains an uniform location id. You can get it by calling
- * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
+ * An uncreatable QML type that contains a shader. You can get it by calling
+ * \l{Context3D::createShader()}{Context3D.createShader()} method.
  */
 
 /*!
  * \internal
  */
-CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
+CanvasShader::CanvasShader(QOpenGLShader::ShaderType type, QObject *parent) :
     CanvasAbstractObject(parent),
-    m_location(location)
+    m_shader(new QOpenGLShader(type, this)),
+    m_sourceCode("")
 {
 }
 
 /*!
  * \internal
  */
-CanvasUniformLocation::~CanvasUniformLocation()
+CanvasShader::~CanvasShader()
 {
+    delete m_shader;
 }
 
 /*!
  * \internal
  */
-int CanvasUniformLocation::id()
+GLuint CanvasShader::id()
 {
-    return m_location;
+    return m_shader->shaderId();
 }
 
 /*!
  * \internal
  */
-QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
+bool CanvasShader::isAlive()
 {
-    if (uLoc)
-        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
-    else
-        dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
+    return bool(m_shader);
+}
 
-    return dbg.maybeSpace();
+/*!
+ * \internal
+ */
+void CanvasShader::del()
+{
+    delete m_shader;
+    m_shader = 0;
+}
+
+/*!
+ * \internal
+ */
+QOpenGLShader *CanvasShader::qOGLShader()
+{
+    return m_shader;
+}
+
+/*!
+ * \internal
+ */
+QString CanvasShader::sourceCode()
+{
+    return m_sourceCode;
+}
+
+/*!
+ * \internal
+ */
+void CanvasShader::setSourceCode(const QString &source)
+{
+    m_sourceCode = source;
 }
 
 QT_CANVAS3D_END_NAMESPACE

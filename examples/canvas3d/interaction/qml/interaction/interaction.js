@@ -34,8 +34,8 @@
 **
 ****************************************************************************/
 
-Qt.include("../../../3rdparty/gl-matrix.js")
-Qt.include("../../../3rdparty/ThreeJSLoader.js")
+Qt.include("../../3rdparty/gl-matrix.js")
+Qt.include("../../3rdparty/ThreeJSLoader.js")
 
 var gl;
 

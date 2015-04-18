@@ -34,76 +34,91 @@
 **
 ****************************************************************************/
 
-#include "framebuffer3d_p.h"
+#include "texture3d_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype FrameBuffer3D
+ * \qmltype Texture3D
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
- * \brief Contains an OpenGL framebuffer.
+ * \inqmlmodule QtCanvas3D
+ * \brief Contains an OpenGL texture.
  *
- * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling
- * \l{Context3D::createFramebuffer()}{Context3D.createFramebuffer()} method.
+ * An uncreatable QML type that contains an OpenGL texture. You can get it by calling
+ * \l{Context3D::createTexture()}{Context3D.createTexture()} method.
  */
 
 /*!
  * \internal
  */
-CanvasFrameBuffer::CanvasFrameBuffer(QObject *parent) :
+CanvasTexture::CanvasTexture(QObject *parent) :
     CanvasAbstractObject(parent),
-    m_framebufferId(0)
+    m_textureId(0),
+    m_isAlive(true)
 {
     initializeOpenGLFunctions();
-    glGenFramebuffers(1, &m_framebufferId);
+    glGenTextures(1, &m_textureId);
 }
 
 /*!
  * \internal
  */
-CanvasFrameBuffer::~CanvasFrameBuffer()
+CanvasTexture::~CanvasTexture()
 {
-    del();
+    if (m_textureId)
+        glDeleteTextures(1, &m_textureId);
 }
 
 /*!
  * \internal
  */
-bool CanvasFrameBuffer::isAlive()
+void CanvasTexture::bind(CanvasContext::glEnums target)
 {
-    return (m_framebufferId);
+    if (!m_textureId)
+        return;
+
+    glBindTexture(GLenum(target), m_textureId);
 }
 
 /*!
  * \internal
  */
-void CanvasFrameBuffer::del()
+GLuint CanvasTexture::textureId() const
 {
-    if (m_framebufferId) {
-        glDeleteFramebuffers(1, &m_framebufferId);
-        m_framebufferId = 0;
-    }
+    if (!m_isAlive)
+        return 0;
+
+    return m_textureId;
 }
 
 /*!
  * \internal
  */
-GLuint CanvasFrameBuffer::id()
+bool CanvasTexture::isAlive() const
 {
-    return m_framebufferId;
+    return bool(m_textureId);
 }
 
 /*!
  * \internal
  */
-QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
+void CanvasTexture::del()
 {
-    if (buffer)
-        dbg.nospace() << "FrameBuffer3D("<< buffer->name() <<", id:" << buffer->m_framebufferId << ")";
+    if (m_textureId)
+        glDeleteTextures(1, &m_textureId);
+    m_textureId = 0;
+}
+
+/*!
+ * \internal
+ */
+QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
+{
+    if (texture)
+        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ", id:" << texture->textureId() << ")";
     else
-        dbg.nospace() << "FrameBuffer3D("<< ((void*) buffer) <<")";
+        dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
     return dbg.maybeSpace();
 }
 

@@ -34,42 +34,78 @@
 **
 ****************************************************************************/
 
-#include <QtGui/QGuiApplication>
-#include <QtCore/QDir>
-#include <QtQuick/QQuickView>
-#include <QtQml/QQmlEngine>
-#include <QtCore/QLoggingCategory>
+#include "framebuffer3d_p.h"
 
-int main(int argc, char *argv[])
+QT_BEGIN_NAMESPACE
+QT_CANVAS3D_BEGIN_NAMESPACE
+
+/*!
+ * \qmltype FrameBuffer3D
+ * \since QtCanvas3D 1.0
+ * \inqmlmodule QtCanvas3D
+ * \brief Contains an OpenGL framebuffer.
+ *
+ * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling
+ * \l{Context3D::createFramebuffer()}{Context3D.createFramebuffer()} method.
+ */
+
+/*!
+ * \internal
+ */
+CanvasFrameBuffer::CanvasFrameBuffer(QObject *parent) :
+    CanvasAbstractObject(parent),
+    m_framebufferId(0)
 {
-    //! [0]
-    // Uncomment to turn on all the logging categories of Canvas3D
-//    QString loggingFilter = QString("qt.canvas3d.info.debug=true\n");
-//    loggingFilter += QStringLiteral("qt.canvas3d.rendering.debug=true\n")
-//            + QStringLiteral("qt.canvas3d.rendering.warning=true\n")
-//            + QStringLiteral("qt.canvas3d.glerrors.debug=true");
-//    QLoggingCategory::setFilterRules(loggingFilter);
-    //! [0]
-
-    QGuiApplication app(argc, argv);
-
-    QQuickView viewer;
-
-    // The following are needed to make examples run without having to install the module
-    // in desktop environments.
-#ifdef Q_OS_WIN
-    QString extraImportPath(QStringLiteral("%1/../../../../%2"));
-#else
-    QString extraImportPath(QStringLiteral("%1/../../../%2"));
-#endif
-    viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
-                                                       QString::fromLatin1("qml")));
-
-    viewer.setSource(QUrl("qrc:/qml/textureandlight/main.qml"));
-
-    viewer.setTitle(QStringLiteral("Textured and Lit Cube"));
-    viewer.setResizeMode(QQuickView::SizeRootObjectToView);
-    viewer.show();
-
-    return app.exec();
+    initializeOpenGLFunctions();
+    glGenFramebuffers(1, &m_framebufferId);
 }
+
+/*!
+ * \internal
+ */
+CanvasFrameBuffer::~CanvasFrameBuffer()
+{
+    del();
+}
+
+/*!
+ * \internal
+ */
+bool CanvasFrameBuffer::isAlive()
+{
+    return (m_framebufferId);
+}
+
+/*!
+ * \internal
+ */
+void CanvasFrameBuffer::del()
+{
+    if (m_framebufferId) {
+        glDeleteFramebuffers(1, &m_framebufferId);
+        m_framebufferId = 0;
+    }
+}
+
+/*!
+ * \internal
+ */
+GLuint CanvasFrameBuffer::id()
+{
+    return m_framebufferId;
+}
+
+/*!
+ * \internal
+ */
+QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
+{
+    if (buffer)
+        dbg.nospace() << "FrameBuffer3D("<< buffer->name() <<", id:" << buffer->m_framebufferId << ")";
+    else
+        dbg.nospace() << "FrameBuffer3D("<< ((void*) buffer) <<")";
+    return dbg.maybeSpace();
+}
+
+QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

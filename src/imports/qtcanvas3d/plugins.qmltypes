@@ -16,6 +16,7 @@ Module {
         Property { name: "context"; type: "CanvasContext"; isReadonly: true; isPointer: true }
         Property { name: "devicePixelRatio"; type: "float"; isReadonly: true }
         Property { name: "fps"; type: "uint"; isReadonly: true }
+        Property { name: "pixelSize"; type: "QSize" }
         Signal { name: "needRender" }
         Signal {
             name: "devicePixelRatioChanged"
@@ -26,14 +27,6 @@ Module {
             Parameter { name: "animated"; type: "bool" }
         }
         Signal {
-            name: "logAllCallsChanged"
-            Parameter { name: "logCalls"; type: "bool" }
-        }
-        Signal {
-            name: "logAllErrorsChanged"
-            Parameter { name: "logErrors"; type: "bool" }
-        }
-        Signal {
             name: "contextChanged"
             Parameter { name: "context"; type: "CanvasContext"; isPointer: true }
         }
@@ -41,8 +34,18 @@ Module {
             name: "fpsChanged"
             Parameter { name: "fps"; type: "uint" }
         }
+        Signal {
+            name: "pixelSizeChanged"
+            Parameter { name: "pixelSize"; type: "QSize" }
+        }
         Signal { name: "initGL" }
         Signal { name: "renderGL" }
+        Signal {
+            name: "resizeGL"
+            Parameter { name: "width"; type: "int" }
+            Parameter { name: "height"; type: "int" }
+            Parameter { name: "devicePixelRatio"; type: "float" }
+        }
         Signal {
             name: "textureReady"
             Parameter { name: "id"; type: "int" }
@@ -52,6 +55,8 @@ Module {
         Method { name: "ready" }
         Method { name: "shutDown" }
         Method { name: "renderNext" }
+        Method { name: "emitResizeGL" }
+        Method { name: "emitNeedRender" }
         Method {
             name: "getContext"
             type: "QJSValue"
@@ -412,7 +417,15 @@ Module {
                 "UNPACK_COLORSPACE_CONVERSION_WEBGL": 37443,
                 "BROWSER_DEFAULT_WEBGL": 37444,
                 "UNMASKED_VENDOR_WEBGL": 37445,
-                "UNMASKED_RENDERER_WEBGL": 37446
+                "UNMASKED_RENDERER_WEBGL": 37446,
+                "COMPRESSED_RGB_S3TC_DXT1_EXT": 33776,
+                "COMPRESSED_RGBA_S3TC_DXT1_EXT": 33777,
+                "COMPRESSED_RGBA_S3TC_DXT3_EXT": 33778,
+                "COMPRESSED_RGBA_S3TC_DXT5_EXT": 33779,
+                "COMPRESSED_RGB_PVRTC_4BPPV1_IMG": 35840,
+                "COMPRESSED_RGB_PVRTC_2BPPV1_IMG": 35841,
+                "COMPRESSED_RGBA_PVRTC_4BPPV1_IMG": 35842,
+                "COMPRESSED_RGBA_PVRTC_2BPPV1_IMG": 35843
             }
         }
         Property { name: "canvas"; type: "Canvas"; isReadonly: true; isPointer: true }
@@ -1663,7 +1676,7 @@ Module {
         }
         Method {
             name: "getProgramInfoLog"
-            type: "string"
+            type: "QJSValue"
             Parameter { name: "program"; type: "QJSValue" }
         }
         Method {

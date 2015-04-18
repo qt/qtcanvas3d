@@ -69,17 +69,7 @@ Item {
             GLCode.renderGL(canvas3d);
         }
 
-        // If width or height or pixel ratio changes
-        // we need to react to that in the rendering code
-        onWidthChanged: {
-            GLCode.onCanvasResize(canvas3d);
-        }
-
-        onHeightChanged: {
-            GLCode.onCanvasResize(canvas3d);
-        }
-
-        onDevicePixelRatioChanged: {
+        onResizeGL: {
             GLCode.onCanvasResize(canvas3d);
         }
     }

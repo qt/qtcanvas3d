@@ -34,36 +34,20 @@
 **
 ****************************************************************************/
 
-/*!
-    \title QtCanvas3D
-    \page qtcanvas3d-index.html
-    \brief Provides functionality for 3D drawing inside Qt Quick 2.
+#include "compressedtexturepvrtc_p.h"
 
-    QtCanvas3D module provides a way to make OpenGL-like 3D drawing calls from Qt Quick JavaScript.
+QT_BEGIN_NAMESPACE
+QT_CANVAS3D_BEGIN_NAMESPACE
 
-    \section1 Features
+CompressedTexturePVRTC::CompressedTexturePVRTC(QObject *parent) : QObject(parent)
+{
 
-    \list
-        \li Uses OpenGL or OpenGL ES2 for rendering.
-        \li Qt Quick 2 support
-    \endlist
+}
 
-    \section1 Getting Started
+CompressedTexturePVRTC::~CompressedTexturePVRTC()
+{
 
-    To import QtCanvas3D QML types, add the following import statement to your \c .qml
-    file:
+}
 
-    \snippet doc_src_qtcanvas3d.cpp 0
-
-    See the \l{QtCanvas3D Getting Started}{Getting started} page for further information on
-    how to use QtCanvas3D in your application.
-
-    \section1 References
-
-    \list
-        \li \l{QtCanvas3D QML Types}
-        \li \l{QtCanvas3D Examples}
-        \li \l {QtCanvas3D Logging}
-    \endlist
-
-*/
+QT_CANVAS3D_END_NAMESPACE
+QT_END_NAMESPACE

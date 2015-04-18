@@ -48,7 +48,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
    \qmltype GLStateDumpExt
    \since QtCanvas3D 1.0
-   \ingroup qtcanvas3d-qml-types
+   \inqmlmodule QtCanvas3D
    \brief Provides means to print current GL driver state info.
 
    An uncreatable QML type that provides an extension API that can be used dump current OpenGL
@@ -216,7 +216,6 @@ QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums opti
     glGetIntegerv(GL_SCISSOR_BOX, scissorBox);
     glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &boundElementArrayBuffer);
     glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &arrayBufferBinding);
-
 
 #if !defined(QT_OPENGL_ES_2)
     if (!m_isOpenGLES2) {

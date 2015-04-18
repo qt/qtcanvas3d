@@ -45,6 +45,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
+static ulong m_texId = 0;
 
 class StaticFactoryMapDeleter
 {
@@ -80,7 +81,7 @@ CanvasTextureImageFactory::~CanvasTextureImageFactory()
 /*!
  * \qmltype TextureImageFactory
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Create TextureImage elements.
  *
  * This static QML type is used for creating TextureImage instances by calling the
@@ -164,7 +165,7 @@ QJSValue CanvasTextureImageFactory::newTexImage()
 /*!
  * \qmltype TextureImage
  * \since QtCanvas3D 1.0
- * \ingroup qtcanvas3d-qml-types
+ * \inqmlmodule QtCanvas3D
  * \brief Contains a texture image.
  *
  * An uncreatable QML type that contains a texture image created by calling
@@ -260,7 +261,7 @@ void CanvasTextureImage::setSrc(const QUrl &url)
  */
 ulong CanvasTextureImage::id()
 {
-    return ulong(this);
+    return m_texId++;
 }
 
 /*!
