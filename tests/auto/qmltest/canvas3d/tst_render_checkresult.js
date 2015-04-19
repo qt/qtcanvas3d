@@ -53,7 +53,7 @@ var vertexColorAttribute;
 
 var colorFlagUniform;
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     gl = canvas.getContext("");
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     var pixelRatio = canvas.devicePixelRatio;
@@ -72,12 +72,12 @@ function initGL(canvas) {
     gl.uniform1i(colorFlagUniform, 1);
 }
 
-function renderGL() {
+function paintGL() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 
-function renderGL(x, y) {
+function paintGL(x, y) {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
     return checkPixel(x, y);

@@ -70,16 +70,16 @@ Window {
                 property bool animatingCamera: false
                 property bool drawWireframe: false
 
-                onInitGL: {
-                    GLCode.initGL(canvas3d);
+                onInitializeGL: {
+                    GLCode.initializeGL(canvas3d);
                 }
 
-                onRenderGL: {
-                    GLCode.renderGL(canvas3d);
+                onPaintGL: {
+                    GLCode.paintGL(canvas3d);
                 }
 
                 onResizeGL: {
-                    GLCode.onCanvasResize(canvas3d);
+                    GLCode.resizeGL(canvas3d);
                 }
 
                 MouseArea {

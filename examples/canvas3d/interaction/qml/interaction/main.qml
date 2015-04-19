@@ -60,17 +60,17 @@ Item {
         //! [3]
 
         // Emitted when one time initializations should happen
-        onInitGL: {
-            GLCode.initGL(canvas3d);
+        onInitializeGL: {
+            GLCode.initializeGL(canvas3d);
         }
 
         // Emitted each time Canvas3D is ready for a new frame
-        onRenderGL: {
-            GLCode.renderGL(canvas3d);
+        onPaintGL: {
+            GLCode.paintGL(canvas3d);
         }
 
         onResizeGL: {
-            GLCode.onCanvasResize(canvas3d);
+            GLCode.resizeGL(canvas3d);
         }
     }
 

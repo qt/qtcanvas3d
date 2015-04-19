@@ -60,7 +60,7 @@ var height = 0;
 var canvas3d;
 var pixelSize;
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     canvas3d = canvas;
     //! [1]
     // Get the OpenGL context object that represents the API we call
@@ -116,7 +116,7 @@ function initGL(canvas) {
     qtLogoImage.src = "qrc:/qml/textureandlight/qtlogo.png";
 }
 
-function onCanvasResize(canvas)
+function resizeGL(canvas)
 {
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
@@ -127,7 +127,7 @@ function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     //! [9]
     var pixelRatio = canvas.devicePixelRatio;
     var currentWidth = canvas.width * pixelRatio;

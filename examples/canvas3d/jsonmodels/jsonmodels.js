@@ -113,9 +113,9 @@ var modelFour = new Model();
 var modelFive = new Model();
 var stateDumpExt;
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     canvas3d = canvas
-    log("initGL...")
+    log("initializeGL...")
     try {
         gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
         log("   Received context: "+gl);
@@ -164,15 +164,15 @@ function initGL(canvas) {
         // Load JSON models
         loadJSONModels();
 
-        log("...initGL");
+        log("...initializeGL");
     } catch(e) {
-        console.log("...initGL FAILURE!");
+        console.log("...initializeGL FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
     }
 }
 
-function onCanvasResize(canvas)
+function resizeGL(canvas)
 {
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
@@ -183,7 +183,7 @@ function onCanvasResize(canvas)
                     canvas.height * canvas.devicePixelRatio);
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     // draw
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

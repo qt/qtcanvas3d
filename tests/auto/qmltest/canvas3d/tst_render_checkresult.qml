@@ -59,17 +59,17 @@ Item {
         id: render_check_result
         property bool textureLoaded: false
         anchors.fill: parent
-        onInitGL: Content.initGL(this)
-        onRenderGL: {
+        onInitializeGL: Content.initializeGL(this)
+        onPaintGL: {
             if (checkResult) {
-                pixels = Content.renderGL(xpos, ypos)
+                pixels = Content.paintGL(xpos, ypos)
                 red = pixels[0]
                 green = pixels[1]
                 blue = pixels[2]
                 alpha = pixels[3]
                 delete pixels
             } else {
-                Content.renderGL()
+                Content.paintGL()
                 red = -1
                 green = -1
                 blue = -1

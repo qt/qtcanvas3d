@@ -23,10 +23,6 @@ Module {
             Parameter { name: "ratio"; type: "float" }
         }
         Signal {
-            name: "animatedChanged"
-            Parameter { name: "animated"; type: "bool" }
-        }
-        Signal {
             name: "contextChanged"
             Parameter { name: "context"; type: "CanvasContext"; isPointer: true }
         }
@@ -38,8 +34,8 @@ Module {
             name: "pixelSizeChanged"
             Parameter { name: "pixelSize"; type: "QSize" }
         }
-        Signal { name: "initGL" }
-        Signal { name: "renderGL" }
+        Signal { name: "initializeGL" }
+        Signal { name: "paintGL" }
         Signal {
             name: "resizeGL"
             Parameter { name: "width"; type: "int" }

@@ -77,10 +77,10 @@ function Model() {
 
 var theModel = new Model();
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     canvas3d = canvas
     log("*******************************************************************************************")
-    log("initGL ENTER...")
+    log("initializeGL ENTER...")
     try {
         startTime = Date.now();
 
@@ -166,16 +166,16 @@ function initGL(canvas) {
         log("    XMLHttpRequest.send")
         request.send();
 
-        log("...initGL EXIT");
+        log("...initializeGL EXIT");
     } catch(e) {
-        console.log("...initGL FAILURE!");
+        console.log("...initializeGL FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
     }
     log("*******************************************************************************************");
 }
 
-function onCanvasResize(canvas)
+function resizeGL(canvas)
 {
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
@@ -186,7 +186,7 @@ function onCanvasResize(canvas)
                     canvas.height * canvas.devicePixelRatio);
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     // draw
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

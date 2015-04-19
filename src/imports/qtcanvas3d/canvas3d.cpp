@@ -66,9 +66,9 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  *
  * There are two functions that are called by the Canvas3D implementation:
  * \list
- * \li initGL is emitted before the first frame is rendered, and usually during that you get
+ * \li initializeGL is emitted before the first frame is rendered, and usually during that you get
  * the 3D context and initialize resources to be used later on during the rendering cycle.
- * \li renderGL is emitted for each frame to be rendered, and usually during that you
+ * \li paintGL is emitted for each frame to be rendered, and usually during that you
  * submit 3D rendering calls to draw whatever 3D content you want to be displayed.
  * \endlist
  *
@@ -122,12 +122,12 @@ Canvas::Canvas(QQuickItem *parent):
 }
 
 /*!
- * \qmlsignal void Canvas::initGL()
+ * \qmlsignal void Canvas::initializeGL()
  * Emitted once when Canvas3D is ready and OpenGL state initialization can be done by the client.
  */
 
 /*!
- * \qmlsignal void Canvas::renderGL()
+ * \qmlsignal void Canvas::paintGL()
  * Emitted each time a new frame should be drawn to Canvas3D. Driven by the QML scenegraph loop.
  */
 
@@ -747,7 +747,7 @@ void Canvas::renderNext()
         // Allow the JavaScript code to call the getContext() to create the context object and FBOs
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Emit inigGL() signal";
-        emit initGL();
+        emit initializeGL();
 
         if (!m_isContextAttribsSet) {
             qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -788,8 +788,8 @@ void Canvas::renderNext()
 
     // Call render in QML JavaScript side
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                         << " Emit renderGL() signal";
-    emit renderGL();
+                                         << " Emit paintGL() signal";
+    emit paintGL();
 
     // Resolve MSAA
     if (m_contextAttribs.antialias()) {

@@ -71,7 +71,7 @@ function log(message) {
         console.log(message)
 }
 
-function initGL(canvas, textureLoader) {
+function initializeGL(canvas, textureLoader) {
     canvas3d = canvas
     try {
         // Get the OpenGL context object that represents the API we call
@@ -150,7 +150,7 @@ function initGL(canvas, textureLoader) {
         gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
     } catch(e) {
-        console.log("initGL FAILURE!");
+        console.log("initializeGL FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
     }
@@ -160,7 +160,7 @@ function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     //! [4]
     // bind the FBO and setup viewport
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
@@ -232,7 +232,7 @@ function renderGL(canvas) {
     //! [9]
 }
 
-function onCanvasResize(canvas)
+function resizeGL(canvas)
 {
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,

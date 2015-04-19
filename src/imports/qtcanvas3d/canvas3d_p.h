@@ -114,8 +114,8 @@ signals:
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
 
-    void initGL();
-    void renderGL();
+    void initializeGL();
+    void paintGL();
     void resizeGL(int width, int height, float devicePixelRatio);
 
     void textureReady(int id, const QSize &size, float devicePixelRatio);
