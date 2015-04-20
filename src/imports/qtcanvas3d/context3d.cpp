@@ -5469,8 +5469,6 @@ void CanvasContext::vertexAttrib1fva(uint indx, QVariantList values)
                                          << "(indx" << indx
                                          << ", values:" << values
                                          << ")";
-    if (!m_currentProgram)
-        return;
 
     int size = values.count();
     float *arrayData = new float[size];
@@ -5497,8 +5495,6 @@ void CanvasContext::vertexAttrib2fva(uint indx, QVariantList values)
                                          << "(indx" << indx
                                          << ", values:" << values
                                          << ")";
-    if (!m_currentProgram)
-        return;
 
     int size = values.count();
     float *arrayData = new float[size];
@@ -5525,8 +5521,6 @@ void CanvasContext::vertexAttrib3fva(uint indx, QVariantList values)
                                          << "(indx" << indx
                                          << ", values:" << values
                                          << ")";
-    if (!m_currentProgram)
-        return;
 
     int size = values.count();
     float *arrayData = new float[size];
@@ -5553,8 +5547,6 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
                                          << "(indx" << indx
                                          << ", values:" << values
                                          << ")";
-    if (!m_currentProgram)
-        return;
 
     int size = values.count();
     float *arrayData = new float[size];
