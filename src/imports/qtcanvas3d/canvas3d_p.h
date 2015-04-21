@@ -93,6 +93,7 @@ public:
     void createFBOs();
 
     void bindCurrentRenderTarget();
+    GLuint resolveMSAAFbo();
 
     uint fps();
 

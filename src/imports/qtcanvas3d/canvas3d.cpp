@@ -584,6 +584,23 @@ void Canvas::updateWindowParameters()
 
 /*!
  * \internal
+ *
+ * Blits the antialias fbo into the final render fbo.
+ * Returns the final render fbo handle.
+ */
+GLuint Canvas::resolveMSAAFbo()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                         << " Resolving MSAA from FBO:"
+                                         << m_antialiasFbo->handle()
+                                         << " to FBO:" << m_renderFbo->handle();
+    QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
+
+    return m_renderFbo->handle();
+}
+
+/*!
+ * \internal
  */
 void Canvas::ready()
 {
@@ -791,14 +808,8 @@ void Canvas::renderNext()
                                          << " Emit paintGL() signal";
     emit paintGL();
 
-    // Resolve MSAA
-    if (m_contextAttribs.antialias()) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Resolving MSAA from FBO:"
-                                             << m_antialiasFbo->handle()
-                                             << " to FBO:" << m_renderFbo->handle();
-        QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
-    }
+    if (m_contextAttribs.antialias())
+        resolveMSAAFbo();
 
     // We need to flush the contents to the FBO before posting
     // the texture to the other thread, otherwise, we might

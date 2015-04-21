@@ -5214,7 +5214,18 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
         return;
     }
 
+    // Check if the buffer is antialiased. If it is, we need to blit to the final buffer before
+    // reading the value.
+    if (m_contextAttributes.antialias()) {
+        GLuint readFbo = m_canvas->resolveMSAAFbo();
+        glBindFramebuffer(GL_FRAMEBUFFER, readFbo);
+    }
+
     glReadPixels(x, y, width, height, format, type, bufferPtr);
+
+    if (m_contextAttributes.antialias())
+        m_canvas->bindCurrentRenderTarget();
+
     logAllGLErrors(__FUNCTION__);
 }
 
