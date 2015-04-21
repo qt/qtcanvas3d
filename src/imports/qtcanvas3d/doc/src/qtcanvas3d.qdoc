@@ -194,5 +194,8 @@
  *      In desktop OpenGL on some platforms (for example OS X), nothing gets drawn if vertex attrib
  *      0 is not array-enabled. You can use bindAttribLocation() to force a vertex attribute to use
  *      location 0, and use enableVertexAttribArray() to make it array-enabled.
+ *
+ *      \li No special error detection for binding attributes to overlapping locations
+ *      (i.e. attribute aliasing) when linking a shader program.
  * \endlist
  */
