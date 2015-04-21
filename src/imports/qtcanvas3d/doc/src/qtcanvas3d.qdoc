@@ -197,5 +197,8 @@
  *
  *      \li No special error detection for binding attributes to overlapping locations
  *      (i.e. attribute aliasing) when linking a shader program.
+ *
+ *      \li The drawArrays and drawElements calls don't check for the validity of the enabled
+ *      attributes or the buffers they point to.
  * \endlist
  */
