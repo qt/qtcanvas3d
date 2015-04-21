@@ -182,3 +182,17 @@
              to find root causes of rendering errors.
     \endtable
 */
+
+/*!
+ * \page qtcanvas3d-conformance-issues-html
+ * \title Qt Canvas 3D Known WebGL Conformance Issues
+ *
+ * \brief Known WebGL conformance issues
+ *
+ * \list
+ *      \li No emulation for vertex attrib 0 arrays. Always have vertex attrib 0 array enabled.
+ *      In desktop OpenGL on some platforms (for example OS X), nothing gets drawn if vertex attrib
+ *      0 is not array-enabled. You can use bindAttribLocation() to force a vertex attribute to use
+ *      location 0, and use enableVertexAttribArray() to make it array-enabled.
+ * \endlist
+ */
