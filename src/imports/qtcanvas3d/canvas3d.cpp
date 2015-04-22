@@ -345,6 +345,14 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Set the size and create FBOs
         setPixelSize(m_initializedSize);
+        m_displayFbo->bind();
+        glViewport(0, 0,
+                   m_fboSize.width(),
+                   m_fboSize.height());
+        m_renderFbo->bind();
+        glViewport(0, 0,
+                   m_fboSize.width(),
+                   m_fboSize.height());
 
         // Create the Context3D
         m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,
@@ -459,16 +467,11 @@ void Canvas::createFBOs()
                                                 m_fboFormat);
 
     // Clear the FBOs to prevent random junk appearing on the screen
+    // Note: Viewport may not be changed automatically
     glClearColor(0,0,0,0);
     m_displayFbo->bind();
-    glViewport(0, 0,
-               m_fboSize.width(),
-               m_fboSize.height());
     glClear(GL_COLOR_BUFFER_BIT);
     m_renderFbo->bind();
-    glViewport(0, 0,
-               m_fboSize.width(),
-               m_fboSize.height());
     glClear(GL_COLOR_BUFFER_BIT);
 
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
