@@ -243,7 +243,6 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Ensure ignored attributes are left to their default state
         m_contextAttribs.setPremultipliedAlpha(false);
-        m_contextAttribs.setPreserveDrawingBuffer(false);
         m_contextAttribs.setPreferLowPowerToHighPerformance(false);
         m_contextAttribs.setFailIfMajorPerformanceCaveat(false);
     }
@@ -845,6 +844,20 @@ void Canvas::renderNext()
                                          << " Displaying texture:"
                                          << m_displayFbo->texture()
                                          << " from FBO:" << m_displayFbo->handle();
+
+    if (m_contextAttribs.preserveDrawingBuffer()) {
+        // Copy the content of display fbo to the render fbo
+        GLint texBinding2D;
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &texBinding2D);
+
+        m_displayFbo->bind();
+        glBindTexture(GL_TEXTURE_2D, m_renderFbo->texture());
+
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, m_displayFbo->format().internalTextureFormat(),
+                         0, 0, m_fboSize.width(), m_fboSize.height(), 0);
+
+        glBindTexture(GL_TEXTURE_2D, texBinding2D);
+    }
 
     // FBO ids and texture id's have been generated, we can now free the old display FBO
     delete m_oldDisplayFbo;
