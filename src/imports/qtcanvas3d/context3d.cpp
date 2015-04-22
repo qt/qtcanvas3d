@@ -5214,16 +5214,19 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
         return;
     }
 
+    // Zero out the buffer (WebGL conformance requires pixels outside the framebuffer to be 0)
+    memset(bufferPtr, 0, width * height * 4);
+
     // Check if the buffer is antialiased. If it is, we need to blit to the final buffer before
     // reading the value.
-    if (m_contextAttributes.antialias()) {
+    if (m_contextAttributes.antialias() && !m_currentFramebuffer) {
         GLuint readFbo = m_canvas->resolveMSAAFbo();
         glBindFramebuffer(GL_FRAMEBUFFER, readFbo);
     }
 
     glReadPixels(x, y, width, height, format, type, bufferPtr);
 
-    if (m_contextAttributes.antialias())
+    if (m_contextAttributes.antialias() && !m_currentFramebuffer)
         m_canvas->bindCurrentRenderTarget();
 
     logAllGLErrors(__FUNCTION__);

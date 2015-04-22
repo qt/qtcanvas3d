@@ -52,13 +52,13 @@ var textureCoordAttribute;
 var vertexColorAttribute;
 
 var colorFlagUniform;
+var customFbo;
 
 function initializeGL(canvas) {
     gl = canvas.getContext("");
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
     var pixelRatio = canvas.devicePixelRatio;
     gl.viewport(0, 0, pixelRatio * canvas.width, pixelRatio * canvas.height);
-    gl.clearColor(1.0, 0.0, 0.0, 1.0);
 
     initShaders();
     initBuffers();
@@ -73,14 +73,29 @@ function initializeGL(canvas) {
 }
 
 function paintGL() {
+    gl.clearColor(1.0, 0.0, 0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
 }
 
-function paintGL(x, y) {
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+function paintGL(x, y, separateFbo) {
+    if (separateFbo) {
+        gl.bindFramebuffer(gl.FRAMEBUFFER, customFbo);
+        gl.clearColor(0.0, 1.0, 0.0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT);
+    } else {
+        gl.clearColor(1.0, 0.0, 0, 1.0);
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    }
+
     gl.drawElements(gl.TRIANGLES, 6, gl.UNSIGNED_SHORT, 0);
-    return checkPixel(x, y);
+
+    var pixels = checkPixel(x, y);
+
+    if (separateFbo)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
+    return pixels;
 }
 
 function checkPixel(x, y) {
@@ -172,6 +187,18 @@ function initBuffers()
                   new Uint16Array([0, 1, 2,
                                    0, 2, 3]),
                   gl.STATIC_DRAW);
+
+    // Custom framebuffer
+    customFbo = gl.createFramebuffer();
+    gl.bindFramebuffer(gl.FRAMEBUFFER, customFbo);
+    var texture = gl.createTexture();
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.canvas.width, gl.canvas.height, 0, gl.RGBA,
+                  gl.UNSIGNED_BYTE, null);
+    gl.framebufferTexture2D(gl.FRAMEBUFFER, gl.COLOR_ATTACHMENT0, gl.TEXTURE_2D, texture, 0);
+
+    gl.bindFramebuffer(gl.FRAMEBUFFER, null);
+
 }
 
 function initShaders()
