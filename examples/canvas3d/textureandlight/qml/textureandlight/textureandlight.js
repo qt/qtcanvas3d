@@ -48,7 +48,6 @@ var cubeTexture = 0;
 var vertexPositionAttribute;
 var textureCoordAttribute;
 var vertexNormalAttribute;
-var vertexColorAttribute;
 var mvMatrix = mat4.create();
 var pMatrix  = mat4.create();
 var nMatrix  = mat4.create();
@@ -73,9 +72,9 @@ function initializeGL(canvas) {
     gl.depthFunc(gl.DEPTH_LESS);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.98, 0.98, 0.98, 1.0);
     gl.clearDepth(1.0);
-    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
     //! [2]
 
     // Set viewport
@@ -87,7 +86,7 @@ function initializeGL(canvas) {
     // Initialize vertex and color buffers
     initBuffers();
 
-    // Load the Qt logo as texture
+    // Load the textures
     var qtLogoImage = TextureImageFactory.newTexImage();
     //! [8]
     qtLogoImage.imageLoaded.connect(function() {
@@ -228,28 +227,8 @@ function initBuffers()
                   gl.STATIC_DRAW);
     //! [7]
 
-    var cubeVertexColorBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
-    var colors = [
-                [0.0,  1.0,  1.0,  1.0],    // Front face: white
-                [1.0,  0.0,  0.0,  1.0],    // Back face: red
-                [0.0,  1.0,  0.0,  1.0],    // Top face: green
-                [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-                [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-                [1.0,  0.0,  1.0,  1.0]     // Left face: purple
-            ];
-    var generatedColors = [];
-    for (var j = 0; j < 6; j++) {
-        var c = colors[j];
-
-        for (var i = 0; i < 4; i++) {
-            generatedColors = generatedColors.concat(c);
-        }
-    }
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
-    gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
-
     var cubeVerticesTextureCoordBuffer = gl.createBuffer();
+    cubeVerticesTextureCoordBuffer.name = "cubeVerticesTextureCoordBuffer";
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVerticesTextureCoordBuffer);
     var textureCoordinates = [
                 // Front
@@ -336,7 +315,6 @@ function initShaders()
     var vertexShader = getShader(gl,
                                  "attribute highp vec3 aVertexNormal;    \
                                   attribute highp vec3 aVertexPosition;  \
-                                  attribute mediump vec4 aVertexColor;   \
                                   attribute highp vec2 aTextureCoord;    \
                                                                          \
                                   uniform highp mat4 uNormalMatrix;      \
@@ -349,7 +327,6 @@ function initShaders()
                                                                          \
                                   void main(void) {                      \
                                       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0); \
-                                      vColor = aVertexColor;                                           \
                                       vTextureCoord = aTextureCoord;                                   \
                                       highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);                   \
                                       highp vec3 directionalLightColor = vec3(0.75, 0.75, 0.75);       \
@@ -361,16 +338,14 @@ function initShaders()
     //! [3]
     //! [4]
     var fragmentShader = getShader(gl,
-                                   "varying mediump vec4 vColor;       \
-                                    varying highp vec2 vTextureCoord;  \
+                                   "varying highp vec2 vTextureCoord;  \
                                     varying highp vec3 vLighting;      \
                                                                        \
                                     uniform sampler2D uSampler;        \
                                                                        \
                                     void main(void) {                  \
-                                        mediump vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)); \
-                                        mediump vec3 blendColor = mix(vColor.rgb, texelColor.rgb, texelColor.a);               \
-                                        gl_FragColor = vec4(blendColor * vLighting, 1.0);                                      \
+                                        mediump vec3 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)).rgb; \
+                                        gl_FragColor = vec4(texelColor * vLighting, 1.0);                                      \
                                     }", gl.FRAGMENT_SHADER);
     //! [4]
     //! [5]
@@ -398,8 +373,6 @@ function initShaders()
     // Look up where the vertex data needs to go
     vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(vertexPositionAttribute);
-    vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(vertexColorAttribute);
     textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
     vertexNormalAttribute = gl.getAttribLocation(shaderProgram, "aVertexNormal");

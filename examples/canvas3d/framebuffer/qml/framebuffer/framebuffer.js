@@ -167,7 +167,7 @@ function paintGL(canvas) {
     gl.viewport(0, 0, rttWidth, rttHeight);
     //! [4]
 
-    gl.clearColor(0.0, 0.0, 1.0, 1.0);
+    gl.clearColor(0.95, 0.95, 0.95, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     //! [5]
@@ -208,7 +208,7 @@ function paintGL(canvas) {
                 canvas.width * canvas.devicePixelRatio,
                 canvas.height * canvas.devicePixelRatio);
     //! [8]
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);
+    gl.clearColor(0.98, 0.98, 0.98, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Calculate and set matrix uniforms
@@ -284,6 +284,7 @@ function initBuffers()
                                         -1.0,  1.0, -1.0
                                        ]),
                 gl.STATIC_DRAW);
+
     gl.enableVertexAttribArray(vertexPositionAttribute);
     gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
@@ -302,31 +303,6 @@ function initBuffers()
                                         ]),
                   gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
-
-    var colors = [
-                [0.0,  1.0,  1.0,  1.0],    // Front face: white
-                [1.0,  0.0,  0.0,  1.0],    // Back face: red
-                [0.0,  1.0,  0.0,  1.0],    // Top face: green
-                [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
-                [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
-                [1.0,  0.0,  1.0,  1.0]     // Left face: purple
-            ];
-
-    var generatedColors = [];
-    for (var j = 0; j < 6; j++) {
-        var c = colors[j];
-
-        for (var i = 0; i < 4; i++) {
-            generatedColors = generatedColors.concat(c);
-        }
-    }
-    log("        cubeVertexColorBuffer");
-    var cubeVertexColorBuffer = gl.createBuffer();
-    cubeVertexColorBuffer.name = "cubeVertexColorBuffer";
-    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(vertexColorAttribute);
-    gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
     log("        cubeVerticesTextureCoordBuffer");
     var cubeVerticesTextureCoordBuffer = gl.createBuffer();
@@ -418,7 +394,6 @@ function initShaders()
     var vertexShader = getShader(gl,
                                  "attribute highp vec3 aVertexNormal;   \
                                   attribute highp vec3 aVertexPosition; \
-                                  attribute mediump vec4 aVertexColor;  \
                                   attribute highp vec2 aTextureCoord;   \
 
                                   uniform highp mat4 uNormalMatrix;     \
@@ -431,26 +406,23 @@ function initShaders()
 
                                   void main(void) {                     \
                                       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                      \
-                                      vColor = aVertexColor;                                                                \
                                       vTextureCoord = aTextureCoord;                                                        \
                                       highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);                                        \
-                                      highp vec3 directionalLightColor = vec3(0.75, 0.5, 0.75);                             \
+                                      highp vec3 directionalLightColor = vec3(0.75, 0.75, 0.75);                             \
                                       highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);                                 \
                                       highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);              \
                                       highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);    \
                                       vLighting = ambientLight + (directionalLightColor * directional);                     \
                                   }", gl.VERTEX_SHADER);
     var fragmentShader = getShader(gl,
-                                   "varying mediump vec4 vColor;        \
-                                    varying highp vec2 vTextureCoord;   \
+                                   "varying highp vec2 vTextureCoord;   \
                                     varying highp vec3 vLighting;       \
 
                                     uniform sampler2D uSampler;         \
 
                                     void main(void) {                   \
-                                        mediump vec4 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t));  \
-                                        mediump vec3 blendColor = mix(vColor.rgb, texelColor.rgb, texelColor.a);                \
-                                        gl_FragColor = vec4(blendColor * vLighting, 1.0);                                       \
+                                        mediump vec3 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)).rgb;  \
+                                        gl_FragColor = vec4(texelColor * vLighting, 1.0);                                       \
                                     }", gl.FRAGMENT_SHADER);
 
     var shaderProgram = gl.createProgram();
@@ -468,8 +440,6 @@ function initShaders()
     // look up where the vertex data needs to go.
     vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(vertexPositionAttribute);
-    vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
-    gl.enableVertexAttribArray(vertexColorAttribute);
     textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
     gl.enableVertexAttribArray(textureCoordAttribute);
     vertexNormalAttribute =gl.getAttribLocation(shaderProgram, "aVertexNormal");

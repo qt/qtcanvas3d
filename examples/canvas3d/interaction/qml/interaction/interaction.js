@@ -107,7 +107,7 @@ function initializeGL(canvas) {
 
         gl.disable(gl.BLEND);
 
-        gl.clearColor(0.0, 0.0, 0.0, 1.0);
+        gl.clearColor(0.98, 0.98, 0.98, 1.0);
         gl.clearDepth(1.0);
 
         // Set viewport

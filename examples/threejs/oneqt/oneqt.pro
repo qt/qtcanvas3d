@@ -2,9 +2,16 @@
     error( "Couldn't find the examples.pri file!" )
 }
 
-SOURCES += main.cpp
+TEMPLATE = app
 
-RESOURCES += qml.qrc
+QT += qml quick
+
+SOURCES += main.cpp
 
 OTHER_FILES += doc/src/* \
                doc/images/*
+
+RESOURCES += oneqt.qrc
+
+DISTFILES += \
+    ImageCube.qml
