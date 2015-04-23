@@ -88,7 +88,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isFirstRender(true),
     m_fboSize(0, 0),
     m_initializedSize(1, 1),
-    m_maxSize(128,128),
+    m_maxSize(0, 0),
     m_glContext(0),
     m_glContextQt(0),
     m_glContextShare(0),
@@ -170,6 +170,64 @@ void Canvas::shutDown()
     m_glContextQt = 0;
     m_glContextShare->deleteLater();
     m_glContextShare = 0;
+}
+
+/*!
+ * \internal
+ *
+ * Override QQuickItem's setWidth to be able to limit the maximum canvas size to maximum viewport
+ * dimensions.
+ */
+void Canvas::setWidth(int width)
+{
+    int newWidth = width;
+    int maxWidth = m_maxSize.width();
+    if (maxWidth && width > maxWidth) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum width exceeded. Limiting to "
+                                             << maxWidth;
+        newWidth = maxWidth;
+    }
+
+    QQuickItem::setWidth(newWidth);
+}
+
+/*!
+ * \internal
+ */
+int Canvas::width()
+{
+    return QQuickItem::width();
+}
+
+/*!
+ * \internal
+ *
+ * Override QQuickItem's setHeight to be able to limit the maximum canvas size to maximum viewport
+ * dimensions.
+ */
+void Canvas::setHeight(int height)
+{
+    int newHeight = height;
+    int maxHeight = m_maxSize.height();
+    if (maxHeight && height > maxHeight) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum height exceeded. Limiting to "
+                                             << maxHeight;
+        newHeight = maxHeight;
+    }
+
+    QQuickItem::setHeight(newHeight);
+}
+
+/*!
+ * \internal
+ */
+int Canvas::height()
+{
+    return QQuickItem::height();
 }
 
 /*!
@@ -352,6 +410,23 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         glViewport(0, 0,
                    m_fboSize.width(),
                    m_fboSize.height());
+
+        // Verify that width and height are not initially too large, in case width and height
+        // were set before getting GL_MAX_VIEWPORT_DIMS
+        if (width() > m_maxSize.width()) {
+            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                                 << "():"
+                                                 << "Maximum width exceeded. Limiting to "
+                                                 << m_maxSize.width();
+            QQuickItem::setWidth(m_maxSize.width());
+        }
+        if (height() > m_maxSize.height()) {
+            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                                 << "():"
+                                                 << "Maximum height exceeded. Limiting to "
+                                                 << m_maxSize.height();
+            QQuickItem::setHeight(m_maxSize.height());
+        }
 
         // Create the Context3D
         m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,

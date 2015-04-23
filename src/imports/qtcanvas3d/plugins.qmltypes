@@ -17,6 +17,8 @@ Module {
         Property { name: "devicePixelRatio"; type: "float"; isReadonly: true }
         Property { name: "fps"; type: "uint"; isReadonly: true }
         Property { name: "pixelSize"; type: "QSize" }
+        Property { name: "width"; type: "int" }
+        Property { name: "height"; type: "int" }
         Signal { name: "needRender" }
         Signal {
             name: "devicePixelRatioChanged"

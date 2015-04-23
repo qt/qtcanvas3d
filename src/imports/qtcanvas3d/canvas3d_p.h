@@ -81,6 +81,8 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
+    Q_PROPERTY(int width READ width WRITE setWidth)
+    Q_PROPERTY(int height READ height WRITE setHeight)
 
 public:
     Canvas(QQuickItem *parent = 0);
@@ -91,6 +93,10 @@ public:
     QSize pixelSize();
     void setPixelSize(QSize pixelSize);
     void createFBOs();
+    void setWidth(int width);
+    int width();
+    void setHeight(int height);
+    int height();
 
     void bindCurrentRenderTarget();
     GLuint resolveMSAAFbo();
