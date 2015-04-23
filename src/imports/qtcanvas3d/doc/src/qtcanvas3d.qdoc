@@ -200,5 +200,7 @@
  *
  *      \li The drawArrays and drawElements calls don't check for the validity of the enabled
  *      attributes or the buffers they point to.
+ *
+ *      \li Enabling the stencil context attribute also forces the depth attribute to be enabled.
  * \endlist
  */
