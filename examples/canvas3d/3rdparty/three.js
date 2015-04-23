@@ -1,7 +1,32 @@
 // File:src/qml/ThreeQML.js
 
+/*
+The MIT License
+
+Copyright © 2010-2015 three.js authors
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+THE SOFTWARE.
+*/
+
 /**
- * three.js QML port by
+ * QtQuick port of three.js library https://github.com/mrdoob/three.js
+ * Port source code is available at https://github.com/tronlec/three.js
  * @author Pasi keränen / pasi.keranen@theqtcompany.com
  */
 
@@ -18128,10 +18153,17 @@ THREE.XHRLoader.prototype = {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
                 if (request.readyState === XMLHttpRequest.DONE) {
-// TODO: Re-visit when issue with 'status' is solved in Qt
+// TODO: Re-visit https://bugreports.qt.io/browse/QTBUG-45581 is solved in Qt
                     if (request.status == 200 || request.status == 0) {
-                        THREE.Cache.add( url, request.response );
-                        if ( onLoad ) onLoad( request.response );
+                        var response;
+// TODO: Remove once https://bugreports.qt.io/browse/QTBUG-45862 is fixed in Qt
+                        if ( scope.responseType == 'arraybuffer' )
+                            response = request.response;
+                        else
+                            response = request.responseText;
+
+                        THREE.Cache.add( url, response );
+                        if ( onLoad ) onLoad( response );
                         scope.manager.itemEnd( url );
                     } else {
                         if ( onError !== undefined ) {
@@ -18874,7 +18906,7 @@ THREE.BufferGeometryLoader.prototype = {
 		loader.setCrossOrigin( this.crossOrigin );
 		loader.load( url, function ( text ) {
 
-            onLoad( scope.parse( JSON.parse( text ) ) );
+			onLoad( scope.parse( JSON.parse( text ) ) );
 
 		}, onProgress, onError );
 
@@ -19248,7 +19280,7 @@ THREE.ObjectLoader.prototype = {
 
 				if ( data.name !== undefined ) material.name = data.name;
 
-				if ( data.map !== undefined ) {
+                if ( data.map !== undefined && data.map !== null ) {
 
 					material.map = getTexture( data.map );
 
@@ -19763,11 +19795,11 @@ THREE.CompressedTextureLoader.prototype = {
 
 			loader.load( url, function ( buffer ) {
 
-                var texDatas = scope._parser( buffer, true );
+				var texDatas = scope._parser( buffer, true );
 
 				if ( texDatas.isCubemap ) {
 
-                    var faces = texDatas.mipmaps.length / texDatas.mipmapCount;
+					var faces = texDatas.mipmaps.length / texDatas.mipmapCount;
 
 					for ( var f = 0; f < faces; f ++ ) {
 
@@ -19785,16 +19817,14 @@ THREE.CompressedTextureLoader.prototype = {
 					}
 
 				} else {
-                    console.log("texture: mipmap");
-                    console.log("texture: mipmaps "+texDatas.mipmaps.length);
-                    texture.image.width = texDatas.width;
+
+					texture.image.width = texDatas.width;
 					texture.image.height = texDatas.height;
 					texture.mipmaps = texDatas.mipmaps;
 
 				}
 
-                console.log("texture: mipmapcount "+texDatas.mipmapCount);
-                if ( texDatas.mipmapCount === 1 ) {
+				if ( texDatas.mipmapCount === 1 ) {
 
 					texture.minFilter = THREE.LinearFilter;
 
@@ -24612,12 +24642,12 @@ THREE.WebGLProgram = ( function () {
 
 			prefix_fragment = [
 
-				'precision ' + parameters.precision + ' float;',
+                ( parameters.bumpMap || parameters.normalMap || parameters.flatShading ) ? '#extension GL_OES_standard_derivatives : enable' : '',
+
+                'precision ' + parameters.precision + ' float;',
 				'precision ' + parameters.precision + ' int;',
 
-				( parameters.bumpMap || parameters.normalMap || parameters.flatShading ) ? '#extension GL_OES_standard_derivatives : enable' : '',
-
-				customDefines,
+                customDefines,
 
 				'#define MAX_DIR_LIGHTS ' + parameters.maxDirLights,
 				'#define MAX_POINT_LIGHTS ' + parameters.maxPointLights,

@@ -1,2 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += oneqt
+SUBDIRS += oneqt \
+           planets
