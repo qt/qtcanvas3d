@@ -1084,8 +1084,8 @@ public:
                                                           const QString &name);
     Q_INVOKABLE int getAttribLocation(QJSValue program, const QString &name);
     Q_INVOKABLE void bindAttribLocation(QJSValue program, int index, const QString &name);
-    Q_INVOKABLE QJSValue getProgramInfoLog(QJSValue program) const;
-    Q_INVOKABLE bool isProgram(QJSValue anyObject) const;
+    Q_INVOKABLE QJSValue getProgramInfoLog(QJSValue program);
+    Q_INVOKABLE bool isProgram(QJSValue anyObject);
     Q_INVOKABLE void deleteProgram(QJSValue program);
 
     Q_INVOKABLE void disableVertexAttribArray(int index);
@@ -1104,7 +1104,7 @@ public:
 
     Q_INVOKABLE int getShaderParameter(QJSValue shader3D, glEnums paramName);
     Q_INVOKABLE QVariant getProgramParameter(QJSValue program, glEnums paramName);
-    Q_INVOKABLE QJSValue getShaderInfoLog(QJSValue shader3D) const;
+    Q_INVOKABLE QJSValue getShaderInfoLog(QJSValue shader3D);
 
     /* Buffer object methods */
     Q_INVOKABLE QJSValue createBuffer();
@@ -1228,6 +1228,7 @@ private:
     bool isOfType(const QJSValue &value, const QString &classname) const;
 
     bool isValidTextureBound(glEnums target, const QString &funcName);
+    bool checkParent(QObject *jsObj, const char *function);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
