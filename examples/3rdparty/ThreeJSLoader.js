@@ -122,19 +122,29 @@ function parseJSON3DModel( json, texturePath )
         // Translate to model we can use from GL
         var glModel = new GLModel();
 
-        for (i = 0; i < geometry.vertices.length; i++) {
-            glModel.vertices.push(geometry.vertices[i].x);
-            glModel.vertices.push(geometry.vertices[i].y);
-            glModel.vertices.push(geometry.vertices[i].z);
-        }
 
         glModel.texCoords[0] = [];
         for (var faceIdx = 0; faceIdx < geometry.faces.length; faceIdx++) {
             var face = geometry.faces[faceIdx];
             // Array indices
-            glModel.indices.push(face.a);
-            glModel.indices.push(face.b);
-            glModel.indices.push(face.c);
+            var fidx = faceIdx * 3;
+            glModel.indices.push(fidx);
+            glModel.indices.push(fidx + 1);
+            glModel.indices.push(fidx + 2);
+
+            var v1 = geometry.vertices[face.a];
+            var v2 = geometry.vertices[face.b];
+            var v3 = geometry.vertices[face.c];
+
+            glModel.vertices.push(v1.x);
+            glModel.vertices.push(v1.y);
+            glModel.vertices.push(v1.z);
+            glModel.vertices.push(v2.x);
+            glModel.vertices.push(v2.y);
+            glModel.vertices.push(v2.z);
+            glModel.vertices.push(v3.x);
+            glModel.vertices.push(v3.y);
+            glModel.vertices.push(v3.z);
 
             // Materials
             // face.materialIndex
@@ -142,50 +152,44 @@ function parseJSON3DModel( json, texturePath )
             // Only parse first layer of UVs for this face
             for(var uvLayer = 0; uvLayer < geometry.faceVertexUvs.length; uvLayer++) {
                 var faceUVs = geometry.faceVertexUvs[uvLayer][faceIdx];
-                var idxUVA = face.a * 2;
-                var idxUVB = face.b * 2;
-                var idxUVC = face.c * 2;
 
-                glModel.texCoords[uvLayer][idxUVA++] = faceUVs[0].x;
-                glModel.texCoords[uvLayer][idxUVA  ] = faceUVs[0].y;
-                glModel.texCoords[uvLayer][idxUVB++] = faceUVs[1].x;
-                glModel.texCoords[uvLayer][idxUVB  ] = faceUVs[1].y;
-                glModel.texCoords[uvLayer][idxUVC++] = faceUVs[2].x;
-                glModel.texCoords[uvLayer][idxUVC  ] = faceUVs[2].y;
+                glModel.texCoords[uvLayer].push(faceUVs[0].x);
+                glModel.texCoords[uvLayer].push(faceUVs[0].y);
+                glModel.texCoords[uvLayer].push(faceUVs[1].x);
+                glModel.texCoords[uvLayer].push(faceUVs[1].y);
+                glModel.texCoords[uvLayer].push(faceUVs[2].x);
+                glModel.texCoords[uvLayer].push(faceUVs[2].y);
             }
 
             // Normal
             if (face.vertexNormals !== undefined) {
                 // Per vertex normals
-                var idxA = face.a * 3;
-                var idxB = face.b * 3;
-                var idxC = face.c * 3;
                 var vrtNormals = face.vertexNormals;
 
-                glModel.normals[idxA++] = vrtNormals[0].x;
-                glModel.normals[idxA++] = vrtNormals[0].y;
-                glModel.normals[idxA  ] = vrtNormals[0].z;
+                var v1 = vrtNormals[0];
+                var v2 = vrtNormals[1];
+                var v3 = vrtNormals[2];
 
-                glModel.normals[idxB++] = vrtNormals[1].x;
-                glModel.normals[idxB++] = vrtNormals[1].y;
-                glModel.normals[idxB  ] = vrtNormals[1].z;
-
-                glModel.normals[idxC++] = vrtNormals[2].x;
-                glModel.normals[idxC++] = vrtNormals[2].y;
-                glModel.normals[idxC  ] = vrtNormals[2].z;
+                glModel.normals.push(v1.x);
+                glModel.normals.push(v1.y);
+                glModel.normals.push(v1.z);
+                glModel.normals.push(v2.x);
+                glModel.normals.push(v2.y);
+                glModel.normals.push(v2.z);
+                glModel.normals.push(v3.x);
+                glModel.normals.push(v3.y);
+                glModel.normals.push(v3.z);
             } else if (face.normal !== undefined) {
                 // Per face normal
-                glModel.normals[idxA++] = face.normal.x;
-                glModel.normals[idxA++] = face.normal.y;
-                glModel.normals[idxA  ] = face.normal.z;
-
-                glModel.normals[idxB++] = face.normal.x;
-                glModel.normals[idxB++] = face.normal.y;
-                glModel.normals[idxB  ] = face.normal.z;
-
-                glModel.normals[idxC++] = face.normal.x;
-                glModel.normals[idxC++] = face.normal.y;
-                glModel.normals[idxC  ] = face.normal.z;
+                glModel.normals.push(face.normal.x);
+                glModel.normals.push(face.normal.y);
+                glModel.normals.push(face.normal.z);
+                glModel.normals.push(face.normal.x);
+                glModel.normals.push(face.normal.y);
+                glModel.normals.push(face.normal.z);
+                glModel.normals.push(face.normal.x);
+                glModel.normals.push(face.normal.y);
+                glModel.normals.push(face.normal.z);
             }
         }
     }
