@@ -202,5 +202,7 @@
  *      attributes or the buffers they point to.
  *
  *      \li Enabling the stencil context attribute also forces the depth attribute to be enabled.
+ *
+ *      \li Disabling alpha context attribute does not work on some platforms.
  * \endlist
  */
