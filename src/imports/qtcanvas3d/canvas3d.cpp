@@ -99,6 +99,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isOpenGLES2(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
+    m_resizeGLQueued(false),
     m_antialiasFbo(0),
     m_renderFbo(0),
     m_displayFbo(0),
@@ -107,8 +108,8 @@ Canvas::Canvas(QQuickItem *parent):
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
-    connect(this, &QQuickItem::widthChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
-    connect(this, &QQuickItem::heightChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -490,7 +491,9 @@ void Canvas::setPixelSize(QSize pixelSize)
 
     m_fboSize = pixelSize;
     createFBOs();
-    emit pixelSizeChanged(pixelSize);
+
+    // Queue the pixel size signal to next repaint cycle and queue repaint
+    queueResizeGL();
     emitNeedRender();
 }
 
@@ -648,7 +651,7 @@ void Canvas::updateWindowParameters()
         if (pixelRatio != m_devicePixelRatio) {
             m_devicePixelRatio = pixelRatio;
             emit devicePixelRatioChanged(pixelRatio);
-            emitResizeGL();
+            queueResizeGL();
             win->update();
         }
     }
@@ -862,6 +865,14 @@ void Canvas::renderNext()
     // Bind the correct render target FBO
     bindCurrentRenderTarget();
 
+    // Signal changes in pixel size
+    if (m_resizeGLQueued) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << " Emit resizeGL() signal";
+        emit resizeGL(int(width()), int(height()), m_devicePixelRatio);
+        m_resizeGLQueued = false;
+    }
+
     // Ensure we have correct clip rect set in the context
     QRect viewport = m_context3D->glViewportRect();
     glViewport(viewport.x(), viewport.y(), viewport.width(), viewport.height());
@@ -948,22 +959,11 @@ void Canvas::renderNext()
 /*!
  * \internal
  */
-void Canvas::emitResizeGL()
+void Canvas::queueResizeGL()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
 
-    // Wait until render node has been created
-    if (!m_renderNodeReady) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Render node not ready, returning";
-        return;
-    }
-
-    if (m_glContext) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Emit resizeGL() signal";
-        emit resizeGL(int(width()), int(height()), m_devicePixelRatio);
-    }
+    m_resizeGLQueued = true;
 }
 
 /*!

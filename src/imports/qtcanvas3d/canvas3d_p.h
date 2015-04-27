@@ -111,7 +111,7 @@ public slots:
     void ready();
     void shutDown();
     void renderNext();
-    void emitResizeGL();
+    void queueResizeGL();
     void emitNeedRender();
 
 signals:
@@ -161,6 +161,7 @@ private:
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;
+    bool m_resizeGLQueued;
 
     QOpenGLFramebufferObject *m_antialiasFbo;
     QOpenGLFramebufferObject *m_renderFbo;
