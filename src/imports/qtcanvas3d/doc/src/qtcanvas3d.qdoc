@@ -204,5 +204,11 @@
  *      \li Enabling the stencil context attribute also forces the depth attribute to be enabled.
  *
  *      \li Disabling alpha context attribute does not work on some platforms.
+ *
+ *      \li Trying to set canvas size to MAX_VIEWPORT_DIMS may result in OUT_OF_MEMORY on some
+ *      graphics cards.
+ *
+ *      \li The following extra methods exist for contexts: objectNameChanged, nameChanged,
+ *      canvasChanged, drawingBufferWidthChanged, and drawingBufferHeightChanged.
  * \endlist
  */
