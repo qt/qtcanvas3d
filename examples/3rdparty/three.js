@@ -18128,16 +18128,16 @@ THREE.XHRLoader.prototype = {
         var request = new XMLHttpRequest();
         request.onreadystatechange = function() {
                 if (request.readyState === XMLHttpRequest.DONE) {
-// TODO: Re-enable when issue with 'status' is solved in Qt
-//                    if (request.status == 200) {
+// TODO: Re-visit when issue with 'status' is solved in Qt
+                    if (request.status == 200 || request.status == 0) {
                         THREE.Cache.add( url, request.response );
                         if ( onLoad ) onLoad( request.response );
                         scope.manager.itemEnd( url );
-//                    } else {
-//                        if ( onError !== undefined ) {
-//                            onError();
-//                        }
-//                    }
+                    } else {
+                        if ( onError !== undefined ) {
+                            onError();
+                        }
+                    }
                 } else if (request.readyState === XMLHttpRequest.HEADERS_RECEIVED) {
                     if ( onProgress !== undefined ) {
                         onProgress();
@@ -18874,7 +18874,7 @@ THREE.BufferGeometryLoader.prototype = {
 		loader.setCrossOrigin( this.crossOrigin );
 		loader.load( url, function ( text ) {
 
-			onLoad( scope.parse( JSON.parse( text ) ) );
+            onLoad( scope.parse( JSON.parse( text ) ) );
 
 		}, onProgress, onError );
 
@@ -19763,11 +19763,11 @@ THREE.CompressedTextureLoader.prototype = {
 
 			loader.load( url, function ( buffer ) {
 
-				var texDatas = scope._parser( buffer, true );
+                var texDatas = scope._parser( buffer, true );
 
 				if ( texDatas.isCubemap ) {
 
-					var faces = texDatas.mipmaps.length / texDatas.mipmapCount;
+                    var faces = texDatas.mipmaps.length / texDatas.mipmapCount;
 
 					for ( var f = 0; f < faces; f ++ ) {
 
@@ -19785,14 +19785,16 @@ THREE.CompressedTextureLoader.prototype = {
 					}
 
 				} else {
-
-					texture.image.width = texDatas.width;
+                    console.log("texture: mipmap");
+                    console.log("texture: mipmaps "+texDatas.mipmaps.length);
+                    texture.image.width = texDatas.width;
 					texture.image.height = texDatas.height;
 					texture.mipmaps = texDatas.mipmaps;
 
 				}
 
-				if ( texDatas.mipmapCount === 1 ) {
+                console.log("texture: mipmapcount "+texDatas.mipmapCount);
+                if ( texDatas.mipmapCount === 1 ) {
 
 					texture.minFilter = THREE.LinearFilter;
 
