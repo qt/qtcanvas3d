@@ -1,12 +1,12 @@
-!include( ../../examples.pri ) {
+!include( ../../../examples.pri ) {
     error( "Couldn't find the examples.pri file!" )
 }
 
 SOURCES += main.cpp
 
-RESOURCES += textureandlight.qrc
+RESOURCES += framebuffer.qrc
 
-OTHER_FILES += qml/textureandlight/* \
+OTHER_FILES += qml/framebuffer/* \
                doc/src/* \
                doc/images/*
 

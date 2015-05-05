@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 /*!
-    \example framebuffer
+    \example canvas3d/framebuffer
     \since QtCanvas3D 1.0
     \title Framebuffer Example
     \ingroup qtcanvas3d-examples
@@ -56,22 +56,22 @@
     We first define the variables we need for the render-to-texture
     framebuffer:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 0
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 0
 
     Then, in the \c initGL function, we create the framebuffer object:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 1
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 1
 
     \section1 Creating the Texture
 
     After the creation of the framebuffer, we create the texture:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 2
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 2
 
     Then we need to bind the texture as a color attachment, create and bind
     a render buffer, and bind the depth attachment:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 3
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 3
 
     \section1 Rendering into the Framebuffer
 
@@ -79,30 +79,30 @@
     framebuffer. We start by binding the framebuffer object and setting a
     viewport:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 4
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 4
 
     Then, we need to bind the loaded texture we want to use in rendering
     into the framebuffer object:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 5
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 5
 
     And then we can draw the textured cube into the framebuffer:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 6
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 6
 
     \section1 Using the Framebuffer as a Texture
 
     First, we bind the render-to-texture right after drawing, and generate
     mipmaps:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 7
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 7
 
     Then we need to bind the default framebuffer (screen), and set up the
     viewport:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 8
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 8
 
     And finally, we draw the on-screen view:
 
-    \snippet framebuffer/qml/framebuffer/framebuffer.js 9
+    \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 9
  */

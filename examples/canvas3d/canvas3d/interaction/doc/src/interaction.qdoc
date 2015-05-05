@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 /*!
-    \example interaction
+    \example canvas3d/interaction
     \since QtCanvas3D 1.0
     \title Interaction Example
     \ingroup qtcanvas3d-examples
@@ -51,35 +51,35 @@
 
     First, we need to import Qt Quick Controls and Layouts:
 
-    \snippet interaction/qml/interaction/main.qml 0
+    \snippet canvas3d/interaction/qml/interaction/main.qml 0
 
     Then, we add a RowLayout to the main component to easily add the
     controls side-by-side:
 
-    \snippet interaction/qml/interaction/main.qml 1
+    \snippet canvas3d/interaction/qml/interaction/main.qml 1
 
     And then we add three sliders to the layout. Here's the one for
     controlling x axis rotation:
 
-    \snippet interaction/qml/interaction/main.qml 2
+    \snippet canvas3d/interaction/qml/interaction/main.qml 2
 
     \section1 Interaction
 
     First we need to define some properties in the Canvas3D for the
     rotations:
 
-    \snippet interaction/qml/interaction/main.qml 3
+    \snippet canvas3d/interaction/qml/interaction/main.qml 3
 
     The \c onValueChanged signal handlers of the \l[QML]{Slider} components
     are connected to the above properties. Here's the connection in x rotation
     slider as an example:
 
-    \snippet interaction/qml/interaction/main.qml 4
+    \snippet canvas3d/interaction/qml/interaction/main.qml 4
 
     Then, on the JavaScript side, we just use the Canvas3D properties directly
     when setting the modelview matrix rotations:
 
-    \snippet interaction/qml/interaction/interaction.js 0
+    \snippet canvas3d/interaction/qml/interaction/interaction.js 0
 
     \section1 Drawing in Three Ways
 
@@ -87,9 +87,9 @@
     drawing the same object multiple times. Only in this case, we use a
     different drawing mode for each:
 
-    \snippet interaction/qml/interaction/interaction.js 1
+    \snippet canvas3d/interaction/qml/interaction/interaction.js 1
     \dots 0
-    \snippet interaction/qml/interaction/interaction.js 2
+    \snippet canvas3d/interaction/qml/interaction/interaction.js 2
     \dots 0
-    \snippet interaction/qml/interaction/interaction.js 3
+    \snippet canvas3d/interaction/qml/interaction/interaction.js 3
  */

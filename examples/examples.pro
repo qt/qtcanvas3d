@@ -1,4 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += canvas3d \
-           threejs
+SUBDIRS += canvas3d
 

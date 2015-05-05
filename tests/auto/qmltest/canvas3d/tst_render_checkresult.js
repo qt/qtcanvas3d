@@ -34,7 +34,7 @@
 **
 ****************************************************************************/
 
-Qt.include("../../../../examples/3rdparty/gl-matrix.js")
+Qt.include("../../../../examples/canvas3d/3rdparty/gl-matrix.js")
 
 var gl;
 
