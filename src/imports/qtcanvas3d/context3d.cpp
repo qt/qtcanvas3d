@@ -826,7 +826,7 @@ void CanvasContext::copyTexSubImage2D(glEnums target, int level,
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    copyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
+    glCopyTexSubImage2D(target, level, xoffset, yoffset, x, y, width, height);
     logAllGLErrors(__FUNCTION__);
 }
 
