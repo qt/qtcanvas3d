@@ -6120,7 +6120,7 @@ QVariantList CanvasContext::getSupportedExtensions()
 /*!
  * \internal
  */
-bool CanvasContext::isOfType(const QJSValue &value, const QString &classname) const
+bool CanvasContext::isOfType(const QJSValue &value, const char *classname) const
 {
     if (!value.isQObject()) {
         return false;
@@ -6131,7 +6131,7 @@ bool CanvasContext::isOfType(const QJSValue &value, const QString &classname) co
     if (!obj)
         return false;
 
-    if (!obj->inherits(classname.toLocal8Bit().constData())) {
+    if (!obj->inherits(classname)) {
         return false;
     }
 

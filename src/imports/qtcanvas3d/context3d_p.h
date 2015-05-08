@@ -1225,7 +1225,7 @@ private:
     uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
                         int bytesPerPixel, int width, int height);
 
-    bool isOfType(const QJSValue &value, const QString &classname) const;
+    bool isOfType(const QJSValue &value, const char *classname) const;
 
     bool isValidTextureBound(glEnums target, const QString &funcName);
     bool checkParent(QObject *jsObj, const char *function);
