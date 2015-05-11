@@ -54,22 +54,23 @@ Item {
     property int blue: -1
     property int alpha: -1
     property bool renderOk: false
+    property bool separateFbo: false
 
     Canvas3D {
         id: render_check_result
         property bool textureLoaded: false
         anchors.fill: parent
-        onInitGL: Content.initGL(this)
-        onRenderGL: {
+        onInitializeGL: Content.initializeGL(this)
+        onPaintGL: {
             if (checkResult) {
-                pixels = Content.renderGL(xpos, ypos)
+                pixels = Content.paintGL(xpos, ypos, separateFbo)
                 red = pixels[0]
                 green = pixels[1]
                 blue = pixels[2]
                 alpha = pixels[3]
                 delete pixels
             } else {
-                Content.renderGL()
+                Content.paintGL()
                 red = -1
                 green = -1
                 blue = -1
@@ -89,6 +90,7 @@ Item {
             ypos = 150
             checkResult = true
             renderOk = false
+            separateFbo = false
             waitForRendering(render_check_result)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "red", 0x00)
@@ -123,6 +125,7 @@ Item {
             ypos = 150
             checkResult = true
             renderOk = false
+            separateFbo = false
             waitForRendering(render_check_result)
             tryCompare(top, "renderOk", true)
             tryCompare(render_check_result, "textureLoaded", true, 10000)
@@ -144,12 +147,70 @@ Item {
             ypos = 150
             checkResult = true
             renderOk = false
+            separateFbo = false
             waitForRendering(render_check_result)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "red", 0x22)
             tryCompare(top, "green", 0x99)
             tryCompare(top, "blue", 0xff)
             tryCompare(top, "alpha", 0x80)
+            checkResult = false
+
+            waitForRendering(render_check_result)
+        }
+
+        function test_render_4_checkresult() {
+            // Render to separate FBO.
+            waitForRendering(render_check_result)
+            Content.setColor(0x40, 0x60, 0x80, 0xff)
+
+            // Check color in the center of the square
+            xpos = 150
+            ypos = 150
+            checkResult = true
+            renderOk = false
+            separateFbo = true
+            waitForRendering(render_check_result)
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "red", 0x40)
+            tryCompare(top, "green", 0x60)
+            tryCompare(top, "blue", 0x80)
+            tryCompare(top, "alpha", 0xff)
+            checkResult = false
+
+            waitForRendering(render_check_result)
+
+            // Check color in the corner of the screen, which is cleared with green
+            xpos = 0
+            ypos = 0
+            checkResult = true
+            renderOk = false
+            waitForRendering(render_check_result)
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "red", 0x00)
+            tryCompare(top, "green", 0xff)
+            tryCompare(top, "blue", 0x00)
+            tryCompare(top, "alpha", 0xff)
+            checkResult = false
+
+            waitForRendering(render_check_result)
+        }
+
+        function test_render_5_checkresult() {
+            // Check that pixels outside framebuffer are zero
+            waitForRendering(render_check_result)
+            Content.setColor(0x22, 0x99, 0xff, 0x80)
+            xpos = 9999
+            ypos = 9999
+            checkResult = true
+            renderOk = false
+            separateFbo = false
+            waitForRendering(render_check_result)
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "red", 0x0)
+            tryCompare(top, "green", 0x0)
+            tryCompare(top, "blue", 0x0)
+            tryCompare(top, "alpha", 0x0)
             checkResult = false
 
             waitForRendering(render_check_result)

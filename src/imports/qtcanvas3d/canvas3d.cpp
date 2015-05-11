@@ -66,9 +66,9 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  *
  * There are two functions that are called by the Canvas3D implementation:
  * \list
- * \li initGL is emitted before the first frame is rendered, and usually during that you get
+ * \li initializeGL is emitted before the first frame is rendered, and usually during that you get
  * the 3D context and initialize resources to be used later on during the rendering cycle.
- * \li renderGL is emitted for each frame to be rendered, and usually during that you
+ * \li paintGL is emitted for each frame to be rendered, and usually during that you
  * submit 3D rendering calls to draw whatever 3D content you want to be displayed.
  * \endlist
  *
@@ -88,7 +88,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isFirstRender(true),
     m_fboSize(0, 0),
     m_initializedSize(1, 1),
-    m_maxSize(128,128),
+    m_maxSize(0, 0),
     m_glContext(0),
     m_glContextQt(0),
     m_glContextShare(0),
@@ -99,6 +99,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isOpenGLES2(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
+    m_resizeGLQueued(false),
     m_antialiasFbo(0),
     m_renderFbo(0),
     m_displayFbo(0),
@@ -107,8 +108,8 @@ Canvas::Canvas(QQuickItem *parent):
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
-    connect(this, &QQuickItem::widthChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
-    connect(this, &QQuickItem::heightChanged, this, &Canvas::emitResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -122,12 +123,12 @@ Canvas::Canvas(QQuickItem *parent):
 }
 
 /*!
- * \qmlsignal void Canvas::initGL()
+ * \qmlsignal void Canvas::initializeGL()
  * Emitted once when Canvas3D is ready and OpenGL state initialization can be done by the client.
  */
 
 /*!
- * \qmlsignal void Canvas::renderGL()
+ * \qmlsignal void Canvas::paintGL()
  * Emitted each time a new frame should be drawn to Canvas3D. Driven by the QML scenegraph loop.
  */
 
@@ -170,6 +171,64 @@ void Canvas::shutDown()
     m_glContextQt = 0;
     m_glContextShare->deleteLater();
     m_glContextShare = 0;
+}
+
+/*!
+ * \internal
+ *
+ * Override QQuickItem's setWidth to be able to limit the maximum canvas size to maximum viewport
+ * dimensions.
+ */
+void Canvas::setWidth(int width)
+{
+    int newWidth = width;
+    int maxWidth = m_maxSize.width();
+    if (maxWidth && width > maxWidth) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum width exceeded. Limiting to "
+                                             << maxWidth;
+        newWidth = maxWidth;
+    }
+
+    QQuickItem::setWidth(newWidth);
+}
+
+/*!
+ * \internal
+ */
+int Canvas::width()
+{
+    return QQuickItem::width();
+}
+
+/*!
+ * \internal
+ *
+ * Override QQuickItem's setHeight to be able to limit the maximum canvas size to maximum viewport
+ * dimensions.
+ */
+void Canvas::setHeight(int height)
+{
+    int newHeight = height;
+    int maxHeight = m_maxSize.height();
+    if (maxHeight && height > maxHeight) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << "():"
+                                             << "Maximum height exceeded. Limiting to "
+                                             << maxHeight;
+        newHeight = maxHeight;
+    }
+
+    QQuickItem::setHeight(newHeight);
+}
+
+/*!
+ * \internal
+ */
+int Canvas::height()
+{
+    return QQuickItem::height();
 }
 
 /*!
@@ -243,7 +302,6 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Ensure ignored attributes are left to their default state
         m_contextAttribs.setPremultipliedAlpha(false);
-        m_contextAttribs.setPreserveDrawingBuffer(false);
         m_contextAttribs.setPreferLowPowerToHighPerformance(false);
         m_contextAttribs.setFailIfMajorPerformanceCaveat(false);
     }
@@ -345,6 +403,31 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Set the size and create FBOs
         setPixelSize(m_initializedSize);
+        m_displayFbo->bind();
+        glViewport(0, 0,
+                   m_fboSize.width(),
+                   m_fboSize.height());
+        m_renderFbo->bind();
+        glViewport(0, 0,
+                   m_fboSize.width(),
+                   m_fboSize.height());
+
+        // Verify that width and height are not initially too large, in case width and height
+        // were set before getting GL_MAX_VIEWPORT_DIMS
+        if (width() > m_maxSize.width()) {
+            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                                 << "():"
+                                                 << "Maximum width exceeded. Limiting to "
+                                                 << m_maxSize.width();
+            QQuickItem::setWidth(m_maxSize.width());
+        }
+        if (height() > m_maxSize.height()) {
+            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                                 << "():"
+                                                 << "Maximum height exceeded. Limiting to "
+                                                 << m_maxSize.height();
+            QQuickItem::setHeight(m_maxSize.height());
+        }
 
         // Create the Context3D
         m_context3D = new CanvasContext(m_glContext, m_offscreenSurface,
@@ -408,7 +491,9 @@ void Canvas::setPixelSize(QSize pixelSize)
 
     m_fboSize = pixelSize;
     createFBOs();
-    emit pixelSizeChanged(pixelSize);
+
+    // Queue the pixel size signal to next repaint cycle and queue repaint
+    queueResizeGL();
     emitNeedRender();
 }
 
@@ -459,16 +544,11 @@ void Canvas::createFBOs()
                                                 m_fboFormat);
 
     // Clear the FBOs to prevent random junk appearing on the screen
+    // Note: Viewport may not be changed automatically
     glClearColor(0,0,0,0);
     m_displayFbo->bind();
-    glViewport(0, 0,
-               m_fboSize.width(),
-               m_fboSize.height());
     glClear(GL_COLOR_BUFFER_BIT);
     m_renderFbo->bind();
-    glViewport(0, 0,
-               m_fboSize.width(),
-               m_fboSize.height());
     glClear(GL_COLOR_BUFFER_BIT);
 
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -571,7 +651,7 @@ void Canvas::updateWindowParameters()
         if (pixelRatio != m_devicePixelRatio) {
             m_devicePixelRatio = pixelRatio;
             emit devicePixelRatioChanged(pixelRatio);
-            emitResizeGL();
+            queueResizeGL();
             win->update();
         }
     }
@@ -580,6 +660,23 @@ void Canvas::updateWindowParameters()
         if (m_context3D->devicePixelRatio() != m_devicePixelRatio)
             m_context3D->setDevicePixelRatio(m_devicePixelRatio);
     }
+}
+
+/*!
+ * \internal
+ *
+ * Blits the antialias fbo into the final render fbo.
+ * Returns the final render fbo handle.
+ */
+GLuint Canvas::resolveMSAAFbo()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                         << " Resolving MSAA from FBO:"
+                                         << m_antialiasFbo->handle()
+                                         << " to FBO:" << m_renderFbo->handle();
+    QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
+
+    return m_renderFbo->handle();
 }
 
 /*!
@@ -747,7 +844,7 @@ void Canvas::renderNext()
         // Allow the JavaScript code to call the getContext() to create the context object and FBOs
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Emit inigGL() signal";
-        emit initGL();
+        emit initializeGL();
 
         if (!m_isContextAttribsSet) {
             qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -767,6 +864,14 @@ void Canvas::renderNext()
 
     // Bind the correct render target FBO
     bindCurrentRenderTarget();
+
+    // Signal changes in pixel size
+    if (m_resizeGLQueued) {
+        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                             << " Emit resizeGL() signal";
+        emit resizeGL(int(width()), int(height()), m_devicePixelRatio);
+        m_resizeGLQueued = false;
+    }
 
     // Ensure we have correct clip rect set in the context
     QRect viewport = m_context3D->glViewportRect();
@@ -788,17 +893,11 @@ void Canvas::renderNext()
 
     // Call render in QML JavaScript side
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                         << " Emit renderGL() signal";
-    emit renderGL();
+                                         << " Emit paintGL() signal";
+    emit paintGL();
 
-    // Resolve MSAA
-    if (m_contextAttribs.antialias()) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Resolving MSAA from FBO:"
-                                             << m_antialiasFbo->handle()
-                                             << " to FBO:" << m_renderFbo->handle();
-        QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
-    }
+    if (m_contextAttribs.antialias())
+        resolveMSAAFbo();
 
     // We need to flush the contents to the FBO before posting
     // the texture to the other thread, otherwise, we might
@@ -832,6 +931,20 @@ void Canvas::renderNext()
                                          << m_displayFbo->texture()
                                          << " from FBO:" << m_displayFbo->handle();
 
+    if (m_contextAttribs.preserveDrawingBuffer()) {
+        // Copy the content of display fbo to the render fbo
+        GLint texBinding2D;
+        glGetIntegerv(GL_TEXTURE_BINDING_2D, &texBinding2D);
+
+        m_displayFbo->bind();
+        glBindTexture(GL_TEXTURE_2D, m_renderFbo->texture());
+
+        glCopyTexImage2D(GL_TEXTURE_2D, 0, m_displayFbo->format().internalTextureFormat(),
+                         0, 0, m_fboSize.width(), m_fboSize.height(), 0);
+
+        glBindTexture(GL_TEXTURE_2D, texBinding2D);
+    }
+
     // FBO ids and texture id's have been generated, we can now free the old display FBO
     delete m_oldDisplayFbo;
     m_oldDisplayFbo = 0;
@@ -846,22 +959,11 @@ void Canvas::renderNext()
 /*!
  * \internal
  */
-void Canvas::emitResizeGL()
+void Canvas::queueResizeGL()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
 
-    // Wait until render node has been created
-    if (!m_renderNodeReady) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Render node not ready, returning";
-        return;
-    }
-
-    if (m_glContext) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Emit resizeGL() signal";
-        emit resizeGL(int(width()), int(height()), m_devicePixelRatio);
-    }
+    m_resizeGLQueued = true;
 }
 
 /*!

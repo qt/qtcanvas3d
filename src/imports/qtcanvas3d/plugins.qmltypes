@@ -17,14 +17,12 @@ Module {
         Property { name: "devicePixelRatio"; type: "float"; isReadonly: true }
         Property { name: "fps"; type: "uint"; isReadonly: true }
         Property { name: "pixelSize"; type: "QSize" }
+        Property { name: "width"; type: "int" }
+        Property { name: "height"; type: "int" }
         Signal { name: "needRender" }
         Signal {
             name: "devicePixelRatioChanged"
             Parameter { name: "ratio"; type: "float" }
-        }
-        Signal {
-            name: "animatedChanged"
-            Parameter { name: "animated"; type: "bool" }
         }
         Signal {
             name: "contextChanged"
@@ -38,8 +36,8 @@ Module {
             name: "pixelSizeChanged"
             Parameter { name: "pixelSize"; type: "QSize" }
         }
-        Signal { name: "initGL" }
-        Signal { name: "renderGL" }
+        Signal { name: "initializeGL" }
+        Signal { name: "paintGL" }
         Signal {
             name: "resizeGL"
             Parameter { name: "width"; type: "int" }

@@ -81,6 +81,8 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
+    Q_PROPERTY(int width READ width WRITE setWidth)
+    Q_PROPERTY(int height READ height WRITE setHeight)
 
 public:
     Canvas(QQuickItem *parent = 0);
@@ -91,8 +93,13 @@ public:
     QSize pixelSize();
     void setPixelSize(QSize pixelSize);
     void createFBOs();
+    void setWidth(int width);
+    int width();
+    void setHeight(int height);
+    int height();
 
     void bindCurrentRenderTarget();
+    GLuint resolveMSAAFbo();
 
     uint fps();
 
@@ -104,7 +111,7 @@ public slots:
     void ready();
     void shutDown();
     void renderNext();
-    void emitResizeGL();
+    void queueResizeGL();
     void emitNeedRender();
 
 signals:
@@ -114,8 +121,8 @@ signals:
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
 
-    void initGL();
-    void renderGL();
+    void initializeGL();
+    void paintGL();
     void resizeGL(int width, int height, float devicePixelRatio);
 
     void textureReady(int id, const QSize &size, float devicePixelRatio);
@@ -154,6 +161,7 @@ private:
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;
+    bool m_resizeGLQueued;
 
     QOpenGLFramebufferObject *m_antialiasFbo;
     QOpenGLFramebufferObject *m_renderFbo;

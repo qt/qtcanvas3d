@@ -55,10 +55,10 @@ Item {
         import QtQuick 2.2
         import QtCanvas3D 1.0
         Canvas3D {
-            onInitGL: initOk = activeContent.initGL(canvas3d)
-            onRenderGL: {
+            onInitializeGL: initOk = activeContent.initializeGL(canvas3d)
+            onPaintGL: {
                 renderOk = true
-                activeContent.renderGL(canvas3d)
+                activeContent.paintGL(canvas3d)
             }
         }", top)
         canvas3d.anchors.fill = top
