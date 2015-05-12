@@ -1174,7 +1174,7 @@ public:
                                                       glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
-    Q_INVOKABLE QVariant getUniform(QJSValue program, QJSValue location);
+    Q_INVOKABLE QJSValue getUniform(QJSValue program, QJSValue location);
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
     Q_INVOKABLE QJSValue getVertexAttrib(uint index, glEnums pname);
 

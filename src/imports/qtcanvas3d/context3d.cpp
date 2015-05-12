@@ -5895,35 +5895,35 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
  * The type returned is dependent on the uniform type, as shown in the table:
  * \table
  * \header
- *   \li Data Type
+ *   \li Uniform Type
  *   \li Returned Type
  * \row
  *   \li boolean
- *   \li sequence<boolean> (with 1 element)
+ *   \li boolean
  * \row
  *   \li int
- *   \li sequence<int> (with 1 element)
+ *   \li int
  * \row
  *   \li float
- *   \li sequence<float> (with 1 element)
+ *   \li float
  * \row
  *   \li vec2
- *   \li sequence<float> (with 2 elements)
+ *   \li Float32Array (with 2 elements)
  * \row
  *   \li vec3
- *   \li sequence<float> (with 3 elements)
+ *   \li Float32Array (with 3 elements)
  * \row
  *   \li vec4
- *   \li sequence<float> (with 4 elements)
+ *   \li Float32Array (with 4 elements)
  * \row
  *   \li ivec2
- *   \li sequence<int> (with 2 elements)
+ *   \li Int32Array (with 2 elements)
  * \row
  *   \li ivec3
- *   \li sequence<int> (with 3 elements)
+ *   \li Int32Array (with 3 elements)
  * \row
  *   \li ivec4
- *   \li sequence<int> (with 4 elements)
+ *   \li Int32Array (with 4 elements)
  * \row
  *   \li bvec2
  *   \li sequence<boolean> (with 2 elements)
@@ -5935,25 +5935,25 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
  *   \li sequence<boolean> (with 4 elements)
  * \row
  *   \li mat2
- *   \li sequence<float> (with 4 elements)
+ *   \li Float32Array (with 4 elements)
  * \row
  *   \li mat3
- *   \li sequence<float> (with 9 elements)
+ *   \li Float32Array (with 9 elements)
  * \row
  *   \li mat4
- *   \li sequence<float> (with 16 elements)
+ *   \li Float32Array (with 16 elements)
  * \row
  *   \li sampler2D
- *   \li sequence<int> (with 1 element)
+ *   \li int
  * \row
  *   \li samplerCube
- *   \li sequence<int> (with 1 element)
+ *   \li int
  *  \endtable
  */
 /*!
  * \internal
  */
-QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
+QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program" << program3D.toString()
@@ -5967,125 +5967,138 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:No program was specified";
         m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::UndefinedValue);
+
     } else  if (!location) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:No location3D was specified";
         m_error |= CANVAS_INVALID_OPERATION;
-    } else {
-        if (!checkParent(program, __FUNCTION__) || !checkParent(location, __FUNCTION__))
-            return QVariant();
-        uint programId = program->id();
-        uint locationId = location->id();
-        CanvasActiveInfo *info = getActiveUniform(program3D, locationId);
-        int numValues = 4;
-
-        switch (info->type()) {
-        case SAMPLER_2D:
-            // Intentional flow through
-        case SAMPLER_CUBE:
-            // Intentional flow through
-        case INT: {
-            GLint value = 0;
-            glGetUniformiv(programId, locationId, &value);
-            logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
-        }
-        case INT_VEC2:
-            numValues--;
-            // Intentional flow through
-        case INT_VEC3:
-            numValues--;
-            // Intentional flow through
-        case INT_VEC4: {
-            numValues--;
-            GLint *value = new GLint[numValues];
-            glGetUniformiv(programId, locationId, value);
-            logAllGLErrors(__FUNCTION__);
-
-            QList<float> intList;
-            for (int i = 0; i < numValues; i++)
-                intList << value[i];
-
-            // TODO: Should return Int32Array
-            return QVariant::fromValue(intList);
-        }
-        case FLOAT: {
-            GLfloat value = 0;
-            glGetUniformfv(programId, locationId, &value);
-            logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
-        }
-        case FLOAT_VEC2:
-            numValues--;
-            // Intentional flow through
-        case FLOAT_VEC3:
-            numValues--;
-            // Intentional flow through
-        case FLOAT_VEC4: {
-            numValues--;
-            GLfloat *value = new GLfloat[numValues];
-
-            glGetUniformfv(programId, locationId, value);
-            logAllGLErrors(__FUNCTION__);
-
-            QList<float> floatList;
-            for (int i = 0; i < numValues; i++)
-                floatList << value[i];
-
-            // TODO: Should return Float32Array
-            return QVariant::fromValue(floatList);
-        }
-        case BOOL: {
-            GLint value = 0;
-            glGetUniformiv(programId, locationId, &value);
-            logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(bool(value));
-        }
-        case BOOL_VEC2:
-            numValues--;
-            // Intentional flow through
-        case BOOL_VEC3:
-            numValues--;
-            // Intentional flow through
-        case BOOL_VEC4: {
-            numValues--;
-            GLint *value = new GLint[numValues];
-
-            glGetUniformiv(programId, locationId, value);
-            logAllGLErrors(__FUNCTION__);
-
-            QList<bool> boolList;
-            for (int i = 0; i < numValues; i++)
-                boolList << value[i];
-
-            return QVariant::fromValue(boolList);
-        }
-        case FLOAT_MAT2:
-            numValues--;
-            // Intentional flow through
-        case FLOAT_MAT3:
-            numValues--;
-            // Intentional flow through
-        case FLOAT_MAT4: {
-            numValues = numValues * numValues;
-            GLfloat *value = new GLfloat[numValues];
-
-            glGetUniformfv(programId, locationId, value);
-            logAllGLErrors(__FUNCTION__);
-
-            QList<float> floatList;
-            for (int i = 0; i < numValues; i++)
-                floatList << value[i];
-
-            // TODO: Should return Float32Array
-            return QVariant::fromValue(floatList);
-        }
-        default:
-            break;
-        }
+        return QJSValue(QJSValue::UndefinedValue);
     }
 
-    return QVariant();
+    if (!checkParent(program, __FUNCTION__) || !checkParent(location, __FUNCTION__))
+        return QJSValue(QJSValue::UndefinedValue);
+
+    uint programId = program->id();
+    uint locationId = location->id();
+    CanvasActiveInfo *info = getActiveUniform(program3D, locationId);
+
+    int numValues = 4;
+    switch (info->type()) {
+    case SAMPLER_2D:
+        // Intentional flow through
+    case SAMPLER_CUBE:
+        // Intentional flow through
+    case INT: {
+        GLint value = 0;
+        glGetUniformiv(programId, locationId, &value);
+        logAllGLErrors(__FUNCTION__);
+        return QJSValue(value);
+    }
+    case FLOAT: {
+        GLfloat value = 0;
+        glGetUniformfv(programId, locationId, &value);
+        logAllGLErrors(__FUNCTION__);
+        return QJSValue(value);
+    }
+    case BOOL: {
+        GLint value = 0;
+        glGetUniformiv(programId, locationId, &value);
+        logAllGLErrors(__FUNCTION__);
+        return QJSValue(bool(value));
+    }
+    case INT_VEC2:
+        numValues--;
+        // Intentional flow through
+    case INT_VEC3:
+        numValues--;
+        // Intentional flow through
+    case INT_VEC4: {
+        QV4::Scope scope(m_v4engine);
+        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                 m_v4engine,
+                                                 sizeof(int) * numValues));
+        glGetUniformiv(programId, locationId, (int *) buffer->data());
+        logAllGLErrors(__FUNCTION__);
+
+        QV4::ScopedFunctionObject constructor(scope,
+                                              m_v4engine->typedArrayCtors[
+                                              QV4::Heap::TypedArray::Int32Array]);
+        QV4::ScopedCallData callData(scope, 1);
+        callData->args[0] = buffer;
+        return QJSValue(m_v4engine, constructor->construct(callData));
+    }
+    case FLOAT_VEC2:
+        numValues--;
+        // Intentional flow through
+    case FLOAT_VEC3:
+        numValues--;
+        // Intentional flow through
+    case FLOAT_VEC4: {
+        QV4::Scope scope(m_v4engine);
+        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                 m_v4engine,
+                                                 sizeof(float) * numValues));
+        glGetUniformfv(programId, locationId, (float *) buffer->data());
+        logAllGLErrors(__FUNCTION__);
+
+        QV4::ScopedFunctionObject constructor(scope,
+                                              m_v4engine->typedArrayCtors[
+                                              QV4::Heap::TypedArray::Float32Array]);
+        QV4::ScopedCallData callData(scope, 1);
+        callData->args[0] = buffer;
+        return QJSValue(m_v4engine, constructor->construct(callData));
+    }
+    case BOOL_VEC2:
+        numValues--;
+        // Intentional flow through
+    case BOOL_VEC3:
+        numValues--;
+        // Intentional flow through
+    case BOOL_VEC4: {
+        GLint *value = new GLint[numValues];
+        QJSValue array = m_engine->newArray(numValues);
+
+        glGetUniformiv(programId, locationId, value);
+        logAllGLErrors(__FUNCTION__);
+
+        for (int i = 0; i < numValues; i++)
+            array.setProperty(i, bool(value[i]));
+
+        return array;
+    }
+    case FLOAT_MAT2:
+        numValues--;
+        // Intentional flow through
+    case FLOAT_MAT3:
+        numValues--;
+        // Intentional flow through
+    case FLOAT_MAT4: {
+        numValues = numValues * numValues;
+
+
+        QV4::Scope scope(m_v4engine);
+        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                 m_v4engine,
+                                                 sizeof(float) * numValues));
+        glGetUniformfv(programId, locationId, (float *) buffer->data());
+        logAllGLErrors(__FUNCTION__);
+
+        QV4::ScopedFunctionObject constructor(scope,
+                                              m_v4engine->typedArrayCtors[
+                                              QV4::Heap::TypedArray::Float32Array]);
+        QV4::ScopedCallData callData(scope, 1);
+        callData->args[0] = buffer;
+        return QJSValue(m_v4engine, constructor->construct(callData));
+    }
+    default:
+        break;
+    }
+
+    return QJSValue(QJSValue::UndefinedValue);
 }
 
 /*!
