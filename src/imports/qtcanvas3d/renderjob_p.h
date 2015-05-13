@@ -44,38 +44,41 @@
 //
 // We mean it.
 
-#ifndef UNIFORMLOCATION_P_H
-#define UNIFORMLOCATION_P_H
+#ifndef RENDERJOB_P_H
+#define RENDERJOB_P_H
 
-#include "abstractobject3d_p.h"
+#include "canvas3dcommon_p.h"
+#include "glcommandqueue_p.h"
 
-#include <QDebug>
+#include <QtCore/QWaitCondition>
+#include <QtCore/QMutex>
+#include <QtCore/QRunnable>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class CanvasContext;
+class CanvasRenderer;
 
-class CanvasUniformLocation : public CanvasAbstractObject
+class CanvasRenderJob : public QRunnable
 {
-    Q_OBJECT
-
 public:
-    explicit CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent = 0);
-    virtual ~CanvasUniformLocation();
+    CanvasRenderJob(GlSyncCommand *command, QMutex *mutex,
+                    QWaitCondition *condition, QtCanvas3D::CanvasRenderer *renderer);
+    ~CanvasRenderJob();
 
-    GLint id();
-    GLint type();
-    void resolveType(GLint programId, CanvasContext *context);
-
-    friend QDebug operator<< (QDebug d, const CanvasUniformLocation *uLoc);
+    void run();
 
 private:
-    GLint m_locationId;
-    GLint m_type;
+    void notifyGuiThread();
+
+    // None of these objects are owned by the render job
+    GlSyncCommand *m_command;
+    QMutex *m_mutex;
+    QWaitCondition *m_condition;
+    CanvasRenderer *m_renderer;
 };
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE
 
-#endif // UNIFORMLOCATION_P_H
+#endif // RENDERJOBS_P_H

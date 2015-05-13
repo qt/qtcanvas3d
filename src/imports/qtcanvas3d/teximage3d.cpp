@@ -178,7 +178,7 @@ QJSValue CanvasTextureImageFactory::newTexImage()
  * \internal
  */
 CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEngine *engine) :
-    CanvasAbstractObject(parent),
+    CanvasAbstractObject(0, parent),
     m_engine(engine),
     m_networkAccessManager(0),
     m_state(INITIALIZED),
@@ -200,7 +200,7 @@ CanvasTextureImage::CanvasTextureImage(const QImage &source,
                                        int width, int height,
                                        QObject *parent,
                                        QQmlEngine *engine) :
-    CanvasAbstractObject(parent),
+    CanvasAbstractObject(0, parent),
     m_engine(engine),
     m_networkAccessManager(0),
     m_state(INITIALIZED),

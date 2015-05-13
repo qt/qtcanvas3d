@@ -34,48 +34,70 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the QtCanvas3D API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
+#include "renderjob_p.h"
+#include "canvasrenderer_p.h"
+#include "canvas3d_p.h"
 
-#ifndef UNIFORMLOCATION_P_H
-#define UNIFORMLOCATION_P_H
-
-#include "abstractobject3d_p.h"
-
-#include <QDebug>
+#include <QtGui/QOpenGLContext>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class CanvasContext;
-
-class CanvasUniformLocation : public CanvasAbstractObject
+/*!
+ * \internal
+ *
+ * The CanvasRenderJob class is for synchronous render jobs used by QtCanvas3D.
+ * It takes care of synchronization.
+ */
+CanvasRenderJob::CanvasRenderJob(GlSyncCommand *command,
+                                 QMutex *mutex, QWaitCondition *condition,
+                                 CanvasRenderer *renderer)
+    : m_command(command), m_mutex(mutex), m_condition(condition), m_renderer(renderer)
 {
-    Q_OBJECT
+}
 
-public:
-    explicit CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent = 0);
-    virtual ~CanvasUniformLocation();
+CanvasRenderJob::~CanvasRenderJob()
+{
+    notifyGuiThread();
+}
 
-    GLint id();
-    GLint type();
-    void resolveType(GLint programId, CanvasContext *context);
+void CanvasRenderJob::run()
+{
+    if (m_renderer && m_renderer->contextCreated()) {
+        // Store Qt context
+        QOpenGLContext *oldContext = QOpenGLContext::currentContext();
+        QSurface *oldSurface = oldContext->surface();
 
-    friend QDebug operator<< (QDebug d, const CanvasUniformLocation *uLoc);
+        // Execute pending queue
+        m_renderer->transferCommands();
+        m_renderer->makeCanvasContextCurrent();
+        m_renderer->executeCommandQueue();
 
-private:
-    GLint m_locationId;
-    GLint m_type;
-};
+        // Execute synchronous command (if there is one)
+        if (m_command)
+            m_renderer->executeSyncCommand(*m_command);
+
+        // Restore Qt context
+        if (oldContext && oldSurface) {
+            if (!oldContext->makeCurrent(oldSurface)) {
+                qCWarning(canvas3drendering).nospace() << "CanvasRenderJob::" << __FUNCTION__
+                                                       << " Failed to make old surface current";
+            }
+        }
+    }
+
+    notifyGuiThread();
+}
+
+void CanvasRenderJob::notifyGuiThread()
+{
+    if (m_mutex) {
+        m_mutex->lock();
+        m_condition->wakeOne();
+        m_mutex->unlock();
+        m_mutex = 0;
+    }
+}
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE
-
-#endif // UNIFORMLOCATION_P_H

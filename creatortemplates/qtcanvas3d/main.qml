@@ -50,12 +50,12 @@ Item {
         anchors.fill: parent
         focus: true
 
-        onInitGL: {
-            GLCode.initGL(canvas3d);
+        onInitializeGL: {
+            GLCode.initializeGL(canvas3d);
         }
 
-        onRenderGL: {
-            GLCode.renderGL(canvas3d);
+        onPaintGL: {
+            GLCode.paintGL(canvas3d);
         }
     }
 }

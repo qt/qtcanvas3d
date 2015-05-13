@@ -85,7 +85,7 @@ Item {
         when: windowShown
 
         function test_render_1_checkresult() {
-            // Check color in the center of the blue square
+            // Check color in the center of the colored square
             xpos = 150
             ypos = 150
             checkResult = true
@@ -93,24 +93,24 @@ Item {
             separateFbo = false
             waitForRendering(render_check_result)
             tryCompare(top, "renderOk", true)
-            tryCompare(top, "red", 0x00)
-            tryCompare(top, "green", 0x00)
-            tryCompare(top, "blue", 0xff)
+            tryCompare(top, "red", 0x10)
+            tryCompare(top, "green", 0x20)
+            tryCompare(top, "blue", 0x30)
             tryCompare(top, "alpha", 0xff)
             checkResult = false
 
             waitForRendering(render_check_result)
 
-            // Check color in the corner of the screen, which is cleared with red
+            // Check color in the corner of the screen
             xpos = 0
             ypos = 0
             checkResult = true
             renderOk = false
             waitForRendering(render_check_result)
             tryCompare(top, "renderOk", true)
-            tryCompare(top, "red", 0xff)
-            tryCompare(top, "green", 0x00)
-            tryCompare(top, "blue", 0x00)
+            tryCompare(top, "red", 0x40)
+            tryCompare(top, "green", 0x50)
+            tryCompare(top, "blue", 0x60)
             tryCompare(top, "alpha", 0xff)
             checkResult = false
 

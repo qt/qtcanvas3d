@@ -55,25 +55,32 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasBuffer::CanvasBuffer(QObject *parent) :
-    CanvasAbstractObject(parent),
-    QOpenGLFunctions(),
+CanvasBuffer::CanvasBuffer() :
+    CanvasAbstractObject(0, 0),
+    m_bufferId(0),
     m_bindTarget(CanvasBuffer::UNINITIALIZED)
 {
-    initializeOpenGLFunctions();
-    glGenBuffers(1, &m_bufferId);
+    // Compiler says we need the default constructor, but it is unclear why
+}
+
+CanvasBuffer::CanvasBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_bufferId(queue->createResourceId()),
+    m_bindTarget(CanvasBuffer::UNINITIALIZED)
+{
+    Q_ASSERT(m_commandQueue);
+
+    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenBuffers, m_bufferId);
 }
 
 /*!
  * \internal
  */
 CanvasBuffer::CanvasBuffer(const CanvasBuffer& other) :
-    CanvasAbstractObject(), // Copying a QObject, leave it parentless..
-    QOpenGLFunctions(),
+    CanvasAbstractObject(other.m_commandQueue, 0), // Copying a QObject, leave it parentless..
     m_bufferId(other.m_bufferId),
     m_bindTarget(other.m_bindTarget)
 {
-    initializeOpenGLFunctions();
 }
 
 
@@ -91,8 +98,9 @@ CanvasBuffer::~CanvasBuffer()
  */
 void CanvasBuffer::del()
 {
-    if (m_bufferId)
-        glDeleteBuffers(1, &m_bufferId);
+    if (m_bufferId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteBuffers, m_bufferId);
+    }
     m_bufferId = 0;
 }
 
@@ -101,7 +109,7 @@ void CanvasBuffer::del()
  */
 bool CanvasBuffer::isAlive()
 {
-    return m_bufferId;
+    return bool(m_bufferId);
 }
 
 /*!
@@ -125,7 +133,7 @@ void CanvasBuffer::setTarget(bindTarget bindPoint)
 /*!
  * \internal
  */
-GLuint CanvasBuffer::id()
+GLint CanvasBuffer::id()
 {
     return m_bufferId;
 }

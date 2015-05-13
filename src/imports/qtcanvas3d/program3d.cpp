@@ -52,11 +52,14 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasProgram::CanvasProgram(QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_program(new QOpenGLShaderProgram(this))
+CanvasProgram::CanvasProgram(CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_programId(queue->createResourceId()),
+    m_linked(false)
 {
-    initializeOpenGLFunctions();
+    Q_ASSERT(m_commandQueue);
+
+    m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateProgram, m_programId);
 }
 
 /*!
@@ -64,29 +67,7 @@ CanvasProgram::CanvasProgram(QObject *parent) :
  */
 CanvasProgram::~CanvasProgram()
 {
-    delete m_program;
-}
-
-/*!
- * \internal
- */
-int CanvasProgram::uniformLocation(const QString &name)
-{
-    if (!m_program)
-        return -1;
-
-    return m_program->uniformLocation(name);
-}
-
-/*!
- * \internal
- */
-int CanvasProgram::attributeLocation(const QString &name)
-{
-    if (!m_program)
-        return -1;
-
-    return m_program->attributeLocation(name);
+    del();
 }
 
 /*!
@@ -94,7 +75,7 @@ int CanvasProgram::attributeLocation(const QString &name)
  */
 bool CanvasProgram::isAlive()
 {
-    return bool(m_program);
+    return bool(m_programId);
 }
 
 /*!
@@ -102,9 +83,12 @@ bool CanvasProgram::isAlive()
  */
 void CanvasProgram::attach(CanvasShader *shader)
 {
-    if (m_attachedShaders.count(shader) == 0) {
-        m_attachedShaders.append(shader);
-        m_program->addShader(shader->qOGLShader());
+    if (m_programId) {
+        if (m_attachedShaders.count(shader) == 0) {
+            m_attachedShaders.append(shader);
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glAttachShader,
+                                         m_programId, shader->id());
+        }
     }
 }
 
@@ -113,9 +97,12 @@ void CanvasProgram::attach(CanvasShader *shader)
  */
 void CanvasProgram::detach(CanvasShader *shader)
 {
-    if (m_attachedShaders.count(shader) > 0) {
-        m_attachedShaders.removeOne(shader);
-        m_program->removeShader(shader->qOGLShader());
+    if (m_programId) {
+        if (m_attachedShaders.count(shader) > 0) {
+            m_attachedShaders.removeOne(shader);
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glDetachShader,
+                                         m_programId, shader->id());
+        }
     }
 }
 
@@ -132,8 +119,10 @@ const QList<CanvasShader *> &CanvasProgram::attachedShaders() const
  */
 void CanvasProgram::link()
 {
-    if (m_program)
-        m_program->link();
+    if (m_programId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glLinkProgram, m_programId);
+        m_linked = true;
+    }
 }
 
 /*!
@@ -141,19 +130,19 @@ void CanvasProgram::link()
  */
 bool CanvasProgram::isLinked()
 {
-    if (!m_program)
-        return false;
-
-    return m_program->isLinked();
+    // This method reports true if linking has been attempted for this program.
+    // We don't know if linking will be successful.
+    return m_linked;
 }
 
 /*!
  * \internal
  */
-void CanvasProgram::bind()
+void CanvasProgram::useProgram()
 {
-    if (m_program)
-        m_program->bind();
+    if (m_programId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUseProgram, m_programId);
+    }
 }
 
 /*!
@@ -161,10 +150,11 @@ void CanvasProgram::bind()
  */
 void CanvasProgram::bindAttributeLocation(int index, const QString &name)
 {
-    if (!m_program)
-        return;
-
-    m_program->bindAttributeLocation(name, index);
+    if (m_programId) {
+        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindAttribLocation,
+                                                          m_programId, GLint(index));
+        command.data = new QByteArray(name.toLatin1());
+    }
 }
 
 /*!
@@ -172,8 +162,10 @@ void CanvasProgram::bindAttributeLocation(int index, const QString &name)
  */
 void CanvasProgram::del()
 {
-    delete m_program;
-    m_program = 0;
+    if (m_programId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteProgram, m_programId);
+        m_programId = 0;
+    }
     m_attachedShaders.clear();
 }
 
@@ -182,31 +174,16 @@ void CanvasProgram::del()
  */
 void CanvasProgram::validateProgram()
 {
-    if (m_program)
-        return;
-    glValidateProgram(m_program->programId());
+    if (m_programId)
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glValidateProgram, m_programId);
 }
 
 /*!
  * \internal
  */
-int CanvasProgram::id()
+GLint CanvasProgram::id()
 {
-    if (!m_program)
-        return -1;
-
-    return m_program->programId();
-}
-
-/*!
- * \internal
- */
-QString CanvasProgram::log()
-{
-    if (!m_program)
-        return "";
-
-    return m_program->log();
+    return m_programId;
 }
 
 /*!
@@ -215,7 +192,7 @@ QString CanvasProgram::log()
 QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 {
     if (program)
-        dbg.nospace() << "Program3D("<< program->name() << ", id:" << program->m_program->programId() << ")";
+        dbg.nospace() << "Program3D("<< program->name() << ", id:" << program->m_programId << ")";
     else
         dbg.nospace() << "Program3D("<< ((void*) program) <<")";
     return dbg.maybeSpace();

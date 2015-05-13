@@ -52,11 +52,14 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasShader::CanvasShader(QOpenGLShader::ShaderType type, QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_shader(new QOpenGLShader(type, this)),
+CanvasShader::CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_shaderId(queue->createResourceId()),
     m_sourceCode("")
 {
+    Q_ASSERT(m_commandQueue);
+
+    m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateShader, GLint(type), m_shaderId);
 }
 
 /*!
@@ -64,15 +67,15 @@ CanvasShader::CanvasShader(QOpenGLShader::ShaderType type, QObject *parent) :
  */
 CanvasShader::~CanvasShader()
 {
-    delete m_shader;
+    del();
 }
 
 /*!
  * \internal
  */
-GLuint CanvasShader::id()
+GLint CanvasShader::id()
 {
-    return m_shader->shaderId();
+    return m_shaderId;
 }
 
 /*!
@@ -80,7 +83,7 @@ GLuint CanvasShader::id()
  */
 bool CanvasShader::isAlive()
 {
-    return bool(m_shader);
+    return bool(m_shaderId);
 }
 
 /*!
@@ -88,16 +91,10 @@ bool CanvasShader::isAlive()
  */
 void CanvasShader::del()
 {
-    delete m_shader;
-    m_shader = 0;
-}
-
-/*!
- * \internal
- */
-QOpenGLShader *CanvasShader::qOGLShader()
-{
-    return m_shader;
+    if (m_shaderId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteShader, m_shaderId);
+        m_shaderId = 0;
+    }
 }
 
 /*!
@@ -114,6 +111,15 @@ QString CanvasShader::sourceCode()
 void CanvasShader::setSourceCode(const QString &source)
 {
     m_sourceCode = source;
+}
+
+void CanvasShader::compileShader()
+{
+    if (m_shaderId) {
+        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glCompileShader,
+                                                          m_shaderId);
+        command.data = new QByteArray(m_sourceCode.toLatin1());
+    }
 }
 
 QT_CANVAS3D_END_NAMESPACE

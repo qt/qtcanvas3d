@@ -35,6 +35,7 @@
 ****************************************************************************/
 
 #include "texture3d_p.h"
+#include "glcommandqueue_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -52,13 +53,14 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasTexture::CanvasTexture(QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_textureId(0),
+CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_textureId(queue->createResourceId()),
     m_isAlive(true)
 {
-    initializeOpenGLFunctions();
-    glGenTextures(1, &m_textureId);
+    Q_ASSERT(m_commandQueue);
+
+    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
 }
 
 /*!
@@ -66,8 +68,7 @@ CanvasTexture::CanvasTexture(QObject *parent) :
  */
 CanvasTexture::~CanvasTexture()
 {
-    if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
+    del();
 }
 
 /*!
@@ -75,16 +76,16 @@ CanvasTexture::~CanvasTexture()
  */
 void CanvasTexture::bind(CanvasContext::glEnums target)
 {
-    if (!m_textureId)
-        return;
-
-    glBindTexture(GLenum(target), m_textureId);
+    if (m_textureId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindTexture, GLint(target),
+                                     m_textureId);
+    }
 }
 
 /*!
  * \internal
  */
-GLuint CanvasTexture::textureId() const
+GLint CanvasTexture::textureId() const
 {
     if (!m_isAlive)
         return 0;
@@ -106,7 +107,7 @@ bool CanvasTexture::isAlive() const
 void CanvasTexture::del()
 {
     if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
     m_textureId = 0;
 }
 

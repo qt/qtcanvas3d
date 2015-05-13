@@ -58,7 +58,7 @@
 
     \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 0
 
-    Then, in the \c initGL function, we create the framebuffer object:
+    Then, in the \c initializeGL function, we create the framebuffer object:
 
     \snippet canvas3d/framebuffer/qml/framebuffer/framebuffer.js 1
 
@@ -75,7 +75,7 @@
 
     \section1 Rendering into the Framebuffer
 
-    In \c renderGL function, we first need to draw the scene into the
+    In \c paintGL function, we first need to draw the scene into the
     framebuffer. We start by binding the framebuffer object and setting a
     viewport:
 

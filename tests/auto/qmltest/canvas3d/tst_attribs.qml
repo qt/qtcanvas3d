@@ -34,48 +34,41 @@
 **
 ****************************************************************************/
 
-//
-//  W A R N I N G
-//  -------------
-//
-// This file is not part of the QtCanvas3D API.  It exists purely as an
-// implementation detail.  This header file may change from version to
-// version without notice, or even be removed.
-//
-// We mean it.
+import QtQuick 2.2
+import QtCanvas3D 1.0
+import QtTest 1.0
 
-#ifndef UNIFORMLOCATION_P_H
-#define UNIFORMLOCATION_P_H
+import "tst_attribs.js" as Content
 
-#include "abstractobject3d_p.h"
+Item {
+    id: top
+    height: 300
+    width: 300
 
-#include <QDebug>
+    Canvas3D {
+        id: attribs_test
+        property bool heightChanged: false
+        property bool widthChanged: false
+        property int initStatus: -1
+        property int renderStatus: -1
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
+        anchors.fill: parent
+        onInitializeGL: initStatus = Content.initializeGL(attribs_test)
+        onPaintGL: {
+            renderStatus = Content.paintGL(attribs_test)
+        }
+        onHeightChanged: heightChanged = true
+        onWidthChanged: widthChanged = true
+    }
 
-class CanvasContext;
+    TestCase {
+        name: "Canvas3D_get_active_attrib"
+        when: windowShown
 
-class CanvasUniformLocation : public CanvasAbstractObject
-{
-    Q_OBJECT
-
-public:
-    explicit CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent = 0);
-    virtual ~CanvasUniformLocation();
-
-    GLint id();
-    GLint type();
-    void resolveType(GLint programId, CanvasContext *context);
-
-    friend QDebug operator<< (QDebug d, const CanvasUniformLocation *uLoc);
-
-private:
-    GLint m_locationId;
-    GLint m_type;
-};
-
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE
-
-#endif // UNIFORMLOCATION_P_H
+        function test_attribs() {
+            waitForRendering(attribs_test)
+            tryCompare(attribs_test, "initStatus", 0)
+            tryCompare(attribs_test, "renderStatus", 0)
+        }
+    }
+}

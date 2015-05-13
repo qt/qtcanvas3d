@@ -52,7 +52,8 @@
 #include "abstractobject3d_p.h"
 #include "canvasglstatedump_p.h"
 
-#include <QtGui/QOpenGLFunctions>
+#include <QtCore/QMutex>
+#include <QtCore/QWaitCondition>
 #include <QtCore/QString>
 #include <QtCore/QRect>
 #include <QtCore/QSize>
@@ -84,10 +85,12 @@ class CanvasUniformLocation;
 class CanvasTextureImage;
 class CanvasShaderPrecisionFormat;
 class EnumToStringMap;
+class CanvasGlCommandQueue;
+class GlCommand;
 class CompressedTextureS3TC;
 class CompressedTexturePVRTC;
 
-class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject, protected QOpenGLFunctions
+class QT_CANVAS3D_EXPORT CanvasContext : public CanvasAbstractObject
 {
     Q_OBJECT
     Q_DISABLE_COPY(CanvasContext)
@@ -962,8 +965,8 @@ public:
     ENUM_AS_PROPERTY(UNPACK_COLORSPACE_CONVERSION_WEBGL)
     ENUM_AS_PROPERTY(BROWSER_DEFAULT_WEBGL)
 
-    CanvasContext(QOpenGLContext *context, QSurface *surface, QQmlEngine *engine,
-                  int width, int height, bool isES2, QObject *parent = 0);
+    CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttribs, int contextVersion, const QSet<QByteArray> &extensions,
+                  CanvasGlCommandQueue *commandQueue, QObject *parent = 0);
     ~CanvasContext();
 
     void setCanvas(Canvas *canvas);
@@ -1080,8 +1083,7 @@ public:
     Q_INVOKABLE void linkProgram(QJSValue program);
     Q_INVOKABLE void useProgram(QJSValue program);
     Q_INVOKABLE void validateProgram(QJSValue program);
-    Q_INVOKABLE QJSValue getUniformLocation(QJSValue program,
-                                                          const QString &name);
+    Q_INVOKABLE QJSValue getUniformLocation(QJSValue program, const QString &name);
     Q_INVOKABLE int getAttribLocation(QJSValue program, const QString &name);
     Q_INVOKABLE void bindAttribLocation(QJSValue program, int index, const QString &name);
     Q_INVOKABLE QJSValue getProgramInfoLog(QJSValue program);
@@ -1174,9 +1176,14 @@ public:
                                                       glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
-    Q_INVOKABLE QVariant getUniform(QJSValue program, QJSValue location);
+    Q_INVOKABLE QJSValue getUniform(QJSValue program, QJSValue location);
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
     Q_INVOKABLE QJSValue getVertexAttrib(uint index, glEnums pname);
+
+    void scheduleSyncCommand(GlSyncCommand *command);
+
+public slots:
+    void handleFullCommandQueue();
 
 signals:
     void canvasChanged(Canvas *canvas);
@@ -1218,12 +1225,8 @@ private:
     void setDevicePixelRatio(float ratio);
     int getSufficientSize(glEnums internalFormat, int width, int height);
 
-    QRect glViewportRect() const;
-    GLuint currentFramebuffer();
-    void logAllGLErrors(const QString &funcName);
-
-    uchar *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
-                        int bytesPerPixel, int width, int height);
+    QByteArray *unpackPixels(uchar *srcData, bool useSrcDataAsDst,
+                             int bytesPerPixel, int width, int height);
 
     bool isOfType(const QJSValue &value, const char *classname) const;
 
@@ -1244,7 +1247,6 @@ private:
     QV4::ExecutionEngine *m_v4engine;
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
-    QRect m_glViewportRect;
     qreal m_devicePixelRatio;
     CanvasProgram *m_currentProgram;
     CanvasBuffer *m_currentArrayBuffer;
@@ -1253,20 +1255,22 @@ private:
     CanvasTexture *m_currentTextureCubeMap;
     CanvasFrameBuffer *m_currentFramebuffer;
     CanvasRenderBuffer *m_currentRenderbuffer;
-    QOpenGLContext *m_context;
     QSet<QByteArray> m_extensions;
-    QSurface *m_surface;
     CanvasContextAttributes m_contextAttributes;
     QMap<int, CanvasBuffer*> m_idToCanvasBufferMap;
     friend class Canvas;
-    friend class QFBOCanvas3D;
+    friend class CanvasRenderer;
     QString m_emptyString;
     int m_error;
     EnumToStringMap *m_map;
     Canvas *m_canvas;
     uint m_maxVertexAttribs;
+    int m_contextVersion;
     float **m_vertexAttribPointers;
     bool m_isOpenGLES2;
+    CanvasGlCommandQueue *m_commandQueue; // Not owned
+    QMutex m_renderJobMutex;
+    QWaitCondition m_renderJobCondition;
 
     bool invalidEnumFlag;
     bool invalidValueFlag;

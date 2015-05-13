@@ -51,44 +51,39 @@
 #include "abstractobject3d_p.h"
 #include "shader3d_p.h"
 
-#include <QtGui/QOpenGLFunctions>
-#include <QtGui/QOpenGLShaderProgram>
 #include <QDebug>
 #include <QList>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class CanvasProgram : public CanvasAbstractObject, protected QOpenGLFunctions
+class CanvasProgram : public CanvasAbstractObject
 {
     Q_OBJECT
 
 public:
-    explicit CanvasProgram(QObject *parent = 0);
+    explicit CanvasProgram(CanvasGlCommandQueue *queue, QObject *parent);
     virtual ~CanvasProgram();
 
-    int uniformLocation(const QString &name);
-    int attributeLocation(const QString &name);
     void del();
     bool isAlive();
     void validateProgram();
-    int id();
+    GLint id();
     void link();
     bool isLinked();
-    void bind();
+    void useProgram();
     void bindAttributeLocation(int index, const QString &name);
 
     void attach(CanvasShader *shader);
     void detach(CanvasShader *shader);
     const QList<CanvasShader *> &attachedShaders() const;
 
-    QString log();
-
     friend QDebug operator<< (QDebug d, const CanvasProgram *program);
 
 private:
-    QOpenGLShaderProgram *m_program;
+    GLint m_programId;
     QList<CanvasShader *> m_attachedShaders;
+    bool m_linked;
 };
 
 QT_CANVAS3D_END_NAMESPACE

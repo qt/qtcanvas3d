@@ -36,14 +36,18 @@
 
 #include "canvasglstatedump_p.h"
 #include "enumtostringmap_p.h"
+#include "glcommandqueue_p.h"
 
-#include <QDebug>
-#include <QColor>
+#include <QtCore/QDebug>
+#include <QtGui/QColor>
+#include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLFunctions>
 
 #define BOOL_TO_STR(a) a ? "true" : "false"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
+
 
 /*!
    \qmltype GLStateDumpExt
@@ -74,13 +78,14 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 
    \sa Context3D
  */
-CanvasGLStateDump::CanvasGLStateDump(QOpenGLContext *context, QObject *parent) :
+CanvasGLStateDump::CanvasGLStateDump(CanvasContext *canvasContext, bool isEs, QObject *parent) :
     QObject(parent),
-    QOpenGLFunctions(context),
-    m_map(EnumToStringMap::newInstance())
+    m_maxVertexAttribs(0),
+    m_map(EnumToStringMap::newInstance()),
+    m_isOpenGLES2(isEs),
+    m_canvasContext(canvasContext),
+    m_options(DUMP_FULL)
 {
-    m_isOpenGLES2 = context->isOpenGLES();
-    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &m_maxVertexAttribs);
 }
 
 /*!
@@ -95,33 +100,328 @@ CanvasGLStateDump::~CanvasGLStateDump()
 /*!
  * \internal
  */
-QString CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int type)
+void CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int type)
 {
     if (!arrayObject)
-        return "no buffer bound";
+        m_stateDumpStr.append("no buffer bound");
 
-    QString stateDumpStr;
-    glBindBuffer(target, arrayObject);
+    QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+
+    funcs->glBindBuffer(target, arrayObject);
 
     GLint size;
-    glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
+    funcs->glGetBufferParameteriv(target, GL_BUFFER_SIZE, &size);
 
     if (type == GL_FLOAT) {
-        stateDumpStr.append("ARRAY_BUFFER_TYPE......................FLOAT\n");
+        m_stateDumpStr.append("ARRAY_BUFFER_TYPE......................FLOAT\n");
 
-        stateDumpStr.append("ARRAY_BUFFER_SIZE......................");
-        stateDumpStr.append(QString::number(size));
-        stateDumpStr.append("\n");
+        m_stateDumpStr.append("ARRAY_BUFFER_SIZE......................");
+        m_stateDumpStr.append(QString::number(size));
+        m_stateDumpStr.append("\n");
 
     } else if (type == GL_UNSIGNED_SHORT) {
-        stateDumpStr.append("ARRAY_BUFFER_TYPE......................UNSIGNED_SHORT\n");
+        m_stateDumpStr.append("ARRAY_BUFFER_TYPE......................UNSIGNED_SHORT\n");
 
-        stateDumpStr.append("ARRAY_BUFFER_SIZE......................");
-        stateDumpStr.append(QString::number(size));
-        stateDumpStr.append("\n");
+        m_stateDumpStr.append("ARRAY_BUFFER_SIZE......................");
+        m_stateDumpStr.append(QString::number(size));
+        m_stateDumpStr.append("\n");
+    }
+}
+
+/*!
+ * \internal
+ *
+ * This function does the actual state dump. It must be called from renderer thread and
+ * inside a valid context.
+ */
+void CanvasGLStateDump::doGLStateDump()
+{
+#if !defined(QT_OPENGL_ES_2)
+    GLint drawFramebuffer;
+    GLint readFramebuffer;
+    GLboolean polygonOffsetLineEnabled;
+    GLboolean polygonOffsetPointEnabled;
+    GLint boundVertexArray;
+#endif
+
+    QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+
+    if (!m_maxVertexAttribs)
+        funcs->glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &m_maxVertexAttribs);
+
+    GLint renderbuffer;
+    GLfloat clearColor[4];
+    GLfloat clearDepth;
+    GLboolean isBlendingEnabled = funcs->glIsEnabled(GL_BLEND);
+    GLboolean isDepthTestEnabled = funcs->glIsEnabled(GL_DEPTH_TEST);
+    GLint depthFunc;
+    GLboolean isDepthWriteEnabled;
+    GLint currentProgram;
+    GLint *vertexAttribArrayEnabledStates = new GLint[m_maxVertexAttribs];
+    GLint *vertexAttribArrayBoundBuffers = new GLint[m_maxVertexAttribs];
+    GLint *vertexAttribArraySizes = new GLint[m_maxVertexAttribs];
+    GLint *vertexAttribArrayTypes = new GLint[m_maxVertexAttribs];
+    GLint *vertexAttribArrayNormalized = new GLint[m_maxVertexAttribs];
+    GLint *vertexAttribArrayStrides = new GLint[m_maxVertexAttribs];
+    GLint activeTexture;
+    GLint texBinding2D;
+    GLint arrayBufferBinding;
+    GLint frontFace;
+    GLboolean isCullFaceEnabled = funcs->glIsEnabled(GL_CULL_FACE);
+    GLint cullFaceMode;
+    GLint blendEquationRGB;
+    GLint blendEquationAlpha;
+
+    GLint blendDestAlpha;
+    GLint blendDestRGB;
+    GLint blendSrcAlpha;
+    GLint blendSrcRGB;
+    GLint scissorBox[4];
+    GLboolean isScissorTestEnabled = funcs->glIsEnabled(GL_SCISSOR_TEST);
+    GLint boundElementArrayBuffer;
+    GLboolean polygonOffsetFillEnabled;
+    GLfloat polygonOffsetFactor;
+    GLfloat polygonOffsetUnits;
+
+#if !defined(QT_OPENGL_ES_2)
+    if (!m_isOpenGLES2) {
+        funcs->glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFramebuffer);
+        funcs->glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFramebuffer);
+        funcs->glGetBooleanv(GL_POLYGON_OFFSET_LINE, &polygonOffsetLineEnabled);
+        funcs->glGetBooleanv(GL_POLYGON_OFFSET_POINT, &polygonOffsetPointEnabled);
+        funcs->glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &boundVertexArray);
+    }
+#endif
+
+    funcs->glGetBooleanv(GL_DEPTH_WRITEMASK, &isDepthWriteEnabled);
+    funcs->glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbuffer);
+    funcs->glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
+    funcs->glGetFloatv(GL_DEPTH_CLEAR_VALUE, &clearDepth);
+    funcs->glGetIntegerv(GL_DEPTH_FUNC, &depthFunc);
+    funcs->glGetBooleanv(GL_POLYGON_OFFSET_FILL, &polygonOffsetFillEnabled);
+    funcs->glGetFloatv(GL_POLYGON_OFFSET_FACTOR, &polygonOffsetFactor);
+    funcs->glGetFloatv(GL_POLYGON_OFFSET_UNITS, &polygonOffsetUnits);
+
+    funcs->glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
+    funcs->glGetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
+    funcs->glGetIntegerv(GL_TEXTURE_BINDING_2D, &texBinding2D );
+    funcs->glGetIntegerv(GL_FRONT_FACE, &frontFace);
+    funcs->glGetIntegerv(GL_CULL_FACE_MODE, &cullFaceMode);
+    funcs->glGetIntegerv(GL_BLEND_EQUATION_RGB, &blendEquationRGB);
+    funcs->glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &blendEquationAlpha);
+    funcs->glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDestAlpha);
+    funcs->glGetIntegerv(GL_BLEND_DST_RGB, &blendDestRGB);
+    funcs->glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcAlpha);
+    funcs->glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrcRGB);
+    funcs->glGetIntegerv(GL_SCISSOR_BOX, scissorBox);
+    funcs->glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &boundElementArrayBuffer);
+    funcs->glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &arrayBufferBinding);
+
+
+#if !defined(QT_OPENGL_ES_2)
+    if (!m_isOpenGLES2) {
+        m_stateDumpStr.append("GL_DRAW_FRAMEBUFFER_BINDING.....");
+        m_stateDumpStr.append(QString::number(drawFramebuffer));
+        m_stateDumpStr.append("\n");
+
+        m_stateDumpStr.append("GL_READ_FRAMEBUFFER_BINDING.....");
+        m_stateDumpStr.append(QString::number(readFramebuffer));
+        m_stateDumpStr.append("\n");
+    }
+#endif
+
+    m_stateDumpStr.append("GL_RENDERBUFFER_BINDING.........");
+    m_stateDumpStr.append(QString::number(renderbuffer));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_SCISSOR_TEST.................");
+    m_stateDumpStr.append(BOOL_TO_STR(isScissorTestEnabled));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_SCISSOR_BOX..................");
+    m_stateDumpStr.append(QString::number(scissorBox[0]));
+    m_stateDumpStr.append(", ");
+    m_stateDumpStr.append(QString::number(scissorBox[1]));
+    m_stateDumpStr.append(", ");
+    m_stateDumpStr.append(QString::number(scissorBox[2]));
+    m_stateDumpStr.append(", ");
+    m_stateDumpStr.append(QString::number(scissorBox[3]));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_COLOR_CLEAR_VALUE............");
+    m_stateDumpStr.append("r:");
+    m_stateDumpStr.append(QString::number(clearColor[0]));
+    m_stateDumpStr.append(" g:");
+    m_stateDumpStr.append(QString::number(clearColor[1]));
+    m_stateDumpStr.append(" b:");
+    m_stateDumpStr.append(QString::number(clearColor[2]));
+    m_stateDumpStr.append(" a:");
+    m_stateDumpStr.append(QString::number(clearColor[3]));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_DEPTH_CLEAR_VALUE............");
+    m_stateDumpStr.append(QString::number(clearDepth));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_BLEND........................");
+    m_stateDumpStr.append(BOOL_TO_STR(isBlendingEnabled));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_BLEND_EQUATION_RGB...........");
+    m_stateDumpStr.append(m_map->lookUp(blendEquationRGB));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_BLEND_EQUATION_ALPHA.........");
+    m_stateDumpStr.append(m_map->lookUp(blendEquationAlpha));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_DEPTH_TEST...................");
+    m_stateDumpStr.append(BOOL_TO_STR(isDepthTestEnabled));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_DEPTH_FUNC...................");
+    m_stateDumpStr.append(m_map->lookUp(depthFunc));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_DEPTH_WRITEMASK..............");
+    m_stateDumpStr.append(BOOL_TO_STR(isDepthWriteEnabled));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_POLYGON_OFFSET_FILL..........");
+    m_stateDumpStr.append(BOOL_TO_STR(polygonOffsetFillEnabled));
+    m_stateDumpStr.append("\n");
+
+#if !defined(QT_OPENGL_ES_2)
+    if (!m_isOpenGLES2) {
+        m_stateDumpStr.append("GL_POLYGON_OFFSET_LINE..........");
+        m_stateDumpStr.append(BOOL_TO_STR(polygonOffsetLineEnabled));
+        m_stateDumpStr.append("\n");
+
+        m_stateDumpStr.append("GL_POLYGON_OFFSET_POINT.........");
+        m_stateDumpStr.append(BOOL_TO_STR(polygonOffsetPointEnabled));
+        m_stateDumpStr.append("\n");
+    }
+#endif
+
+    m_stateDumpStr.append("GL_POLYGON_OFFSET_FACTOR........");
+    m_stateDumpStr.append(QString::number(polygonOffsetFactor));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_POLYGON_OFFSET_UNITS.........");
+    m_stateDumpStr.append(QString::number(polygonOffsetUnits));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_CULL_FACE....................");
+    m_stateDumpStr.append(BOOL_TO_STR(isCullFaceEnabled));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_CULL_FACE_MODE...............");
+    m_stateDumpStr.append(m_map->lookUp(cullFaceMode));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_FRONT_FACE...................");
+    m_stateDumpStr.append(m_map->lookUp(frontFace));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_CURRENT_PROGRAM..............");
+    m_stateDumpStr.append(QString::number(currentProgram));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_ACTIVE_TEXTURE...............");
+    m_stateDumpStr.append(m_map->lookUp(activeTexture));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_TEXTURE_BINDING_2D...........");
+    m_stateDumpStr.append(QString::number(texBinding2D));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_ELEMENT_ARRAY_BUFFER_BINDING.");
+    m_stateDumpStr.append(QString::number(boundElementArrayBuffer));
+    m_stateDumpStr.append("\n");
+
+    m_stateDumpStr.append("GL_ARRAY_BUFFER_BINDING.........");
+    m_stateDumpStr.append(QString::number(arrayBufferBinding));
+    m_stateDumpStr.append("\n");
+
+#if !defined(QT_OPENGL_ES_2)
+    if (!m_isOpenGLES2) {
+        m_stateDumpStr.append("GL_VERTEX_ARRAY_BINDING.........");
+        m_stateDumpStr.append(QString::number(boundVertexArray));
+        m_stateDumpStr.append("\n");
+    }
+#endif
+
+    if (m_options && DUMP_VERTEX_ATTRIB_ARRAYS_BIT) {
+        for (int i = 0; i < m_maxVertexAttribs;i++) {
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &vertexAttribArrayEnabledStates[i]);
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &vertexAttribArrayBoundBuffers[i]);
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE, &vertexAttribArraySizes[i]);
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE, &vertexAttribArrayTypes[i]);
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &vertexAttribArrayNormalized[i]);
+            funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &vertexAttribArrayStrides[i]);
+        }
+
+
+        for (int i = 0; i < m_maxVertexAttribs;i++) {
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_");
+            m_stateDumpStr.append(QString::number(i));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_ENABLED.........");
+            m_stateDumpStr.append(BOOL_TO_STR(vertexAttribArrayEnabledStates[i]));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING..");
+            m_stateDumpStr.append(QString::number(vertexAttribArrayBoundBuffers[i]));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_SIZE............");
+            m_stateDumpStr.append(QString::number(vertexAttribArraySizes[i]));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_TYPE............");
+            m_stateDumpStr.append(m_map->lookUp(vertexAttribArrayTypes[i]));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_NORMALIZED......");
+            m_stateDumpStr.append(QString::number(vertexAttribArrayNormalized[i]));
+            m_stateDumpStr.append("\n");
+
+            m_stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_STRIDE..........");
+            m_stateDumpStr.append(QString::number(vertexAttribArrayStrides[i]));
+            m_stateDumpStr.append("\n");
+        }
     }
 
-    return stateDumpStr;
+    if (m_options && DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT) {
+        if (boundElementArrayBuffer != 0) {
+            m_stateDumpStr.append("GL_ELEMENT_ARRAY_BUFFER................");
+            m_stateDumpStr.append(QString::number(boundElementArrayBuffer));
+            m_stateDumpStr.append("\n");
+
+            getGLArrayObjectDump(GL_ELEMENT_ARRAY_BUFFER, boundElementArrayBuffer,
+                                 GL_UNSIGNED_SHORT);
+        }
+
+        for (int i = 0; i < m_maxVertexAttribs;i++) {
+            if (vertexAttribArrayEnabledStates[i]) {
+                m_stateDumpStr.append("GL_ARRAY_BUFFER........................");
+                m_stateDumpStr.append(QString::number(vertexAttribArrayBoundBuffers[i]));
+                m_stateDumpStr.append("\n");
+
+                getGLArrayObjectDump(GL_ARRAY_BUFFER, vertexAttribArrayBoundBuffers[i],
+                                     vertexAttribArrayTypes[i]);
+            }
+        }
+    }
+
+
+    delete[] vertexAttribArrayEnabledStates;
+    delete[] vertexAttribArrayBoundBuffers;
+    delete[] vertexAttribArraySizes;
+    delete[] vertexAttribArrayTypes;
+    delete[] vertexAttribArrayNormalized;
+    delete[] vertexAttribArrayStrides;
 }
 
 /*!
@@ -140,291 +440,15 @@ QString CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int
  */
 QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums options)
 {
-#if !defined(QT_OPENGL_ES_2)
-    GLint drawFramebuffer;
-    GLint readFramebuffer;
-    GLboolean polygonOffsetLineEnabled;
-    GLboolean polygonOffsetPointEnabled;
-    GLint boundVertexArray;
-#endif
+    m_options = options;
+    m_stateDumpStr.clear();
 
-    QString stateDumpStr;
-    GLint renderbuffer;
-    GLfloat clearColor[4];
-    GLfloat clearDepth;
-    GLboolean isBlendingEnabled = glIsEnabled(GL_BLEND);
-    GLboolean isDepthTestEnabled = glIsEnabled(GL_DEPTH_TEST);
-    GLint depthFunc;
-    GLboolean isDepthWriteEnabled;
-    GLint currentProgram;
-    GLint *vertexAttribArrayEnabledStates = new GLint[m_maxVertexAttribs];
-    GLint *vertexAttribArrayBoundBuffers = new GLint[m_maxVertexAttribs];
-    GLint *vertexAttribArraySizes = new GLint[m_maxVertexAttribs];
-    GLint *vertexAttribArrayTypes = new GLint[m_maxVertexAttribs];
-    GLint *vertexAttribArrayNormalized = new GLint[m_maxVertexAttribs];
-    GLint *vertexAttribArrayStrides = new GLint[m_maxVertexAttribs];
-    GLint activeTexture;
-    GLint texBinding2D;
-    GLint arrayBufferBinding;
-    GLint frontFace;
-    GLboolean isCullFaceEnabled = glIsEnabled(GL_CULL_FACE);
-    GLint cullFaceMode;
-    GLint blendEquationRGB;
-    GLint blendEquationAlpha;
+    // Schedule a synchronous dump job
+    GlSyncCommand syncCommand(CanvasGlCommandQueue::extStateDump);
+    syncCommand.returnValue = static_cast<void *>(this);
+    m_canvasContext->scheduleSyncCommand(&syncCommand);
 
-    GLint blendDestAlpha;
-    GLint blendDestRGB;
-    GLint blendSrcAlpha;
-    GLint blendSrcRGB;
-    GLint scissorBox[4];
-    GLboolean isScissorTestEnabled = glIsEnabled(GL_SCISSOR_TEST);
-    GLint boundElementArrayBuffer;
-    GLboolean polygonOffsetFillEnabled;
-    GLfloat polygonOffsetFactor;
-    GLfloat polygonOffsetUnits;
-
-#if !defined(QT_OPENGL_ES_2)
-    if (!m_isOpenGLES2) {
-        glGetIntegerv(GL_DRAW_FRAMEBUFFER_BINDING, &drawFramebuffer);
-        glGetIntegerv(GL_READ_FRAMEBUFFER_BINDING, &readFramebuffer);
-        glGetBooleanv(GL_POLYGON_OFFSET_LINE, &polygonOffsetLineEnabled);
-        glGetBooleanv(GL_POLYGON_OFFSET_POINT, &polygonOffsetPointEnabled);
-        glGetIntegerv(GL_VERTEX_ARRAY_BINDING, &boundVertexArray);
-    }
-#endif
-
-    glGetBooleanv(GL_DEPTH_WRITEMASK, &isDepthWriteEnabled);
-    glGetIntegerv(GL_RENDERBUFFER_BINDING, &renderbuffer);
-    glGetFloatv(GL_COLOR_CLEAR_VALUE, clearColor);
-    glGetFloatv(GL_DEPTH_CLEAR_VALUE, &clearDepth);
-    glGetIntegerv(GL_DEPTH_FUNC, &depthFunc);
-    glGetBooleanv(GL_POLYGON_OFFSET_FILL, &polygonOffsetFillEnabled);
-    glGetFloatv(GL_POLYGON_OFFSET_FACTOR, &polygonOffsetFactor);
-    glGetFloatv(GL_POLYGON_OFFSET_UNITS, &polygonOffsetUnits);
-
-    glGetIntegerv(GL_CURRENT_PROGRAM, &currentProgram);
-    glGetIntegerv(GL_ACTIVE_TEXTURE, &activeTexture);
-    glGetIntegerv(GL_TEXTURE_BINDING_2D, &texBinding2D );
-    glGetIntegerv(GL_FRONT_FACE, &frontFace);
-    glGetIntegerv(GL_CULL_FACE_MODE, &cullFaceMode);
-    glGetIntegerv(GL_BLEND_EQUATION_RGB, &blendEquationRGB);
-    glGetIntegerv(GL_BLEND_EQUATION_ALPHA, &blendEquationAlpha);
-    glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDestAlpha);
-    glGetIntegerv(GL_BLEND_DST_RGB, &blendDestRGB);
-    glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcAlpha);
-    glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrcRGB);
-    glGetIntegerv(GL_SCISSOR_BOX, scissorBox);
-    glGetIntegerv(GL_ELEMENT_ARRAY_BUFFER_BINDING, &boundElementArrayBuffer);
-    glGetIntegerv(GL_ARRAY_BUFFER_BINDING, &arrayBufferBinding);
-
-#if !defined(QT_OPENGL_ES_2)
-    if (!m_isOpenGLES2) {
-        stateDumpStr.append("GL_DRAW_FRAMEBUFFER_BINDING.....");
-        stateDumpStr.append(QString::number(drawFramebuffer));
-        stateDumpStr.append("\n");
-
-        stateDumpStr.append("GL_READ_FRAMEBUFFER_BINDING.....");
-        stateDumpStr.append(QString::number(readFramebuffer));
-        stateDumpStr.append("\n");
-    }
-#endif
-
-    stateDumpStr.append("GL_RENDERBUFFER_BINDING.........");
-    stateDumpStr.append(QString::number(renderbuffer));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_SCISSOR_TEST.................");
-    stateDumpStr.append(BOOL_TO_STR(isScissorTestEnabled));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_SCISSOR_BOX..................");
-    stateDumpStr.append(QString::number(scissorBox[0]));
-    stateDumpStr.append(", ");
-    stateDumpStr.append(QString::number(scissorBox[1]));
-    stateDumpStr.append(", ");
-    stateDumpStr.append(QString::number(scissorBox[2]));
-    stateDumpStr.append(", ");
-    stateDumpStr.append(QString::number(scissorBox[3]));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_COLOR_CLEAR_VALUE............");
-    stateDumpStr.append("r:");
-    stateDumpStr.append(QString::number(clearColor[0]));
-    stateDumpStr.append(" g:");
-    stateDumpStr.append(QString::number(clearColor[1]));
-    stateDumpStr.append(" b:");
-    stateDumpStr.append(QString::number(clearColor[2]));
-    stateDumpStr.append(" a:");
-    stateDumpStr.append(QString::number(clearColor[3]));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_DEPTH_CLEAR_VALUE............");
-    stateDumpStr.append(QString::number(clearDepth));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_BLEND........................");
-    stateDumpStr.append(BOOL_TO_STR(isBlendingEnabled));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_BLEND_EQUATION_RGB...........");
-    stateDumpStr.append(m_map->lookUp(blendEquationRGB));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_BLEND_EQUATION_ALPHA.........");
-    stateDumpStr.append(m_map->lookUp(blendEquationAlpha));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_DEPTH_TEST...................");
-    stateDumpStr.append(BOOL_TO_STR(isDepthTestEnabled));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_DEPTH_FUNC...................");
-    stateDumpStr.append(m_map->lookUp(depthFunc));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_DEPTH_WRITEMASK..............");
-    stateDumpStr.append(BOOL_TO_STR(isDepthWriteEnabled));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_POLYGON_OFFSET_FILL..........");
-    stateDumpStr.append(BOOL_TO_STR(polygonOffsetFillEnabled));
-    stateDumpStr.append("\n");
-
-#if !defined(QT_OPENGL_ES_2)
-    if (!m_isOpenGLES2) {
-        stateDumpStr.append("GL_POLYGON_OFFSET_LINE..........");
-        stateDumpStr.append(BOOL_TO_STR(polygonOffsetLineEnabled));
-        stateDumpStr.append("\n");
-
-        stateDumpStr.append("GL_POLYGON_OFFSET_POINT.........");
-        stateDumpStr.append(BOOL_TO_STR(polygonOffsetPointEnabled));
-        stateDumpStr.append("\n");
-    }
-#endif
-
-    stateDumpStr.append("GL_POLYGON_OFFSET_FACTOR........");
-    stateDumpStr.append(QString::number(polygonOffsetFactor));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_POLYGON_OFFSET_UNITS.........");
-    stateDumpStr.append(QString::number(polygonOffsetUnits));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_CULL_FACE....................");
-    stateDumpStr.append(BOOL_TO_STR(isCullFaceEnabled));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_CULL_FACE_MODE...............");
-    stateDumpStr.append(m_map->lookUp(cullFaceMode));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_FRONT_FACE...................");
-    stateDumpStr.append(m_map->lookUp(frontFace));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_CURRENT_PROGRAM..............");
-    stateDumpStr.append(QString::number(currentProgram));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_ACTIVE_TEXTURE...............");
-    stateDumpStr.append(m_map->lookUp(activeTexture));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_TEXTURE_BINDING_2D...........");
-    stateDumpStr.append(QString::number(texBinding2D));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_ELEMENT_ARRAY_BUFFER_BINDING.");
-    stateDumpStr.append(QString::number(boundElementArrayBuffer));
-    stateDumpStr.append("\n");
-
-    stateDumpStr.append("GL_ARRAY_BUFFER_BINDING.........");
-    stateDumpStr.append(QString::number(arrayBufferBinding));
-    stateDumpStr.append("\n");
-
-#if !defined(QT_OPENGL_ES_2)
-    if (!m_isOpenGLES2) {
-        stateDumpStr.append("GL_VERTEX_ARRAY_BINDING.........");
-        stateDumpStr.append(QString::number(boundVertexArray));
-        stateDumpStr.append("\n");
-    }
-#endif
-
-    if (options && DUMP_VERTEX_ATTRIB_ARRAYS_BIT) {
-        for (int i = 0; i < m_maxVertexAttribs;i++) {
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &vertexAttribArrayEnabledStates[i]);
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &vertexAttribArrayBoundBuffers[i]);
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_SIZE, &vertexAttribArraySizes[i]);
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_TYPE, &vertexAttribArrayTypes[i]);
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_NORMALIZED, &vertexAttribArrayNormalized[i]);
-            glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_STRIDE, &vertexAttribArrayStrides[i]);
-        }
-
-
-        for (int i = 0; i < m_maxVertexAttribs;i++) {
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_");
-            stateDumpStr.append(QString::number(i));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_ENABLED.........");
-            stateDumpStr.append(BOOL_TO_STR(vertexAttribArrayEnabledStates[i]));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING..");
-            stateDumpStr.append(QString::number(vertexAttribArrayBoundBuffers[i]));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_SIZE............");
-            stateDumpStr.append(QString::number(vertexAttribArraySizes[i]));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_TYPE............");
-            stateDumpStr.append(m_map->lookUp(vertexAttribArrayTypes[i]));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_NORMALIZED......");
-            stateDumpStr.append(QString::number(vertexAttribArrayNormalized[i]));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append("GL_VERTEX_ATTRIB_ARRAY_STRIDE..........");
-            stateDumpStr.append(QString::number(vertexAttribArrayStrides[i]));
-            stateDumpStr.append("\n");
-        }
-    }
-
-    if (options && DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT) {
-        if (boundElementArrayBuffer != 0) {
-            stateDumpStr.append("GL_ELEMENT_ARRAY_BUFFER................");
-            stateDumpStr.append(QString::number(boundElementArrayBuffer));
-            stateDumpStr.append("\n");
-
-            stateDumpStr.append(getGLArrayObjectDump(GL_ELEMENT_ARRAY_BUFFER,
-                                                     boundElementArrayBuffer,
-                                                     GL_UNSIGNED_SHORT));
-        }
-
-        for (int i = 0; i < m_maxVertexAttribs;i++) {
-            if (vertexAttribArrayEnabledStates[i]) {
-                stateDumpStr.append("GL_ARRAY_BUFFER........................");
-                stateDumpStr.append(QString::number(vertexAttribArrayBoundBuffers[i]));
-                stateDumpStr.append("\n");
-
-                stateDumpStr.append(getGLArrayObjectDump(GL_ARRAY_BUFFER,
-                                                         vertexAttribArrayBoundBuffers[i],
-                                                         vertexAttribArrayTypes[i]));
-            }
-        }
-    }
-
-
-    delete[] vertexAttribArrayEnabledStates;
-    delete[] vertexAttribArrayBoundBuffers;
-    delete[] vertexAttribArraySizes;
-    delete[] vertexAttribArrayTypes;
-    delete[] vertexAttribArrayNormalized;
-    delete[] vertexAttribArrayStrides;
-
-    return stateDumpStr;
+    return m_stateDumpStr;
 }
 
 QT_CANVAS3D_END_NAMESPACE

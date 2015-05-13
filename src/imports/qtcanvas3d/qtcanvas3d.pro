@@ -27,7 +27,10 @@ SOURCES += arrayutils.cpp \
     activeinfo3d.cpp \
     canvasglstatedump.cpp \
     compressedtextures3tc.cpp \
-    compressedtexturepvrtc.cpp
+    compressedtexturepvrtc.cpp \
+    glcommandqueue.cpp \
+    renderjob.cpp \
+    canvasrenderer.cpp
 
 HEADERS += arrayutils_p.h \
     qcanvas3d_plugin.h \
@@ -50,7 +53,10 @@ HEADERS += arrayutils_p.h \
     activeinfo3d_p.h \
     canvasglstatedump_p.h \
     compressedtextures3tc_p.h \
-    compressedtexturepvrtc_p.h
+    compressedtexturepvrtc_p.h \
+    glcommandqueue_p.h \
+    renderjob_p.h \
+    canvasrenderer_p.h
 
 OTHER_FILES = qmldir \
     doc/* \

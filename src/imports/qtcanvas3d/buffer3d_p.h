@@ -50,12 +50,10 @@
 #include "context3d_p.h"
 #include "abstractobject3d_p.h"
 
-#include <QOpenGLFunctions>
-
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class CanvasBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
+class CanvasBuffer : public CanvasAbstractObject
 {
     Q_OBJECT
 
@@ -66,20 +64,21 @@ public:
         ELEMENT_ARRAY_BUFFER
     };
 
-    explicit CanvasBuffer(QObject *parent = 0);
+    explicit CanvasBuffer();
+    explicit CanvasBuffer(CanvasGlCommandQueue *queue, QObject *parent);
     CanvasBuffer(const CanvasBuffer& other);
     virtual ~CanvasBuffer();
 
     void del();
     bool isAlive();
-    GLuint id();
+    GLint id();
     bindTarget target();
     void setTarget(bindTarget bindPoint);
 
     friend QDebug operator<< (QDebug d, const CanvasBuffer *buffer);
 
 private:
-    GLuint m_bufferId;
+    GLint m_bufferId;
     bindTarget m_bindTarget;
 };
 

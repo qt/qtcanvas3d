@@ -60,7 +60,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \internal
  */
 CanvasContextAttributes::CanvasContextAttributes(QObject *parent) :
-    CanvasAbstractObject(parent),
+    CanvasAbstractObject(0, parent),
     m_alpha(false),  // Should be true according to official WebGL spec. But ignored for now.
     m_depth(false),
     m_stencil(false),

@@ -50,8 +50,6 @@
 #include "context3d_p.h"
 #include "abstractobject3d_p.h"
 
-#include <QOpenGLShader>
-
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
@@ -59,19 +57,18 @@ class CanvasShader : public CanvasAbstractObject
 {
     Q_OBJECT
 public:
-    explicit CanvasShader(QOpenGLShader::ShaderType type, QObject *parent = 0);
+    explicit CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *parent);
     ~CanvasShader();
 
     void del();
-    GLuint id();
+    GLint id();
     bool isAlive();
-    QOpenGLShader *qOGLShader();
     QString sourceCode();
     void setSourceCode(const QString &source);
+    void compileShader();
 
 private:
-    QOpenGLShader *m_shader;
-    QOpenGLShader::ShaderType m_type;
+    GLint m_shaderId;
     QString m_sourceCode;
 };
 

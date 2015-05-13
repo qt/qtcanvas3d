@@ -60,6 +60,9 @@ class QOffscreenSurface;
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
+class CanvasGlCommandQueue;
+class CanvasRenderer;
+
 // Logs on high level information about the OpenGL driver and context.
 Q_DECLARE_LOGGING_CATEGORY(canvas3dinfo)
 
@@ -71,8 +74,7 @@ Q_DECLARE_LOGGING_CATEGORY(canvas3drendering)
 // after each OpenGL call and this will cause a negative performance hit.
 Q_DECLARE_LOGGING_CATEGORY(canvas3dglerrors)
 
-
-class QT_CANVAS3D_EXPORT Canvas : public QQuickItem, QOpenGLFunctions
+class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY(Canvas)
@@ -99,18 +101,16 @@ public:
     int height();
 
     void bindCurrentRenderTarget();
-    GLuint resolveMSAAFbo();
 
     uint fps();
 
     Q_INVOKABLE QJSValue getContext(const QString &name);
     Q_INVOKABLE QJSValue getContext(const QString &name, const QVariantMap &options);
     CanvasContext *context();
+    CanvasRenderer *renderer();
 
 public slots:
-    void ready();
-    void shutDown();
-    void renderNext();
+    void queueNextRender();
     void queueResizeGL();
     void emitNeedRender();
 
@@ -138,21 +138,10 @@ private:
 
     bool m_isNeedRenderQueued;
     bool m_renderNodeReady;
-    QThread *m_mainThread;
-    QThread *m_contextThread;
-    QRectF m_cachedGeometry;
     CanvasContext *m_context3D;
-    bool m_isFirstRender;
     QSize m_fboSize;
-    QSize m_initializedSize;
     QSize m_maxSize;
 
-    QOpenGLContext *m_glContext;
-    QOpenGLContext *m_glContextQt;
-    QOpenGLContext *m_glContextShare;
-    QQuickWindow *m_contextWindow;
-
-    uint m_fps;
     int m_maxSamples;
     float m_devicePixelRatio;
 
@@ -163,14 +152,7 @@ private:
     bool m_isContextAttribsSet;
     bool m_resizeGLQueued;
 
-    QOpenGLFramebufferObject *m_antialiasFbo;
-    QOpenGLFramebufferObject *m_renderFbo;
-    QOpenGLFramebufferObject *m_displayFbo;
-    QOpenGLFramebufferObjectFormat m_fboFormat;
-    QOpenGLFramebufferObjectFormat m_antialiasFboFormat;
-    QOpenGLFramebufferObject *m_oldDisplayFbo;
-
-    QOffscreenSurface *m_offscreenSurface;
+    CanvasRenderer *m_renderer;
 };
 
 QT_CANVAS3D_END_NAMESPACE
