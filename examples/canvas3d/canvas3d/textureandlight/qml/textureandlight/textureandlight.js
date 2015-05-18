@@ -91,7 +91,7 @@ function initializeGL(canvas) {
     //! [8]
     qtLogoImage.imageLoaded.connect(function() {
         console.log("Texture loaded, "+qtLogoImage.src);
-        // Create the Texture3D object
+        // Create the Canvas3DTexture object
         cubeTexture = gl.createTexture();
         // Bind it
         gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
@@ -349,7 +349,7 @@ function initShaders()
                                     }", gl.FRAGMENT_SHADER);
     //! [4]
     //! [5]
-    // Create the Program3D for shader
+    // Create the Canvas3DProgram for shader
     var shaderProgram = gl.createProgram();
 
     // Attach the shader sources to the shader program

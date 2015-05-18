@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype UniformLocation
+ * \qmltype Canvas3DUniformLocation
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains uniform location id.
@@ -79,9 +79,9 @@ int CanvasUniformLocation::id()
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)
-        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
     else
-        dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *)(uLoc) << ")";
 
     return dbg.maybeSpace();
 }

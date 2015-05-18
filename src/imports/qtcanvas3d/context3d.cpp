@@ -286,8 +286,8 @@ GLuint CanvasContext::currentFramebuffer()
 }
 
 /*!
- * \qmlmethod ShaderPrecisionFormat Context3D::getShaderPrecisionFormat(glEnums shadertype, glEnums precisiontype)
- * Return a new ShaderPrecisionFormat describing the range and precision for the specified shader
+ * \qmlmethod Canvas3DShaderPrecisionFormat Context3D::getShaderPrecisionFormat(glEnums shadertype, glEnums precisiontype)
+ * Return a new Canvas3DShaderPrecisionFormat describing the range and precision for the specified shader
  * numeric format.
  * \a shadertype Type of the shader, either \c Context3D.FRAGMENT_SHADER or
  * \c{Context3D.VERTEX_SHADER}.
@@ -295,7 +295,7 @@ GLuint CanvasContext::currentFramebuffer()
  * \c{Context3D.HIGH_FLOAT}, \c{Context3D.LOW_INT}, \c{Context3D.MEDIUM_INT} or
  * \c{Context3D.HIGH_INT}.
  *
- * \sa ShaderPrecisionFormat
+ * \sa Canvas3DShaderPrecisionFormat
  */
 /*!
  * \internal
@@ -342,7 +342,7 @@ bool CanvasContext::isContextLost()
 }
 
 /*!
- * \qmlmethod ContextAttributes Context3D::getContextAttributes()
+ * \qmlmethod Canvas3DContextAttributes Context3D::getContextAttributes()
  * Returns a copy of the actual context parameters that are used in the current context.
  */
 /*!
@@ -398,8 +398,8 @@ void CanvasContext::finish()
 }
 
 /*!
- * \qmlmethod Texture3D Context3D::createTexture()
- * Create a Texture3D object and initialize a name for it as by calling \c{glGenTextures()}.
+ * \qmlmethod Canvas3DTexture Context3D::createTexture()
+ * Create a Canvas3DTexture object and initialize a name for it as by calling \c{glGenTextures()}.
  */
 /*!
  * \internal
@@ -415,10 +415,10 @@ QJSValue CanvasContext::createTexture()
 }
 
 /*!
- * \qmlmethod void Context3D::deleteTexture(Texture3D texture3D)
+ * \qmlmethod void Context3D::deleteTexture(Canvas3DTexture texture3D)
  * Deletes the given texture as if by calling \c{glDeleteTextures()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a texture3D is the Texture3D to be deleted.
+ * \a texture3D is the Canvas3DTexture to be deleted.
  */
 /*!
  * \internal
@@ -486,11 +486,11 @@ void CanvasContext::activeTexture(glEnums texture)
 }
 
 /*!
- * \qmlmethod void Context3D::bindTexture(glEnums target, Texture3D texture3D)
- * Bind a Texture3D to a texturing target.
- * \a target is the target of the active texture unit to which the Texture3D will be bound.
+ * \qmlmethod void Context3D::bindTexture(glEnums target, Canvas3DTexture texture3D)
+ * Bind a Canvas3DTexture to a texturing target.
+ * \a target is the target of the active texture unit to which the Canvas3DTexture will be bound.
  * Must be either \c{Context3D.TEXTURE_2D} or \c{Context3D.TEXTURE_CUBE_MAP}.
- * \a texture3D is the Texture3D to be bound.
+ * \a texture3D is the Canvas3DTexture to be bound.
  */
 /*!
  * \internal
@@ -601,7 +601,7 @@ void CanvasContext::generateMipmap(glEnums target)
 
 /*!
  * \qmlmethod bool Context3D::isTexture(Object anyObject)
- * Returns true if the given object is a valid Texture3D object.
+ * Returns true if the given object is a valid Canvas3DTexture object.
  * \a anyObject is the object that is to be verified as a valid texture.
  */
 /*!
@@ -1190,7 +1190,7 @@ uchar* CanvasContext::unpackPixels(uchar *srcData, bool useSrcDataAsDst,
 
 /*!
  * \qmlmethod void Context3D::texImage2D(glEnums target, int level, glEnums internalformat, glEnums format, glEnums type, TextureImage texImage)
- * Uploads the given TextureImage element to the currently bound Texture3D.
+ * Uploads the given TextureImage element to the currently bound Canvas3DTexture.
  * \a target Target texture of the active texture unit. Must be \c{Context3D.TEXTURE_2D},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_X},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_Y},
@@ -1204,7 +1204,7 @@ uchar* CanvasContext::unpackPixels(uchar *srcData, bool useSrcDataAsDst,
  * \a type Type of the data, conceptually the given image is first converted to this type, then
  * uploaded. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageLoader}.
+ * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageFactory}.
  */
 /*!
  * \internal
@@ -1283,7 +1283,7 @@ CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
 
 /*!
  * \qmlmethod void Context3D::texSubImage2D(glEnums target, int level, int xoffset, int yoffset, glEnums format, glEnums type, TextureImage texImage)
- * Uploads the given TextureImage element to the currently bound Texture3D.
+ * Uploads the given TextureImage element to the currently bound Canvas3DTexture.
  * \a target specifies the target texture of the active texture unit. Must be
  * \c{Context3D.TEXTURE_2D}, \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X},
  * \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y},
@@ -1298,7 +1298,7 @@ CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
  * \a type Type of the data, conceptually the given image is first converted to this type, then
  * uploaded. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageLoader}.
+ * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageFactory}.
  */
 /*!
  * \internal
@@ -1448,8 +1448,8 @@ int CanvasContext::getSufficientSize(glEnums internalFormat, int width, int heig
 }
 
 /*!
- * \qmlmethod FrameBuffer3D Context3D::createFramebuffer()
- * Returns a created FrameBuffer3D object that is initialized with a framebuffer object name as
+ * \qmlmethod Canvas3DFrameBuffer Context3D::createFramebuffer()
+ * Returns a created Canvas3DFrameBuffer object that is initialized with a framebuffer object name as
  * if by calling \c{glGenFramebuffers()}.
  */
 /*!
@@ -1467,7 +1467,7 @@ QJSValue CanvasContext::createFramebuffer()
 }
 
 /*!
- * \qmlmethod void Context3D::bindFramebuffer(glEnums target, FrameBuffer3D buffer)
+ * \qmlmethod void Context3D::bindFramebuffer(glEnums target, Canvas3DFrameBuffer buffer)
  * Binds the given \a buffer object to the given \a target.
  * \a target must be \c{Context3D.FRAMEBUFFER}.
  */
@@ -1525,7 +1525,7 @@ CanvasContext::glEnums CanvasContext::checkFramebufferStatus(glEnums target)
 }
 
 /*!
- * \qmlmethod void Context3D::framebufferRenderbuffer(glEnums target, glEnums attachment, glEnums renderbuffertarget, RenderBuffer3D renderbuffer3D)
+ * \qmlmethod void Context3D::framebufferRenderbuffer(glEnums target, glEnums attachment, glEnums renderbuffertarget, Canvas3DRenderBuffer renderbuffer3D)
  * Attaches the given \a renderbuffer3D object to the \a attachment point of the current framebuffer
  * object.
  * \a target must be \c{Context3D.FRAMEBUFFER}. \a renderbuffertarget must
@@ -1592,7 +1592,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
 }
 
 /*!
- * \qmlmethod void Context3D::framebufferTexture2D(glEnums target, glEnums attachment, glEnums textarget, Texture3D texture3D, int level)
+ * \qmlmethod void Context3D::framebufferTexture2D(glEnums target, glEnums attachment, glEnums textarget, Canvas3DTexture texture3D, int level)
  * Attaches the given \a renderbuffer object to the \a attachment point of the current framebuffer
  * object.
  * \a target must be \c{Context3D.FRAMEBUFFER}. \a renderbuffertarget must
@@ -1676,7 +1676,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
 
 /*!
  * \qmlmethod void Context3D::isFramebuffer(Object anyObject)
- * Returns true if the given object is a valid FrameBuffer3D object.
+ * Returns true if the given object is a valid Canvas3DFrameBuffer object.
  * \a anyObject is the object that is to be verified as a valid framebuffer.
  */
 /*!
@@ -1716,10 +1716,10 @@ CanvasFrameBuffer *CanvasContext::getAsFramebuffer(QJSValue anyObject)
 }
 
 /*!
- * \qmlmethod void Context3D::deleteFramebuffer(FrameBuffer3D buffer)
+ * \qmlmethod void Context3D::deleteFramebuffer(Canvas3DFrameBuffer buffer)
  * Deletes the given framebuffer as if by calling \c{glDeleteFramebuffers()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a buffer is the FrameBuffer3D to be deleted.
+ * \a buffer is the Canvas3DFrameBuffer to be deleted.
  */
 /*!
  * \internal
@@ -1744,8 +1744,8 @@ void CanvasContext::deleteFramebuffer(QJSValue buffer)
 }
 
 /*!
- * \qmlmethod RenderBuffer3D Context3D::createRenderbuffer()
- * Returns a created RenderBuffer3D object that is initialized with a renderbuffer object name
+ * \qmlmethod Canvas3DRenderBuffer Context3D::createRenderbuffer()
+ * Returns a created Canvas3DRenderBuffer object that is initialized with a renderbuffer object name
  * as if by calling \c{glGenRenderbuffers()}.
  */
 /*!
@@ -1762,7 +1762,7 @@ QJSValue CanvasContext::createRenderbuffer()
 }
 
 /*!
- * \qmlmethod void Context3D::bindRenderbuffer(glEnums target, RenderBuffer3D renderbuffer)
+ * \qmlmethod void Context3D::bindRenderbuffer(glEnums target, Canvas3DRenderBuffer renderbuffer)
  * Binds the given \a renderbuffer3D object to the given \a target.
  * \a target must be \c{Context3D.RENDERBUFFER}.
  */
@@ -1830,7 +1830,7 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
 
 /*!
  * \qmlmethod bool Context3D::isRenderbuffer(Object anyObject)
- * Returns true if the given object is a valid RenderBuffer3D object.
+ * Returns true if the given object is a valid Canvas3DRenderBuffer object.
  * \a anyObject is the object that is to be verified as a valid renderbuffer.
  */
 /*!
@@ -1868,10 +1868,10 @@ CanvasRenderBuffer *CanvasContext::getAsRenderbuffer3D(QJSValue anyObject) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteRenderbuffer(RenderBuffer3D renderbuffer3D)
+ * \qmlmethod void Context3D::deleteRenderbuffer(Canvas3DRenderBuffer renderbuffer3D)
  * Deletes the given renderbuffer as if by calling \c{glDeleteRenderbuffers()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a renderbuffer3D is the RenderBuffer3D to be deleted.
+ * \a renderbuffer3D is the Canvas3DRenderBuffer to be deleted.
  */
 /*!
  * \internal
@@ -1916,8 +1916,8 @@ void CanvasContext::sampleCoverage(float value, bool invert)
 }
 
 /*!
- * \qmlmethod Program3D Context3D::createProgram()
- * Returns a created Program3D object that is initialized with a program object name as if by
+ * \qmlmethod Canvas3DProgram Context3D::createProgram()
+ * Returns a created Canvas3DProgram object that is initialized with a program object name as if by
  * calling \c{glCreateProgram()}.
  */
 /*!
@@ -1936,7 +1936,7 @@ QJSValue CanvasContext::createProgram()
 
 /*!
  * \qmlmethod bool Context3D::isProgram(Object anyObject)
- * Returns true if the given object is a valid Program3D object.
+ * Returns true if the given object is a valid Canvas3DProgram object.
  * \a anyObject is the object that is to be verified as a valid program.
  */
 /*!
@@ -1974,10 +1974,10 @@ CanvasProgram *CanvasContext::getAsProgram3D(QJSValue anyObject) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteProgram(Program3D program3D)
+ * \qmlmethod void Context3D::deleteProgram(Canvas3DProgram program3D)
  * Deletes the given program as if by calling \c{glDeleteProgram()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a program3D is the Program3D to be deleted.
+ * \a program3D is the Canvas3DProgram to be deleted.
  */
 /*!
  * \internal
@@ -2004,7 +2004,7 @@ void CanvasContext::deleteProgram(QJSValue program3D)
 }
 
 /*!
- * \qmlmethod void Context3D::attachShader(Program3D program3D, Shader3D shader3D)
+ * \qmlmethod void Context3D::attachShader(Canvas3DProgram program3D, Canvas3DShader shader3D)
  * Attaches the given \a shader3D object to the given \a program3D object.
  * Calling this method repeatedly on the same object has no side effects.
  */
@@ -2043,7 +2043,7 @@ void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod list<Shader3D> Context3D::getAttachedShaders(Program3D program3D)
+ * \qmlmethod list<Canvas3DShader> Context3D::getAttachedShaders(Canvas3DProgram program3D)
  * Returns the list of shaders currently attached to the given \a program3D.
  */
 /*!
@@ -2075,7 +2075,7 @@ QVariantList CanvasContext::getAttachedShaders(QJSValue program3D)
 
 
 /*!
- * \qmlmethod void Context3D::detachShader(Program3D program, Shader3D shader)
+ * \qmlmethod void Context3D::detachShader(Canvas3DProgram program, Canvas3DShader shader)
  * Detaches given shader object from given program object.
  * \a program3D specifies the program object from which to detach the shader.
  * \a shader3D specifies the shader object to detach.
@@ -2115,7 +2115,7 @@ void CanvasContext::detachShader(QJSValue program3D, QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::linkProgram(Program3D program3D)
+ * \qmlmethod void Context3D::linkProgram(Canvas3DProgram program3D)
  * Links the given program object.
  * \a program3D specifies the program to be linked.
  */
@@ -2472,7 +2472,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 }
 
 /*!
- * \qmlmethod variant Context3D::getProgramParameter(Program3D program3D, glEnums paramName)
+ * \qmlmethod variant Context3D::getProgramParameter(Canvas3DProgram program3D, glEnums paramName)
  * Return the value for the passed \a paramName given the passed \a program3D. The type returned is
  * the natural type for the requested paramName.
  * \a paramName must be \c{Context3D.DELETE_STATUS}, \c{Context3D.LINK_STATUS},
@@ -2527,7 +2527,7 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
 }
 
 /*!
- * \qmlmethod Shader3D Context3D::createShader(glEnums type)
+ * \qmlmethod Canvas3DShader Context3D::createShader(glEnums type)
  * Creates a shader of \a type. Must be either \c Context3D.VERTEX_SHADER or
  * \c{Context3D.FRAGMENT_SHADER}.
  */
@@ -2554,7 +2554,7 @@ QJSValue CanvasContext::createShader(glEnums type)
 
 /*!
  * \qmlmethod bool Context3D::isShader(Object anyObject)
- * Returns true if the given object is a valid Shader3D object.
+ * Returns true if the given object is a valid Canvas3DShader object.
  * \a anyObject is the object that is to be verified as a valid shader.
  */
 /*!
@@ -2589,10 +2589,10 @@ CanvasShader *CanvasContext::getAsShader3D(QJSValue shader3D) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteShader(Shader3D shader)
+ * \qmlmethod void Context3D::deleteShader(Canvas3DShader shader)
  * Deletes the given shader as if by calling \c{glDeleteShader()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a shader is the Shader3D to be deleted.
+ * \a shader is the Canvas3DShader to be deleted.
  */
 /*!
  * \internal
@@ -2620,7 +2620,7 @@ void CanvasContext::deleteShader(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::shaderSource(Shader3D shader, string shaderSource)
+ * \qmlmethod void Context3D::shaderSource(Canvas3DShader shader, string shaderSource)
  * Replaces the shader source code in the given shader object.
  * \a shader specifies the shader object whose source code is to be replaced.
  * \a shaderSource specifies the source code to be loaded in to the shader.
@@ -2657,7 +2657,7 @@ void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
 
 
 /*!
- * \qmlmethod string Context3D::getShaderSource(Shader3D shader)
+ * \qmlmethod string Context3D::getShaderSource(Canvas3DShader shader)
  * Returns the source code string from the \a shader object.
  */
 /*!
@@ -2684,7 +2684,7 @@ QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::compileShader(Shader3D shader)
+ * \qmlmethod void Context3D::compileShader(Canvas3DShader shader)
  * Compiles the given \a shader object.
  */
 /*!
@@ -2727,7 +2727,7 @@ CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(QJSValue anyObject)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1i(UniformLocation3D location3D, int x)
+ * \qmlmethod void Context3D::uniform1i(Canvas3DUniformLocation location3D, int x)
  * Sets the single integer value given in \a x to the given uniform \a location3D.
  */
 /*!
@@ -2749,7 +2749,7 @@ void CanvasContext::uniform1i(QJSValue location3D, int x)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform1iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2789,7 +2789,7 @@ void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1f(UniformLocation3D location3D, float x)
+ * \qmlmethod void Context3D::uniform1f(Canvas3DUniformLocation location3D, float x)
  * Sets the single float value given in \a x to the given uniform \a location3D.
  */
 /*!
@@ -2811,7 +2811,7 @@ void CanvasContext::uniform1f(QJSValue location3D, float x)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1fvt(UniformLocation3D location3D, Object array)
+ * \qmlmethod void Context3D::uniform1fvt(Canvas3DUniformLocation location3D, Object array)
  * Sets the float array given in \a array to the given uniform \a location3D. \a array must be
  * a JavaScript \c Array object or a \c Float32Array object.
  */
@@ -2850,7 +2850,7 @@ void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2f(UniformLocation3D location3D, float x, float y)
+ * \qmlmethod void Context3D::uniform2f(Canvas3DUniformLocation location3D, float x, float y)
  * Sets the two float values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
@@ -2874,7 +2874,7 @@ void CanvasContext::uniform2f(QJSValue location3D, float x, float y)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform2fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2912,7 +2912,7 @@ void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2i(UniformLocation3D location3D, int x, int y)
+ * \qmlmethod void Context3D::uniform2i(Canvas3DUniformLocation location3D, int x, int y)
  * Sets the two integer values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
@@ -2936,7 +2936,7 @@ void CanvasContext::uniform2i(QJSValue location3D, int x, int y)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform2iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2975,7 +2975,7 @@ void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3f(UniformLocation3D location3D, float x, float y, float z)
+ * \qmlmethod void Context3D::uniform3f(Canvas3DUniformLocation location3D, float x, float y, float z)
  * Sets the three float values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
@@ -2999,7 +2999,7 @@ void CanvasContext::uniform3f(QJSValue location3D, float x, float y, float z)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform3fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3038,7 +3038,7 @@ void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3i(UniformLocation3D location3D, int x, int y, int z)
+ * \qmlmethod void Context3D::uniform3i(Canvas3DUniformLocation location3D, int x, int y, int z)
  * Sets the three integer values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
@@ -3061,7 +3061,7 @@ void CanvasContext::uniform3i(QJSValue location3D, int x, int y, int z)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform3iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3100,7 +3100,7 @@ void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4f(UniformLocation3D location3D, float x, float y, float z, float w)
+ * \qmlmethod void Context3D::uniform4f(Canvas3DUniformLocation location3D, float x, float y, float z, float w)
  * Sets the four float values given in \a x , \a y , \a z and \a w to the given uniform \a location3D.
  */
 /*!
@@ -3124,7 +3124,7 @@ void CanvasContext::uniform4f(QJSValue location3D, float x, float y, float z, fl
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform4fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3162,7 +3162,7 @@ void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4i(UniformLocation3D location3D, int x, int y, int z, int w)
+ * \qmlmethod void Context3D::uniform4i(Canvas3DUniformLocation location3D, int x, int y, int z, int w)
  * Sets the four integer values given in \a x , \a y , \a z and \a w to the given uniform
  * \a location3D.
  */
@@ -3187,7 +3187,7 @@ void CanvasContext::uniform4i(QJSValue location3D, int x, int y, int z, int w)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform4iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3344,10 +3344,6 @@ void CanvasContext::uniform3iva(CanvasUniformLocation *location3D, QVariantList 
 
 }
 
-/*!
- * \qmlmethod void Context3D::uniform4iva(UniformLocation3D location3D, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location3D.
- */
 /*!
  * \internal
  */
@@ -3572,7 +3568,7 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
 }
 
 /*!
- * \qmlmethod int Context3D::getShaderParameter(Shader3D shader, glEnums pname)
+ * \qmlmethod int Context3D::getShaderParameter(Canvas3DShader shader, glEnums pname)
  * Returns the value of the passed \a pname for the given \a shader.
  * \a pname must be one of \c{Context3D.SHADER_TYPE}, \c Context3D.DELETE_STATUS and
  * \c{Context3D.COMPILE_STATUS}.
@@ -3622,8 +3618,8 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
 }
 
 /*!
- * \qmlmethod Buffer3D Context3D::createBuffer()
- * Creates a Buffer3D object and initializes it with a buffer object name as if \c glGenBuffers()
+ * \qmlmethod Canvas3DBuffer Context3D::createBuffer()
+ * Creates a Canvas3DBuffer object and initializes it with a buffer object name as if \c glGenBuffers()
  * was called.
  */
 /*!
@@ -3642,8 +3638,8 @@ QJSValue CanvasContext::createBuffer()
 }
 
 /*!
- * \qmlmethod UniformLocation3D Context3D::getUniformLocation(Program3D program3D, string name)
- * Returns UniformLocation3D object that represents the location3D of a specific uniform variable
+ * \qmlmethod Canvas3DUniformLocation Context3D::getUniformLocation(Canvas3DProgram program3D, string name)
+ * Returns Canvas3DUniformLocation object that represents the location3D of a specific uniform variable
  * with the given \a name within the given \a program3D object.
  * Returns \c null if name doesn't correspond to a uniform variable.
  */
@@ -3659,7 +3655,7 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
                                              << ", name:" << name
                                              << "):-1";
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << "WARNING:Invalid Program3D reference " << program;
+                                               << "WARNING:Invalid Canvas3DProgram reference " << program;
         return 0;
     }
     if (!checkParent(program, __FUNCTION__))
@@ -3683,7 +3679,7 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
 }
 
 /*!
- * \qmlmethod int Context3D::getAttribLocation(Program3D program3D, string name)
+ * \qmlmethod int Context3D::getAttribLocation(Canvas3DProgram program3D, string name)
  * Returns location3D of the given attribute variable \a name in the given \a program3D.
  */
 /*!
@@ -3698,7 +3694,7 @@ int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
                                              << ", name:" << name
                                              << "):-1";
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID Program3D reference " << program;
+                                               << ": INVALID Canvas3DProgram reference " << program;
         return -1;
     } else {
         if (!checkParent(program, __FUNCTION__))
@@ -3713,7 +3709,7 @@ int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
 }
 
 /*!
- * \qmlmethod void Context3D::bindAttribLocation(Program3D program3D, int index, string name)
+ * \qmlmethod void Context3D::bindAttribLocation(Canvas3DProgram program3D, int index, string name)
  * Binds the attribute \a index with the attribute variable \a name in the given \a program3D.
  */
 /*!
@@ -3730,7 +3726,7 @@ void CanvasContext::bindAttribLocation(QJSValue program3D, int index, const QStr
     CanvasProgram *program = getAsProgram3D(program3D);
     if (!program) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID Program3D reference " << program;
+                                               << ": INVALID Canvas3DProgram reference " << program;
         return;
     }
     if (!checkParent(program, __FUNCTION__))
@@ -3773,7 +3769,7 @@ void CanvasContext::disableVertexAttribArray(int index)
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix2fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix2fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 2x2 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -3824,7 +3820,7 @@ void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSVal
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix3fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix3fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 3x3 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -3875,7 +3871,7 @@ void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSVal
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix4fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix4fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 4x4 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -4331,7 +4327,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 
 /*!
  * \qmlmethod bool Context3D::isBuffer(Object anyObject)
- * Returns \c true if the given \a anyObect is a valid Buffer3D object and \c false otherwise.
+ * Returns \c true if the given \a anyObect is a valid Canvas3DBuffer object and \c false otherwise.
  */
 /*!
  * \internal
@@ -4366,8 +4362,8 @@ CanvasBuffer *CanvasContext::getAsBuffer3D(QJSValue anyObject) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteBuffer(Buffer3D buffer3D)
- * Deletes the \a buffer3D. Has no effect if the Buffer3D object has been deleted already.
+ * \qmlmethod void Context3D::deleteBuffer(Canvas3DBuffer buffer3D)
+ * Deletes the \a buffer3D. Has no effect if the Canvas3DBuffer object has been deleted already.
  */
 /*!
  * \internal
@@ -4785,7 +4781,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
 }
 
 /*!
- * \qmlmethod string Context3D::getShaderInfoLog(Shader3D shader)
+ * \qmlmethod string Context3D::getShaderInfoLog(Canvas3DShader shader)
  * Returns the info log string of the given \a shader.
  */
 /*!
@@ -4810,7 +4806,7 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod string Context3D::getProgramInfoLog(Program3D program3D)
+ * \qmlmethod string Context3D::getProgramInfoLog(Canvas3DProgram program3D)
  * Returns the info log string of the given \a program3D.
  */
 /*!
@@ -4836,7 +4832,7 @@ QJSValue CanvasContext::getProgramInfoLog(QJSValue program3D)
 }
 
 /*!
- * \qmlmethod void Context3D::bindBuffer(glEnums target, Buffer3D buffer3D)
+ * \qmlmethod void Context3D::bindBuffer(glEnums target, Canvas3DBuffer buffer3D)
  * Binds the given \a buffer3D to the given \a target. Target must be either
  * \c Context3D.ARRAY_BUFFER or \c{Context3D.ELEMENT_ARRAY_BUFFER}. If the \a buffer3D given is
  * \c{null}, the current buffer bound to the target is unbound.
@@ -4896,7 +4892,7 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 
 // TODO: Is this function useful? We don't offer a way to query the status.
 /*!
- * \qmlmethod void Context3D::validateProgram(Program3D program3D)
+ * \qmlmethod void Context3D::validateProgram(Canvas3DProgram program3D)
  * Validates the given \a program3D. The validation status is stored into the state of the shader
  * program container in \a program3D.
  */
@@ -4916,7 +4912,7 @@ void CanvasContext::validateProgram(QJSValue program3D)
 }
 
 /*!
- * \qmlmethod void Context3D::useProgram(Program3D program)
+ * \qmlmethod void Context3D::useProgram(Canvas3DProgram program)
  * Installs the given \a program3D as a part of the current rendering state.
  */
 /*!
@@ -5298,10 +5294,10 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveAttrib(Program3D program3D, uint index)
+ * \qmlmethod Canvas3DActiveInfo Context3D::getActiveAttrib(Canvas3DProgram program3D, uint index)
  * Returns information about the given active attribute variable defined by \a index for the given
  * \a program3D.
- * \sa ActiveInfo3D
+ * \sa Canvas3DActiveInfo
  */
 /*!
  * \internal
@@ -5328,10 +5324,10 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveUniform(Program3D program3D, uint index)
+ * \qmlmethod Canvas3DActiveInfo Context3D::getActiveUniform(Canvas3DProgram program3D, uint index)
  * Returns information about the given active uniform variable defined by \a index for the given
  * \a program3D.
- * \sa ActiveInfo3D
+ * \sa Canvas3DActiveInfo
  */
 /*!
  * \internal
@@ -5785,7 +5781,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
  *   \li Returned Type
  * \row
  *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING}
- *   \li \c{CanvasBuffer}
+ *   \li \c{Canvas3DBuffer}
  * \row
  *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_ENABLED}
  *   \li \c{boolean}
@@ -5895,7 +5891,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
 }
 
 /*!
- * \qmlmethod variant Context3D::getUniform(Program3D program, UniformLocation3D location3D)
+ * \qmlmethod variant Context3D::getUniform(Canvas3DProgram program, Canvas3DUniformLocation location3D)
  * Returns the uniform value at the given \a location3D in the \a program.
  * The type returned is dependent on the uniform type, as shown in the table:
  * \table

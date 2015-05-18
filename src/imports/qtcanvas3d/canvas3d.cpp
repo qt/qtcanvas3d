@@ -262,7 +262,7 @@ QJSValue Canvas::getContext(const QString &type)
 }
 
 /*!
- * \qmlmethod Context3D Canvas3D::getContext(string type, ContextAttributes options)
+ * \qmlmethod Context3D Canvas3D::getContext(string type, Canvas3DContextAttributes options)
  * Returns the 3D rendering context that allows 3D rendering calls to be made.
  * The \a type parameter is ignored for now, but a string is expected to be given.
  * The \a options parameter is only parsed when the first call to getContext() is
@@ -270,7 +270,7 @@ QJSValue Canvas::getContext(const QString &type)
  * giving the \a options parameter, then the context and render target is initialized with
  * default configuration.
  *
- * \sa ContextAttributes, Context3D
+ * \sa Canvas3DContextAttributes, Context3D
  */
 /*!
  * \internal

@@ -61,47 +61,47 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                             "Canvas3D");
     qmlRegisterType<CanvasContextAttributes>(uri,
                                              1, 0,
-                                             "ContextAttributes3D");
+                                             "Canvas3DContextAttributes");
     qmlRegisterUncreatableType<CanvasShaderPrecisionFormat>(uri,
                                                             1, 0,
-                                                            "ShaderPrecisionFormat3D",
-                                                            QLatin1String("Trying to create uncreatable: ShaderPrecisionFormat3D."));
+                                                            "Canvas3DShaderPrecisionFormat",
+                                                            QLatin1String("Trying to create uncreatable: Canvas3DShaderPrecisionFormat."));
     qmlRegisterUncreatableType<CanvasContext>(uri,
                                               1, 0,
                                               "Context3D",
                                               QLatin1String("Trying to create uncreatable: Context3D, use Canvas3D.getContext() instead."));
     qmlRegisterUncreatableType<CanvasActiveInfo>(uri,
                                                  1, 0,
-                                                 "ActiveInfo3D",
-                                                 QLatin1String("Trying to create uncreatable: ActiveInfo3D, use Context3D.getActiveAttrib() or Context3D.getActiveUniform() instead."));
+                                                 "Canvas3DActiveInfo",
+                                                 QLatin1String("Trying to create uncreatable: Canvas3DActiveInfo, use Context3D.getActiveAttrib() or Context3D.getActiveUniform() instead."));
     qmlRegisterUncreatableType<CanvasTexture>(uri,
                                               1, 0,
-                                              "Texture3D",
-                                              QLatin1String("Trying to create uncreatable: Texture3D, use Context3D.createTexture() instead."));
+                                              "Canvas3DTexture",
+                                              QLatin1String("Trying to create uncreatable: Canvas3DTexture, use Context3D.createTexture() instead."));
     qmlRegisterUncreatableType<CanvasShader>(uri,
                                              1, 0,
-                                             "Shader3D",
-                                             QLatin1String("Trying to create uncreatable: Shader3D, use Context3D.createShader() instead."));
+                                             "Canvas3DShader",
+                                             QLatin1String("Trying to create uncreatable: Canvas3DShader, use Context3D.createShader() instead."));
     qmlRegisterUncreatableType<CanvasFrameBuffer>(uri,
                                                   1, 0,
-                                                  "FrameBuffer3D",
-                                                  QLatin1String("Trying to create uncreatable: FrameBuffer3D, use Context3D.createFramebuffer() instead."));
+                                                  "Canvas3DFrameBuffer",
+                                                  QLatin1String("Trying to create uncreatable: Canvas3DFrameBuffer, use Context3D.createFramebuffer() instead."));
     qmlRegisterUncreatableType<CanvasRenderBuffer>(uri,
                                                    1, 0,
-                                                   "RenderBuffer3D",
-                                                   QLatin1String("Trying to create uncreatable: RenderBuffer3D, use Context3D.createRenderbuffer() instead."));
+                                                   "Canvas3DRenderBuffer",
+                                                   QLatin1String("Trying to create uncreatable: Canvas3DRenderBuffer, use Context3D.createRenderbuffer() instead."));
     qmlRegisterUncreatableType<CanvasProgram>(uri,
                                               1, 0,
-                                              "Program3D",
-                                              QLatin1String("Trying to create uncreatable: Program3D, use Context3D.createProgram() instead."));
+                                              "Canvas3DProgram",
+                                              QLatin1String("Trying to create uncreatable: Canvas3DProgram, use Context3D.createProgram() instead."));
     qmlRegisterUncreatableType<CanvasBuffer>(uri,
                                              1, 0,
-                                             "Buffer3D",
-                                             QLatin1String("Trying to create uncreatable: Buffer3D, use Context3D.createBuffer() instead."));
+                                             "Canvas3DBuffer",
+                                             QLatin1String("Trying to create uncreatable: Canvas3DBuffer, use Context3D.createBuffer() instead."));
     qmlRegisterUncreatableType<CanvasUniformLocation>(uri,
                                                       1, 0,
-                                                      "UniformLocation3D",
-                                                      QLatin1String("Trying to create uncreatable: UniformLocation3D, use Context3D.getUniformLocation() instead."));
+                                                      "Canvas3DUniformLocation",
+                                                      QLatin1String("Trying to create uncreatable: Canvas3DUniformLocation, use Context3D.getUniformLocation() instead."));
 
     // EXTENSIONS
     qmlRegisterUncreatableType<CanvasGLStateDump>(uri,

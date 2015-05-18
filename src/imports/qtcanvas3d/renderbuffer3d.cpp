@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype RenderBuffer3D
+ * \qmltype Canvas3DRenderBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL renderbuffer.

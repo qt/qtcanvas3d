@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype Program3D
+ * \qmltype Canvas3DProgram
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains a shader program.
@@ -215,9 +215,9 @@ QString CanvasProgram::log()
 QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 {
     if (program)
-        dbg.nospace() << "Program3D("<< program->name() << ", id:" << program->m_program->programId() << ")";
+        dbg.nospace() << "Canvas3DProgram("<< program->name() << ", id:" << program->m_program->programId() << ")";
     else
-        dbg.nospace() << "Program3D("<< ((void*) program) <<")";
+        dbg.nospace() << "Canvas3DProgram("<< ((void*) program) <<")";
     return dbg.maybeSpace();
 }
 

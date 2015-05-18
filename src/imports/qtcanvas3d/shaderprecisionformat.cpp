@@ -40,7 +40,7 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype ShaderPrecisionFormat
+ * \qmltype Canvas3DShaderPrecisionFormat
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains the shader precision format attributes.
@@ -60,17 +60,17 @@ CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
 }
 
 /*!
- * \qmlproperty int ShaderPrecisionFormat::rangeMin
+ * \qmlproperty int Canvas3DShaderPrecisionFormat::rangeMin
  * The base 2 log of the absolute value of the minimum value that can be represented.
  */
 
 /*!
- * \qmlproperty int ShaderPrecisionFormat::rangeMax
+ * \qmlproperty int Canvas3DShaderPrecisionFormat::rangeMax
  * The base 2 log of the absolute value of the maximum value that can be represented.
  */
 
 /*!
- * \qmlproperty int ShaderPrecisionFormat::precision
+ * \qmlproperty int Canvas3DShaderPrecisionFormat::precision
  * The number of bits of precision that can be represented. 0 for integer formats.
  */
 
