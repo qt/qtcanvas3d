@@ -4686,10 +4686,10 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         glGetBooleanv(COLOR_WRITEMASK, values);
         logAllGLErrors(__FUNCTION__);
         QJSValue arrayValue = m_engine->newArray(4);
-        arrayValue.setProperty(0, values[0]);
-        arrayValue.setProperty(1, values[1]);
-        arrayValue.setProperty(2, values[2]);
-        arrayValue.setProperty(3, values[3]);
+        arrayValue.setProperty(0, bool(values[0]));
+        arrayValue.setProperty(1, bool(values[1]));
+        arrayValue.setProperty(2, bool(values[2]));
+        arrayValue.setProperty(3, bool(values[3]));
         return arrayValue;
     }
 
@@ -4746,7 +4746,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
 
             QV4::ScopedFunctionObject constructor(scope,
                                                   m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Int32Array]);
+                                                  QV4::Heap::TypedArray::UInt32Array]);
             QV4::ScopedCallData callData(scope, 1);
             callData->args[0] = buffer;
             return QJSValue(m_v4engine, constructor->construct(callData));
@@ -5803,7 +5803,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
  *   \li \c{boolean}
  * \row
  *   \li \c{Context3D.CURRENT_VERTEX_ATTRIB}
- *   \li \c{sequence<float>} (with 4 elements)
+ *   \li \c{Float32Array} (with 4 elements)
  *  \endtable
  */
 /*!
@@ -5828,7 +5828,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             if (value == 0 || !m_idToCanvasBufferMap.contains(value))
-                return m_engine->newObject();
+                return QJSValue(QJSValue::NullValue);
 
             return m_engine->newQObject(m_idToCanvasBufferMap[value]);
         }
@@ -5867,17 +5867,22 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             return QJSValue(bool(value));
         }
         case CURRENT_VERTEX_ATTRIB: {
-            // TODO: Should be Float32Array
-            GLfloat values[4];
-            glGetVertexAttribfv(index, GLenum(pname), values);
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * 4));
+
+            glGetVertexAttribfv(index, GLenum(pname), (float *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-            QJSValue array = m_engine->newArray(4);
-            array.setProperty(0, values[0]);
-            array.setProperty(1, values[1]);
-            array.setProperty(2, values[2]);
-            array.setProperty(3, values[3]);
-            return array;
+
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
         }
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__

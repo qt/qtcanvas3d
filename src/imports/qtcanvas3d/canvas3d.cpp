@@ -407,10 +407,16 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         glViewport(0, 0,
                    m_fboSize.width(),
                    m_fboSize.height());
+        glScissor(0, 0,
+                  m_fboSize.width(),
+                  m_fboSize.height());
         m_renderFbo->bind();
         glViewport(0, 0,
                    m_fboSize.width(),
                    m_fboSize.height());
+        glScissor(0, 0,
+                  m_fboSize.width(),
+                  m_fboSize.height());
 
         // Verify that width and height are not initially too large, in case width and height
         // were set before getting GL_MAX_VIEWPORT_DIMS
