@@ -50,6 +50,40 @@ Window {
     property int previousY: 0
     property int previousX: 0
 
+    Rectangle {
+        id: valuePanel
+        width: 150
+        height: 100
+        anchors.left: parent.left
+        anchors.top: parent.top
+        opacity: 0.3
+        border.color: "black"
+        border.width: 2
+        radius: 5
+        z: 1
+    }
+    ColumnLayout {
+        width: valuePanel.width
+        height: valuePanel.height
+        x: 10
+        z: 2
+        Label {
+            font.pixelSize: 20
+            text: "x angle: " + angle
+            readonly property int angle: canvas3d.xRot
+        }
+        Label {
+            font.pixelSize: 20
+            text: "y angle: " + angle
+            readonly property int angle: canvas3d.yRot
+        }
+        Label {
+            font.pixelSize: 20
+            text: "distance: " + distance
+            readonly property int distance: canvas3d.distance * 10
+        }
+    }
+
     ColumnLayout {
         anchors.fill: parent
         RowLayout {
@@ -112,33 +146,6 @@ Window {
                             canvas3d.distance = 0.5
                         if (canvas3d.distance > 10)
                             canvas3d.distance = 10
-                    }
-                }
-            }
-
-            ColumnLayout {
-                Label {
-                    width: 150
-                    Text {
-                        font.pixelSize: 20
-                        text: "x angle: " + angle
-                        readonly property int angle: canvas3d.xRot
-                    }
-                }
-                Label {
-                    width: 150
-                    Text {
-                        font.pixelSize: 20
-                        text: "y angle: " + angle
-                        readonly property int angle: canvas3d.yRot
-                    }
-                }
-                Label {
-                    width: 150
-                    Text {
-                        font.pixelSize: 20
-                        text: "distance: " + distance
-                        readonly property int distance: canvas3d.distance * 10
                     }
                 }
             }
