@@ -2769,7 +2769,7 @@ void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
-        uniform1fva(locationObj, array.toVariant().toList());
+        uniform1iva(locationObj, array.toVariant().toList());
         return;
     }
 
