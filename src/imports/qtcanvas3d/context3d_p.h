@@ -62,6 +62,7 @@
 #include <QtQml>
 #include <QtQml/QJSEngine>
 #include <QtQml/private/qqmlengine_p.h>
+#include <QtQml/private/qv4typedarray_p.h>
 
 #ifdef NO_ERROR // may de defined in winerror.h
 #undef NO_ERROR
@@ -1184,8 +1185,13 @@ signals:
     void drawingBufferHeightChanged();
 
 private:
-    uchar *getAsUint8ArrayRawPtr(QJSValue value);
-    uchar *getAsUint16ArrayRawPtr(QJSValue value);
+    uchar *getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength,
+                                     QV4::Heap::TypedArray::Type type);
+    uchar *getTypedArrayAsRawDataPtr(const QJSValue &jsValue,
+                                     QV4::Heap::TypedArray::Type type);
+    uchar *getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength);
+    uchar *getArrayBufferAsRawDataPtr(const QJSValue &jsValue, int &byteLength);
+
     CanvasTexture *getAsTexture3D(QJSValue anyObject);
     CanvasTextureImage* getAsTextureImage(QJSValue image);
     CanvasFrameBuffer *getAsFramebuffer(QJSValue anyObject);

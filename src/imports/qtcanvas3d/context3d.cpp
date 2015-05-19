@@ -55,7 +55,6 @@
 
 #include <QtGui/QOpenGLShader>
 #include <QtOpenGLExtensions/QOpenGLExtensions>
-#include <QtQml/private/qv4typedarray_p.h>
 #include <QtQml/private/qv4arraybuffer_p.h>
 #include <QtQml/private/qjsvalue_p.h>
 #include <QtCore/private/qbytedata_p.h>
@@ -640,8 +639,23 @@ CanvasTexture *CanvasContext::getAsTexture3D(QJSValue anyObject)
 
 /*!
  * \qmlmethod void Context3D::compressedTexImage2D(glEnums target, int level, glEnums internalformat, int width, int height, int border, TypedArray pixels)
- * Not supported, \c{Context3D.INVALID_OPERATION} is generated when called.
- * \a target, \a level, \a internalformat, \a width, \a height, \a border and \a pixels are ignored.
+ * Specify a 2D compressed texture image.
+ * \a target specifies the target texture of the active texture unit. Must be one of:
+ * \c{Context3D.TEXTURE_2D},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_X},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Z}, or \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Z}.
+ * \a level specifies the level of detail number. Level \c 0 is the base image level. Level \c n is
+ * the \c{n}th mipmap reduction image.
+ * \a internalformat specifies the internal format of the compressed texture.
+ * \a width specifies the width of the texture image. All implementations will support 2D texture
+ * images that are at least 64 texels wide and cube-mapped texture images that are at least 16
+ * texels wide.
+ * \a height specifies the height of the texture image. All implementations will support 2D texture
+ * images that are at least 64 texels high and cube-mapped texture images that are at least 16
+ * texels high.
+ * \a border must be \c{0}.
+ * \a pixels specifies the TypedArray containing the compressed image data.
  */
 /*!
  * \internal
@@ -663,19 +677,18 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, pixels));
+    int byteLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(pixels, byteLen, QV4::Heap::TypedArray::UInt8Array);
 
-    if (typedArray) {
+    if (srcData) {
         // Driver implementation will handle checking of texture
         // properties for specific compression methods
         glCompressedTexImage2D(target,
                                level,
                                internalformat,
                                width, height, border,
-                               typedArray->byteLength(),
-                               (GLvoid *) typedArray->arrayData()->data());
+                               byteLen,
+                               (GLvoid *)srcData );
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -687,9 +700,22 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
 
 /*!
  * \qmlmethod void Context3D::compressedTexSubImage2D(glEnums target, int level, int xoffset, int yoffset, int width, int height, glEnums format, TypedArray pixels)
- * Not supported, \c{Context3D.INVALID_OPERATION} is generated when called.
- * \a target, \a level, \a xoffset, \a yoffset, \a width, \a height, \a format and \a pixels are
- * ignored.
+ * Specify a 2D compressed texture image.
+ * \a target specifies the target texture of the active texture unit. Must be one of:
+ * \c{Context3D.TEXTURE_2D},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_X},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Z}, or \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Z}.
+ * \a level specifies the level of detail number. Level \c 0 is the base image level. Level \c n is
+ * the \c{n}th mipmap reduction image.
+ * \a xoffset Specifies a texel offset in the x direction within the texture array.
+ * \a yoffset Specifies a texel offset in the y direction within the texture array.
+ * \a width Width of the texture subimage.
+ * \a height Height of the texture subimage.
+ * \a pixels specifies the TypedArray containing the compressed image data.
+ * \a format Format of the texel data given in \a pixels, must match the value
+ * of \c internalFormat parameter given when the texture was created.
+ * \a pixels TypedArray containing the compressed image data. If pixels is \c null.
  */
 /*!
  * \internal
@@ -714,11 +740,10 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, pixels));
+    int byteLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(pixels, byteLen, QV4::Heap::TypedArray::UInt8Array);
 
-    if (typedArray) {
+    if (srcData) {
         // Driver implementation will handle checking of texture
         // properties for specific compression methods
         glCompressedTexSubImage2D(target,
@@ -726,8 +751,8 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
                                   xoffset, yoffset,
                                   width, height,
                                   format,
-                                  typedArray->byteLength(),
-                                  (GLvoid *) typedArray->arrayData()->data());
+                                  byteLen,
+                                  (GLvoid *)srcData);
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -922,7 +947,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         }
 
         if (!srcData)
-            srcData = getAsUint8ArrayRawPtr(pixels);
+            srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
 
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
@@ -943,7 +968,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
         if (!srcData)
-            srcData = getAsUint16ArrayRawPtr(pixels);
+            srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt16Array);
 
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
@@ -978,7 +1003,8 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
 /*!
  * \internal
  */
-uchar *CanvasContext::getAsUint8ArrayRawPtr(QJSValue jsValue)
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength,
+                                                QV4::Heap::TypedArray::Type type)
 {
     QV4::Scope scope(m_v4engine);
     QV4::Scoped<QV4::TypedArray> typedArray(scope,
@@ -987,28 +1013,48 @@ uchar *CanvasContext::getAsUint8ArrayRawPtr(QJSValue jsValue)
     if (!typedArray)
         return 0;
 
-    if (typedArray->arrayType() != QV4::Heap::TypedArray::UInt8Array)
+    QV4::Heap::TypedArray::Type arrayType = typedArray->arrayType();
+    if (type < QV4::Heap::TypedArray::NTypes && arrayType != type)
         return 0;
 
-    return reinterpret_cast<unsigned char *>(typedArray->arrayData()->data());
+    uchar *dataPtr = reinterpret_cast<uchar *>(typedArray->arrayData()->data());
+    dataPtr += typedArray->d()->byteOffset;
+    byteLength = typedArray->byteLength();
+    return dataPtr;
 }
 
 /*!
  * \internal
  */
-uchar *CanvasContext::getAsUint16ArrayRawPtr(QJSValue jsValue)
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue,
+                                                QV4::Heap::TypedArray::Type type)
+{
+    int dummy;
+    return getTypedArrayAsRawDataPtr(jsValue, dummy, type);
+}
+
+/*!
+ * \internal
+ */
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength)
+{
+    return getTypedArrayAsRawDataPtr(jsValue, byteLength, QV4::Heap::TypedArray::NTypes);
+}
+
+/*!
+ * \internal
+ */
+uchar *CanvasContext::getArrayBufferAsRawDataPtr(const QJSValue &jsValue, int &byteLength)
 {
     QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, jsValue));
-
-    if (!typedArray)
+    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
+                                              QJSValuePrivate::convertedToValue(m_v4engine, jsValue));
+    if (!arrayBuffer)
         return 0;
 
-    if (typedArray->arrayType() != QV4::Heap::TypedArray::UInt16Array)
-        return 0;
-
-    return reinterpret_cast<unsigned char *>(typedArray->arrayData()->data());
+    uchar *dataPtr = reinterpret_cast<uchar *>(arrayBuffer->data());
+    byteLength = arrayBuffer->byteLength();
+    return dataPtr;
 }
 
 /*!
@@ -1025,12 +1071,11 @@ uchar *CanvasContext::getAsUint16ArrayRawPtr(QJSValue jsValue)
  * \a width Width of the texture subimage.
  * \a height Height of the texture subimage.
  * \a format Format of the texel data given in \a pixels, must match the value
- * of \a internalFormat.
+ * of \c internalFormat parameter given when the texture was created.
  * \a type Data type of the data given in \a pixels, must match the TypedArray type
  * of \a pixels. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a pixels TypedArray containing the image data. If pixels is \c null, a buffer of
- * sufficient size initialized to 0 is passed.
+ * \a pixels TypedArray containing the image data.
  */
 /*!
  * \internal
@@ -1097,7 +1142,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
             return;
         }
 
-        srcData = getAsUint8ArrayRawPtr(pixels);
+        srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
@@ -1115,7 +1160,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
-        srcData = getAsUint16ArrayRawPtr(pixels);
+        srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt16Array);
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
@@ -2777,18 +2822,15 @@ void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
         return;
     }
 
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform1iv(locationObj->id(),
-                 typedArray->length(),
-                 (int *)typedArray->arrayData()->data());
+    arrayLen /= 4; // get value count
+    glUniform1iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -2839,17 +2881,15 @@ void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform1fv(locationObj->id(),
-                 typedArray->length(),
-                 (float *)typedArray->arrayData()->data());
+    arrayLen /= 4; // get value count
+    glUniform1fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -2901,17 +2941,16 @@ void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform2fv(locationObj->id(),
-                 typedArray->length() / 2,
-                 (float *)typedArray->arrayData()->data());
+
+    arrayLen /= (4 * 2); // get value count
+    glUniform2fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -2963,18 +3002,15 @@ void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
+
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform2iv(locationObj->id(),
-                 typedArray->length() / 2,
-                 (int *)typedArray->arrayData()->data());
-
+    arrayLen /= (4 * 2); // get value count
+    glUniform2iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3026,18 +3062,15 @@ void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array) {
-        return;
-    }
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
 
-    glUniform3fv(locationObj->id(),
-                 typedArray->length() / 3,
-                 (float *) typedArray->arrayData()->data());
+    if (!uniformData || !locationObj)
+        return;
+
+    arrayLen /= (4 * 3); // get value count
+    glUniform3fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3088,18 +3121,15 @@ void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array) {
-        return;
-    }
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
 
-    glUniform3iv(locationObj->id(),
-                 typedArray->length() / 3,
-                 (int *)typedArray->arrayData()->data());
+    if (!uniformData || !locationObj)
+        return;
+
+    arrayLen /= (4 * 3); // get value count
+    glUniform3iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3151,17 +3181,15 @@ void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform4fv(locationObj->id(),
-                 typedArray->length() / 4,
-                 (float *)typedArray->arrayData()->data());
+    arrayLen /= (4 * 4); // get value count
+    glUniform4fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3213,17 +3241,15 @@ void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
+
+    if (!uniformData || !locationObj)
         return;
 
-    glUniform4iv(locationObj->id(),
-                 typedArray->length() / 4,
-                 (int *)typedArray->arrayData()->data());
+    arrayLen /= (4 * 4); // get value count
+    glUniform4iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3404,14 +3430,12 @@ void CanvasContext::vertexAttrib1fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
+
+    if (!attribData)
         return;
 
-    glVertexAttrib1fv(indx, (float *)typedArray->arrayData()->data());
+    glVertexAttrib1fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3455,14 +3479,12 @@ void CanvasContext::vertexAttrib2fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
+
+    if (!attribData)
         return;
 
-    glVertexAttrib2fv(indx, (float *)typedArray->arrayData()->data());
+    glVertexAttrib2fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3507,14 +3529,12 @@ void CanvasContext::vertexAttrib3fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
+
+    if (!attribData)
         return;
 
-    glVertexAttrib3fv(indx, (float *)typedArray->arrayData()->data());
+    glVertexAttrib3fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3560,14 +3580,12 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
+
+    if (!attribData)
         return;
 
-    glVertexAttrib4fv(indx, (float *)typedArray->arrayData()->data());
+    glVertexAttrib4fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3803,23 +3821,20 @@ void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSVal
         return;
     }
 
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!m_currentProgram || !uniformData || !locationObj)
         return;
 
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 4);
-
     int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 4;
-    glUniformMatrix2fv(uniformLocation, numMatrices, transpose, arrayData);
+    int numMatrices = arrayLen / (4 * 4);
+
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "numMatrices:" << numMatrices;
+
+    glUniformMatrix2fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3853,24 +3868,20 @@ void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSVal
         return;
     }
 
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!m_currentProgram || !uniformData || !locationObj)
         return;
 
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 9);
-
     int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 9;
+    int numMatrices = arrayLen / (4 * 9);
 
-    glUniformMatrix3fv(uniformLocation, numMatrices, transpose, arrayData);
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "numMatrices:" << numMatrices;
+
+    glUniformMatrix3fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3904,23 +3915,20 @@ void CanvasContext::uniformMatrix4fv(QJSValue location3D, bool transpose, QJSVal
         return;
     }
 
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!m_currentProgram || !uniformData || !locationObj)
         return;
 
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 16);
     int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 16;
+    int numMatrices = arrayLen / (4 * 16);
 
-    glUniformMatrix4fv(uniformLocation, numMatrices, transpose, arrayData);
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "numMatrices:" << numMatrices;
+
+    glUniformMatrix4fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -4201,29 +4209,19 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
         return;
     }
 
+    int arrayLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, data));
-    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
-                                              QJSValuePrivate::convertedToValue(m_v4engine, data));
+    if (!srcData)
+        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
 
-    if (typedArray) {
-        glBufferData(GLenum(target),
-                     typedArray->byteLength(),
-                     (GLvoid *) typedArray->arrayData()->data(),
-                     GLenum(usage));
-        logAllGLErrors(__FUNCTION__);
-    } else if (arrayBuffer) {
-        glBufferData(GLenum(target),
-                     arrayBuffer->byteLength(),
-                     (GLvoid *) arrayBuffer->data(),
-                     GLenum(usage));
+    if (srcData) {
+        glBufferData(GLenum(target), arrayLen, (GLvoid *)srcData, GLenum(usage));
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:data must be either"
-                                               << "TypedArray or ArrayBuffer";
+                                               << " TypedArray or ArrayBuffer";
         m_error |= CANVAS_INVALID_VALUE;
         return;
     }
@@ -4261,28 +4259,19 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, data));
-    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
-                                              QJSValuePrivate::convertedToValue(m_v4engine, data));
+    int arrayLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
 
-    if (typedArray) {
-        glBufferSubData(GLenum(target),
-                        offset,
-                        typedArray->byteLength(),
-                        (GLvoid *) typedArray->arrayData()->data());
-        logAllGLErrors(__FUNCTION__);
-    } else if (arrayBuffer) {
-        glBufferSubData(GLenum(target),
-                        offset,
-                        arrayBuffer->byteLength(),
-                        (GLvoid *) arrayBuffer->data());
+    if (!srcData)
+        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
+
+    if (srcData) {
+        glBufferSubData(GLenum(target), offset, arrayLen, (GLvoid *)srcData);
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:data must be either"
-                                               << "TypedArray or ArrayBuffer";
+                                               << " TypedArray or ArrayBuffer";
         m_error |= CANVAS_INVALID_VALUE;
         return;
     }
@@ -5271,7 +5260,7 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
         return;
     }
 
-    uchar *bufferPtr = getAsUint8ArrayRawPtr(pixels);
+    uchar *bufferPtr = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
     if (!bufferPtr) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:pixels must be Uint8Array.";
