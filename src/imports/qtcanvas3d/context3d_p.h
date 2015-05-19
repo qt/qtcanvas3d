@@ -1102,7 +1102,7 @@ public:
     Q_INVOKABLE void vertexAttrib3fv(unsigned int indx, QJSValue array);
     Q_INVOKABLE void vertexAttrib4fv(unsigned int indx, QJSValue array);
 
-    Q_INVOKABLE int getShaderParameter(QJSValue shader3D, glEnums paramName);
+    Q_INVOKABLE QJSValue getShaderParameter(QJSValue shader3D, glEnums paramName);
     Q_INVOKABLE QVariant getProgramParameter(QJSValue program, glEnums paramName);
     Q_INVOKABLE QJSValue getShaderInfoLog(QJSValue shader3D);
 

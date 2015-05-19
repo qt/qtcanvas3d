@@ -3580,7 +3580,7 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
 /*!
  * \internal
  */
-int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
+QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(shader:" << shader3D.toString()
@@ -3601,17 +3601,17 @@ int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
         GLint shaderType = 0;
         glGetShaderiv( shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
         logAllGLErrors(__FUNCTION__);
-        return shaderType;
+        return QJSValue(shaderType);
     }
     case DELETE_STATUS: {
         bool isDeleted = !shader->isAlive();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isDeleted;
-        return (isDeleted ? GL_TRUE : GL_FALSE);
+        return (isDeleted ? QJSValue(bool(GL_TRUE)) : QJSValue(bool(GL_FALSE)));
     }
     case COMPILE_STATUS: {
         bool isCompiled = shader->qOGLShader()->isCompiled();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isCompiled;
-        return (isCompiled ? GL_TRUE : GL_FALSE);
+        return (isCompiled ? QJSValue(bool(GL_TRUE)) : QJSValue(bool(GL_FALSE)));
     }
     default: {
         qCWarning(canvas3drendering).nospace() << "getShaderParameter():UNSUPPORTED parameter name "
