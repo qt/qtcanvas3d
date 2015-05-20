@@ -2482,7 +2482,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 /*!
  * \internal
  */
-QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramName)
+QJSValue CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramName)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program3D:" << program3D.toString()
@@ -2492,7 +2492,7 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
     CanvasProgram *program = getAsProgram3D(program3D);
 
     if (!program || !checkParent(program, __FUNCTION__))
-        return 0;
+        return QJSValue(QJSValue::NullValue);
 
     switch(paramName) {
     case DELETE_STATUS:
@@ -2504,7 +2504,7 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         glGetProgramiv(program->id(), GLenum(paramName), &value);
         logAllGLErrors(__FUNCTION__);
         qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
-        return QVariant::fromValue(value == GL_TRUE);
+        return QJSValue(bool(value));
     }
     case ATTACHED_SHADERS:
         // Intentional flow through
@@ -2515,13 +2515,13 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         glGetProgramiv(program->id(), GLenum(paramName), &value);
         logAllGLErrors(__FUNCTION__);
         qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
-        return QVariant::fromValue(value);
+        return QJSValue(value);
     }
     default: {
         m_error |= CANVAS_INVALID_ENUM;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM illegal parameter name ";
-        return QVariant::fromValue(0);
+        return QJSValue(QJSValue::NullValue);
     }
     }
 }
@@ -3587,10 +3587,10 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:"
                                                <<"Invalid shader handle:" << shader3D.toString();
-        return 0;
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(shader, __FUNCTION__))
-        return 0;
+        return QJSValue(QJSValue::NullValue);
 
     switch (pname) {
     case SHADER_TYPE: {
@@ -3602,17 +3602,17 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     case DELETE_STATUS: {
         bool isDeleted = !shader->isAlive();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isDeleted;
-        return (isDeleted ? QJSValue(bool(GL_TRUE)) : QJSValue(bool(GL_FALSE)));
+        return (isDeleted ? QJSValue(bool(true)) : QJSValue(bool(false)));
     }
     case COMPILE_STATUS: {
         bool isCompiled = shader->qOGLShader()->isCompiled();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isCompiled;
-        return (isCompiled ? QJSValue(bool(GL_TRUE)) : QJSValue(bool(GL_FALSE)));
+        return (isCompiled ? QJSValue(bool(true)) : QJSValue(bool(false)));
     }
     default: {
         qCWarning(canvas3drendering).nospace() << "getShaderParameter():UNSUPPORTED parameter name "
                                                << glEnumToString(pname);
-        return 0;
+        return QJSValue(QJSValue::NullValue);
     }
     }
 }
@@ -5691,7 +5691,7 @@ int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
 /*!
  * \internal
  */
-QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
+QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5710,6 +5710,7 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
         case TEXTURE_WRAP_T:
             glGetTexParameteriv(target, pname, &parameter);
             logAllGLErrors(__FUNCTION__);
+            return QJSValue(parameter);
             break;
         default:
             // Intentional flow through
@@ -5720,11 +5721,11 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                                    << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S"
                                                    << " or TEXTURE_WRAP_T";
             m_error |= CANVAS_INVALID_ENUM;
+            return QJSValue(QJSValue::NullValue);
             break;
         }
     }
-
-    return QVariant::fromValue(parameter);
+    return QJSValue(QJSValue::NullValue);
 }
 
 

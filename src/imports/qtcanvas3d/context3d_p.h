@@ -1103,7 +1103,7 @@ public:
     Q_INVOKABLE void vertexAttrib4fv(unsigned int indx, QJSValue array);
 
     Q_INVOKABLE QJSValue getShaderParameter(QJSValue shader3D, glEnums paramName);
-    Q_INVOKABLE QVariant getProgramParameter(QJSValue program, glEnums paramName);
+    Q_INVOKABLE QJSValue getProgramParameter(QJSValue program, glEnums paramName);
     Q_INVOKABLE QJSValue getShaderInfoLog(QJSValue shader3D);
 
     /* Buffer object methods */
@@ -1173,7 +1173,7 @@ public:
                                                       glEnums attachment,
                                                       glEnums pname);
     Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
-    Q_INVOKABLE QVariant getTexParameter(glEnums target, glEnums pname);
+    Q_INVOKABLE QJSValue getTexParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QJSValue getUniform(QJSValue program, QJSValue location);
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
     Q_INVOKABLE QJSValue getVertexAttrib(uint index, glEnums pname);
