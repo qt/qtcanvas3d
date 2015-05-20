@@ -4646,8 +4646,6 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         callData->args[0] = buffer;
         return QJSValue(m_v4engine, constructor->construct(callData));
     }
-
-        break;
         // Int32Array (with 4 elements)
         // Intentional flow through
     case SCISSOR_BOX:
@@ -5703,7 +5701,6 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
             glGetTexParameteriv(target, pname, &parameter);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(parameter);
-            break;
         default:
             // Intentional flow through
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -5714,7 +5711,6 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                                    << " or TEXTURE_WRAP_T";
             m_error |= CANVAS_INVALID_ENUM;
             return QJSValue(QJSValue::NullValue);
-            break;
         }
     }
     return QJSValue(QJSValue::NullValue);
@@ -5821,28 +5817,24 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
 
             return m_engine->newQObject(m_idToCanvasBufferMap[value]);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_ENABLED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(bool(value));
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_SIZE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(value);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_STRIDE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(value);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
