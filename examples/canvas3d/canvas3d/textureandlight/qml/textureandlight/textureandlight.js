@@ -69,7 +69,7 @@ function initializeGL(canvas) {
     //! [2]
     // Setup the OpenGL state
     gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.DEPTH_LESS);
+    gl.depthFunc(gl.LESS);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
     gl.clearColor(0.98, 0.98, 0.98, 1.0);

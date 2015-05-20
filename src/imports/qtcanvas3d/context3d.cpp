@@ -5003,7 +5003,6 @@ void CanvasContext::depthMask(bool flag)
     logAllGLErrors(__FUNCTION__);
 }
 
-// TODO: Why are all the enums for this commented out?
 /*!
  * \qmlmethod void Context3D::depthFunc(glEnums func)
  * Sets the depth function to \a func. Must be one of \c{Context3D.NEVER}, \c{Context3D.LESS},
