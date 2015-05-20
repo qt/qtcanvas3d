@@ -537,6 +537,15 @@ void Canvas::createFBOs()
     QOpenGLFramebufferObject *renderFbo = m_renderFbo;
     QOpenGLFramebufferObject *antialiasFbo = m_antialiasFbo;
 
+    QOpenGLFramebufferObject *dummyFbo = 0;
+    if (!m_renderFbo) {
+        // Create a dummy FBO to work around a weird GPU driver bug on some platforms that
+        // causes the first FBO created to get corrupted in some cases.
+        dummyFbo = new QOpenGLFramebufferObject(m_fboSize.width(),
+                                                m_fboSize.height(),
+                                                m_fboFormat);
+    }
+
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << " Creating front and back FBO's with"
@@ -590,6 +599,9 @@ void Canvas::createFBOs()
         bindCurrentRenderTarget();
         emitNeedRender();
     }
+
+    // Get rid of the dummy FBO, it has served its purpose
+    delete dummyFbo;
 }
 
 /*!
