@@ -1160,7 +1160,7 @@ public:
 
     Q_INVOKABLE CanvasActiveInfo *getActiveAttrib(QJSValue program, uint index);
     Q_INVOKABLE CanvasActiveInfo *getActiveUniform(QJSValue program, uint index);
-    Q_INVOKABLE QVariantList getAttachedShaders(QJSValue program);
+    Q_INVOKABLE QJSValue getAttachedShaders(QJSValue program);
 
     Q_INVOKABLE void stencilFunc(glEnums func, int ref, uint mask);
     Q_INVOKABLE void stencilFuncSeparate(glEnums face, glEnums func, int ref, uint mask);

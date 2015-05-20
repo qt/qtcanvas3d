@@ -2049,25 +2049,29 @@ void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
 /*!
  * \internal
  */
-QVariantList CanvasContext::getAttachedShaders(QJSValue program3D)
+QJSValue CanvasContext::getAttachedShaders(QJSValue program3D)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program3D:" << program3D.toString()
                                          << ")";
 
-    QVariantList shaderList;
+    int index = 0;
 
     CanvasProgram *program = getAsProgram3D(program3D);
 
-    if (!program || !checkParent(program, __FUNCTION__))
-        return shaderList;
+    if (!program || !checkParent(program, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_VALUE;
+        return QJSValue(QJSValue::NullValue);
+    }
 
     QList<CanvasShader *> shaders = program->attachedShaders();
+
+    QJSValue shaderList = m_engine->newArray(shaders.count());
 
     for (QList<CanvasShader *>::const_iterator iter = shaders.constBegin();
          iter != shaders.constEnd(); iter++) {
         CanvasShader *shader = *iter;
-        shaderList << QVariant::fromValue(shader);
+        shaderList.setProperty(index++, m_engine->newQObject((CanvasShader *)shader));
     }
 
     return shaderList;
