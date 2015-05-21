@@ -418,6 +418,15 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
                   m_fboSize.width(),
                   m_fboSize.height());
 
+#if !defined(QT_OPENGL_ES_2)
+        if (!m_isOpenGLES2) {
+            // Make it possible to change point primitive size and use textures with them in
+            // the shaders. These are implicitly enabled in ES2.
+            glEnable(GL_PROGRAM_POINT_SIZE);
+            glEnable(GL_POINT_SPRITE);
+        }
+#endif
+
         // Verify that width and height are not initially too large, in case width and height
         // were set before getting GL_MAX_VIEWPORT_DIMS
         if (width() > m_maxSize.width()) {
