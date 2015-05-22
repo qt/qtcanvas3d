@@ -1,7 +1,7 @@
 <RCC>
     <qresource prefix="/">
-        <file>../../3rdparty/gl-matrix.js</file>
-        <file>../../3rdparty/ThreeJSLoader.js</file>
+        <file>../3rdparty/gl-matrix.js</file>
+        <file>../3rdparty/ThreeJSLoader.js</file>
         <file>qml/interaction/barrel.jpg</file>
         <file>qml/interaction/barrel.json</file>
         <file>qml/interaction/interaction.js</file>
