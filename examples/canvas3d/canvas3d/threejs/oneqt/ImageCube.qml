@@ -42,68 +42,73 @@ import "imagecube.js" as GLCode
 Canvas3D {
     id: cube
     //! [0]
+    property color backgroundColor: "#FCFCFC"
+    property real angleOffset: -180 / 8.0
     property real xRotation: 0
     property real yRotation: 0
     property real zRotation: 0
-    property string image1: ""
+    property string page1: ""
     //! [0]
-    property string image2: ""
-    property string image3: ""
-    property string image4: ""
-    property string image5: ""
-    property string image6: ""
-    state: "image6"
+    property string page2: ""
+    property string page3: ""
+    property string page4: ""
+    property string page5: ""
+    property string page6: ""
+    state: "page6"
+
+    onBackgroundColorChanged: { GLCode.setBackgroundColor(cube.backgroundColor); }
 
     //! [1]
     states: [
-
         State {
-            name: "image1"
+            name: "page1"
             PropertyChanges { target: cube; xRotation: 0; }
-            PropertyChanges { target: cube; yRotation: Math.PI + Math.PI / 4.0; }
+            PropertyChanges { target: cube; yRotation: 180 * 1.5 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
-    //! [1]
+        //! [1]
         State {
-            name: "image2"
+            name: "page2"
             PropertyChanges { target: cube; xRotation: 0; }
-            PropertyChanges { target: cube; yRotation: Math.PI * 0.5 + Math.PI / 4.0; }
-            PropertyChanges { target: cube; zRotation: 0 }
-        },
-        State {
-            name: "image3"
-            PropertyChanges { target: cube; xRotation: 0; }
-            PropertyChanges { target: cube; yRotation: 0 + Math.PI / 4.0; }
+            PropertyChanges { target: cube; yRotation: 180 * 1.0 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         State {
-            name: "image4"
+            name: "page3"
             PropertyChanges { target: cube; xRotation: 0; }
-            PropertyChanges { target: cube; yRotation: -Math.PI * .5 + Math.PI / 4.0; }
+            PropertyChanges { target: cube; yRotation: 180 * 0.5 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         State {
-            name: "image5"
-            PropertyChanges { target: cube; xRotation: Math.PI / 2.0; }
+            name: "page4"
+            PropertyChanges { target: cube; xRotation: 0; }
+            PropertyChanges { target: cube; yRotation: 0 + angleOffset; }
+            PropertyChanges { target: cube; zRotation: 0 }
+        },
+        State {
+            name: "page5"
+            PropertyChanges { target: cube; xRotation: 180 / 2.0; }
             PropertyChanges { target: cube; yRotation: 0; }
-            PropertyChanges { target: cube; zRotation: Math.PI / 4.0; }
+            PropertyChanges { target: cube; zRotation: -angleOffset; }
         },
         State {
-            name: "image6"
-            PropertyChanges { target: cube; xRotation: -Math.PI / 2.0; }
+            name: "page6"
+            PropertyChanges { target: cube; xRotation: -180 / 2.0; }
             PropertyChanges { target: cube; yRotation: 0; }
-            PropertyChanges { target: cube; zRotation: -Math.PI / 4.0; }
+            PropertyChanges { target: cube; zRotation: angleOffset; }
         }
     ]
 
     //! [2]
     transitions: [
         Transition {
+            id: turnTransition
             from: "*"
             to: "*"
-            NumberAnimation {
+            RotationAnimation {
                 properties: "xRotation,yRotation,zRotation"
                 easing.type: Easing.InOutCubic
+                direction: RotationAnimation.Shortest
                 duration: 450
             }
         }
@@ -123,5 +128,71 @@ Canvas3D {
         GLCode.onResizeGL(cube);
     }
     //! [3]
+
+    SwipeArea {
+        id: swipeArea
+        anchors.fill: parent
+
+        onSwipeRight: {
+            if (cube.state === "page1")
+                cube.state = "page4";
+            else if (cube.state == "page2")
+                cube.state = "page1";
+            else if (cube.state == "page3")
+                cube.state = "page2";
+            else if (cube.state == "page4")
+                cube.state = "page3";
+            else if (cube.state == "page5")
+                cube.state = "page3";
+            else if (cube.state == "page6")
+                cube.state = "page3";
+        }
+
+        onSwipeLeft: {
+            if (cube.state === "page1")
+                cube.state = "page2";
+            else if (cube.state == "page2")
+                cube.state = "page3";
+            else if (cube.state == "page3")
+                cube.state = "page4";
+            else if (cube.state == "page4")
+                cube.state = "page1";
+            else if (cube.state == "page5")
+                cube.state = "page1";
+            else if (cube.state == "page6")
+                cube.state = "page1";
+        }
+
+        onSwipeUp: {
+            if (cube.state === "page1")
+                cube.state = "page6";
+            else if (cube.state == "page2")
+                cube.state = "page6";
+            else if (cube.state == "page3")
+                cube.state = "page6";
+            else if (cube.state == "page4")
+                cube.state = "page6";
+            else if (cube.state == "page5")
+                cube.state = "page4";
+            else if (cube.state == "page6")
+                cube.state = "page2";
+        }
+
+        onSwipeDown: {
+            if (cube.state === "page1")
+                cube.state = "page5";
+            else if (cube.state == "page2")
+                cube.state = "page5";
+            else if (cube.state == "page3")
+                cube.state = "page5";
+            else if (cube.state == "page4")
+                cube.state = "page5";
+            else if (cube.state == "page5")
+                cube.state = "page2";
+            else if (cube.state == "page6")
+                cube.state = "page4";
+        }
+    }
+
 }
 

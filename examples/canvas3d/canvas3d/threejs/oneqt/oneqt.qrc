@@ -14,5 +14,6 @@
         <file>textures/multiscreen.png</file>
         <file>textures/puzzle-pieces.png</file>
         <file>ImageCube.qml</file>
+        <file>SwipeArea.qml</file>
     </qresource>
 </RCC>

@@ -38,122 +38,121 @@ import QtQuick 2.0
 import QtCanvas3D 1.0
 import QtQuick.Layouts 1.1
 
-Item {
+Rectangle {
     id: mainview
     width: 1280
     height: 768
     visible: true
     focus: true
-    state: "page6"
-
-    onStateChanged: {
-        if (state == "page1") {
-            imageCube.state="image1";
-            page1Button.selected = true;
-            page2Button.selected = false;
-            page3Button.selected = false;
-            page4Button.selected = false;
-            page5Button.selected = false;
-            page6Button.selected = false;
-            page1.visible = true;
-            page2.visible = false;
-            page4.visible = false;
-            page3.visible = false;
-            page5.visible = false;
-            page6.visible = false;
-        } else if (state == "page2") {
-            imageCube.state="image2";
-            page1Button.selected = false;
-            page2Button.selected = true;
-            page3Button.selected = false;
-            page4Button.selected = false;
-            page5Button.selected = false;
-            page6Button.selected = false;
-            page1.visible = false;
-            page2.visible = true;
-            page4.visible = false;
-            page3.visible = false;
-            page5.visible = false;
-            page6.visible = false;
-        } else if (state == "page3") {
-            imageCube.state="image3";
-            page1Button.selected = false;
-            page2Button.selected = false;
-            page3Button.selected = true;
-            page4Button.selected = false;
-            page5Button.selected = false;
-            page6Button.selected = false;
-            page1.visible = false;
-            page2.visible = false;
-            page3.visible = true;
-            page4.visible = false;
-            page5.visible = false;
-            page6.visible = false;
-        } else if (state == "page4") {
-            imageCube.state="image4";
-            page1Button.selected = false;
-            page2Button.selected = false;
-            page3Button.selected = false;
-            page4Button.selected = true;
-            page5Button.selected = false;
-            page6Button.selected = false;
-            page1.visible = false;
-            page2.visible = false;
-            page3.visible = false;
-            page4.visible = true;
-            page5.visible = false;
-            page6.visible = false;
-        } else if (state == "page5") {
-            imageCube.state="image5";
-            page1Button.selected = false;
-            page2Button.selected = false;
-            page3Button.selected = false;
-            page4Button.selected = false;
-            page5Button.selected = true;
-            page6Button.selected = false;
-            page1.visible = false;
-            page2.visible = false;
-            page3.visible = false;
-            page4.visible = false;
-            page5.visible = true;
-            page6.visible = false;
-        } else if (state == "page6") {
-            imageCube.state="image6";
-            page1Button.selected = false;
-            page2Button.selected = false;
-            page3Button.selected = false;
-            page4Button.selected = false;
-            page5Button.selected = false;
-            page6Button.selected = true;
-            page1.visible = false;
-            page2.visible = false;
-            page3.visible = false;
-            page4.visible = false;
-            page5.visible = false;
-            page6.visible = true;
-        }
-    }
+    color: "#FCFCFC"
 
     Keys.onPressed: {
-        if (event.key == Qt.Key_1) state = 'page1';
-        else if (event.key == Qt.Key_2) state = 'page2';
-        else if (event.key == Qt.Key_3) state = 'page3';
-        else if (event.key == Qt.Key_4) state = 'page4';
-        else if (event.key == Qt.Key_5) state = 'page5';
-        else if (event.key == Qt.Key_6) state = 'page6';
+        if (event.key === Qt.Key_1) imageCube.state = 'page1';
+        else if (event.key === Qt.Key_2) imageCube.state = 'page2';
+        else if (event.key === Qt.Key_3) imageCube.state = 'page3';
+        else if (event.key === Qt.Key_4) imageCube.state = 'page4';
+        else if (event.key === Qt.Key_5) imageCube.state = 'page5';
+        else if (event.key === Qt.Key_6) imageCube.state = 'page6';
     }
 
     //! [0]
     ImageCube {
         id: imageCube
-        anchors.fill:parent
-        state: "image1"
-        image1: "qrc:/textures/devices.png"
-        image2: "qrc:/textures/iot.png"
-        image3: "qrc:/textures/embedded.png"
-        image4: "qrc:/textures/dataviz.jpg"
-        image5: "qrc:/textures/multiscreen.png"
-        image6: "qrc:/textures/puzzle-pieces.png"
+        width: 512 * (parent.width / 1280)
+        height: 512 * (parent.height / 768)
+        anchors.bottom: parent.bottom
+        anchors.right: parent.right
+
+        backgroundColor: "#FCFCFC"
+        state: "page6"
+        page1: "qrc:/textures/devices.png"
+        page2: "qrc:/textures/iot.png"
+        page3: "qrc:/textures/embedded.png"
+        page4: "qrc:/textures/dataviz.jpg"
+        page5: "qrc:/textures/multiscreen.png"
+        page6: "qrc:/textures/puzzle-pieces.png"
+
+        onStateChanged: {
+            if (imageCube.state == "page1") {
+                page1Button.selected = true;
+                page2Button.selected = false;
+                page3Button.selected = false;
+                page4Button.selected = false;
+                page5Button.selected = false;
+                page6Button.selected = false;
+                page1.visible = true;
+                page2.visible = false;
+                page4.visible = false;
+                page3.visible = false;
+                page5.visible = false;
+                page6.visible = false;
+            } else if (imageCube.state == "page2") {
+                page1Button.selected = false;
+                page2Button.selected = true;
+                page3Button.selected = false;
+                page4Button.selected = false;
+                page5Button.selected = false;
+                page6Button.selected = false;
+                page1.visible = false;
+                page2.visible = true;
+                page4.visible = false;
+                page3.visible = false;
+                page5.visible = false;
+                page6.visible = false;
+            } else if (imageCube.state == "page3") {
+                page1Button.selected = false;
+                page2Button.selected = false;
+                page3Button.selected = true;
+                page4Button.selected = false;
+                page5Button.selected = false;
+                page6Button.selected = false;
+                page1.visible = false;
+                page2.visible = false;
+                page3.visible = true;
+                page4.visible = false;
+                page5.visible = false;
+                page6.visible = false;
+            } else if (imageCube.state == "page4") {
+                page1Button.selected = false;
+                page2Button.selected = false;
+                page3Button.selected = false;
+                page4Button.selected = true;
+                page5Button.selected = false;
+                page6Button.selected = false;
+                page1.visible = false;
+                page2.visible = false;
+                page3.visible = false;
+                page4.visible = true;
+                page5.visible = false;
+                page6.visible = false;
+            } else if (imageCube.state == "page5") {
+                page1Button.selected = false;
+                page2Button.selected = false;
+                page3Button.selected = false;
+                page4Button.selected = false;
+                page5Button.selected = true;
+                page6Button.selected = false;
+                page1.visible = false;
+                page2.visible = false;
+                page3.visible = false;
+                page4.visible = false;
+                page5.visible = true;
+                page6.visible = false;
+            } else if (imageCube.state == "page6") {
+                page1Button.selected = false;
+                page2Button.selected = false;
+                page3Button.selected = false;
+                page4Button.selected = false;
+                page5Button.selected = false;
+                page6Button.selected = true;
+                page1.visible = false;
+                page2.visible = false;
+                page3.visible = false;
+                page4.visible = false;
+                page5.visible = false;
+                page6.visible = true;
+            }
+        }
     }
     //! [0]
 
@@ -180,7 +179,7 @@ Item {
             Navibutton {
                 id: page1Button
                 text: "Device Creation"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page1"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
@@ -190,7 +189,7 @@ Item {
             Navibutton {
                 id: page2Button
                 text: "IoT"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page2"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
@@ -200,7 +199,7 @@ Item {
             Navibutton {
                 id: page3Button
                 text: "Rapid Development"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page3"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
@@ -210,7 +209,7 @@ Item {
             Navibutton {
                 id: page4Button
                 text: "Modern UX"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page4"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
@@ -220,7 +219,7 @@ Item {
             Navibutton {
                 id: page5Button
                 text: "Cross Platform"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page5"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
@@ -230,7 +229,7 @@ Item {
             Navibutton {
                 id: page6Button
                 text: "In the Box"
-                stateTarget: mainview
+                stateTarget: imageCube
                 stateSelect: "page6"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52

@@ -49,15 +49,15 @@
     \section1 Qt Quick Implementation
 
     In \l{threejs/oneqt/oneqt.qml}{oneqt.qml}, we build the 2D content as normally in Qt Quick.
-    Then we add a custom ImageCube element in to the scene as the background element. This custom
-    component fills the whole parent area and handles the painting of the background and the 3D cube
-    for this view.
+    Then we add a custom \c ImageCube element in to the scene behind the text elements. This custom
+    component handles the painting of the 3D cube in to the area reserved for the element.
 
     \snippet threejs/oneqt/oneqt.qml 0
     \dots
 
     The custom component takes six images that it loads and places to the sides of the cube.
-    In addition the component has a state that defines which of these images is visible.
+    In addition the component has a state that defines which of these images is visible and
+    a \c backgroundColor property that is used when painting the 3D cube.
 
     \section2 The Custom 3D Qt Quick Element
 

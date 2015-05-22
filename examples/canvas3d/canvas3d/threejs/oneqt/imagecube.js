@@ -43,19 +43,20 @@ var pointLight;
 function initializeGL(canvas) {
     //! [0]
     camera = new THREE.PerspectiveCamera(50, canvas.width / canvas.height, 1, 2000);
-    camera.position.z = 700;
+    camera.position.z = 400;
+    camera.position.y = 140;
 
     scene = new THREE.Scene();
     //! [0]
 
     //! [1]
     // Load textures
-    var textureCase1 = THREE.ImageUtils.loadTexture(canvas.image1);
-    var textureCase2 = THREE.ImageUtils.loadTexture(canvas.image2);
-    var textureCase3 = THREE.ImageUtils.loadTexture(canvas.image3);
-    var textureCase4 = THREE.ImageUtils.loadTexture(canvas.image4);
-    var textureCase5 = THREE.ImageUtils.loadTexture(canvas.image5);
-    var textureCase6 = THREE.ImageUtils.loadTexture(canvas.image6);
+    var textureCase1 = THREE.ImageUtils.loadTexture(canvas.page1);
+    var textureCase2 = THREE.ImageUtils.loadTexture(canvas.page2);
+    var textureCase3 = THREE.ImageUtils.loadTexture(canvas.page3);
+    var textureCase4 = THREE.ImageUtils.loadTexture(canvas.page4);
+    var textureCase5 = THREE.ImageUtils.loadTexture(canvas.page5);
+    var textureCase6 = THREE.ImageUtils.loadTexture(canvas.page6);
 
     // Materials
     var materials = [];
@@ -86,22 +87,20 @@ function initializeGL(canvas) {
 
     //! [3]
     cube = new THREE.Mesh(geometry, faceMaterial);
-    cube.position.x = 350;
-    cube.position.y = -130;
-    cube.rotation.x = 0;
-    cube.rotation.y = 0;
-    cube.rotation.z = 0;
     scene.add(cube);
     //! [3]
+
+    camera.lookAt(cube.position);
 
     // Lights
     //! [6]
     scene.add(new THREE.AmbientLight(0x444444));
 
     var directionalLight = new THREE.DirectionalLight(0xffffff, 1.0);
-    directionalLight.position.x = -350;
+
     directionalLight.position.y = 130;
     directionalLight.position.z = 700;
+    directionalLight.position.x = Math.tan(canvas.angleOffset) * directionalLight.position.z;
     directionalLight.position.normalize();
     scene.add(directionalLight);
     //! [6]
@@ -110,8 +109,15 @@ function initializeGL(canvas) {
     renderer = new THREE.Canvas3DRenderer(
                 { canvas: canvas, antialias: true, devicePixelRatio: canvas.devicePixelRatio });
     renderer.setSize(canvas.width, canvas.height);
-    renderer.setClearColor(0xfcfcfc);
+    setBackgroundColor(canvas.backgroundColor);
     //! [4]
+}
+
+function setBackgroundColor(backgroundColor) {
+    var str = ""+backgroundColor;
+    var color = parseInt(str.substring(1), 16);
+    if (renderer)
+        renderer.setClearColor(color);
 }
 
 function onResizeGL(canvas) {
@@ -126,9 +132,9 @@ function onResizeGL(canvas) {
 
 //! [5]
 function paintGL(canvas) {
-    cube.rotation.x = canvas.xRotation;
-    cube.rotation.y = canvas.yRotation;
-    cube.rotation.z = canvas.zRotation;
+    cube.rotation.x = canvas.xRotation * Math.PI / 180;
+    cube.rotation.y = canvas.yRotation * Math.PI / 180;
+    cube.rotation.z = canvas.zRotation * Math.PI / 180;
     renderer.render(scene, camera);
 }
 //! [5]
