@@ -108,6 +108,7 @@ Item {
 
         onPaintGL: {
             GLCode.paintGL(canvas3d);
+            fpsDisplay.fps = canvas3d.fps;
         }
 
         onResizeGL: {
@@ -338,5 +339,15 @@ Item {
         font.weight: Font.Light
         color: "white"
         text: "Viewing Distance"
+    }
+
+    // FPS display, initially hidden, clicking will show it
+    FpsDisplay {
+        id: fpsDisplay
+        anchors.left: parent.left
+        anchors.top: parent.top
+        width: 32
+        height: 64
+        hidden: true
     }
 }

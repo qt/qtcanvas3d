@@ -8,6 +8,7 @@
         <file>PlanetButton.qml</file>
         <file>InfoSheet.qml</file>
         <file>StyledSlider.qml</file>
+        <file>FpsDisplay.qml</file>
         <file>images/sunmap.jpg</file>
         <file>images/mercurymap.jpg</file>
         <file>images/mercurybump.jpg</file>
