@@ -340,7 +340,11 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Create the offscreen surface
         QSurfaceFormat surfaceFormat = m_glContextShare->format();
-        if (!m_isOpenGLES2) {
+
+        if (m_isOpenGLES2) {
+            // Some devices report wrong version, so force 2.0 on ES2
+            surfaceFormat.setVersion(2, 0);
+        } else {
             surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
             surfaceFormat.setSwapInterval(0);
         }
@@ -748,10 +752,17 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
     if (!m_glContextQt) {
         m_glContextQt = window()->openglContext();
         m_isOpenGLES2 = m_glContextQt->isOpenGLES();
-        if (!m_isOpenGLES2 || m_glContextQt->format().majorVersion() >= 3)
+
+        QSurfaceFormat surfaceFormat = m_glContextQt->format();
+        // Some devices report wrong version, so force 2.0 on ES2
+        if (m_isOpenGLES2)
+            surfaceFormat.setVersion(2, 0);
+
+        if (!m_isOpenGLES2 || surfaceFormat.majorVersion() >= 3)
             m_maxSamples = 4;
+
         m_glContextShare = new QOpenGLContext;
-        m_glContextShare->setFormat(m_glContextQt->format());
+        m_glContextShare->setFormat(surfaceFormat);
         m_glContextShare->setShareContext(m_glContextQt);
         QSurface *surface = m_glContextQt->surface();
         m_glContextQt->doneCurrent();
