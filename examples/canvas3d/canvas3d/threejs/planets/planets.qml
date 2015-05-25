@@ -232,6 +232,7 @@ Item {
         anchors.bottomMargin: 10
         spacing: 10
         width: 100
+        interactive: false
         model: planetModel
         delegate: planetButtonDelegate
     }

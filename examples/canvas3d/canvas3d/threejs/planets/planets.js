@@ -460,7 +460,7 @@ function getNewCameraPosition( radius ) {
 
 function onDocumentMouseDown(x, y) {
 
-    // Mouse selection only for planets, not for the Moon nor for the Solar System
+    // Mouse selection for planets and Solar system, not for the Moon
 
     mouse.set((x / planetCanvas.width) * 2 - 1, - (y / planetCanvas.height ) * 2 + 1);
 
