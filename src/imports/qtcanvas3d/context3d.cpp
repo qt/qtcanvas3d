@@ -3617,9 +3617,9 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     switch (pname) {
     case SHADER_TYPE: {
         GLint shaderType = 0;
-        glGetShaderiv( shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
+        glGetShaderiv(shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
         logAllGLErrors(__FUNCTION__);
-        return QJSValue(shaderType);
+        return QJSValue(glEnums(shaderType));
     }
     case DELETE_STATUS: {
         bool isDeleted = !shader->isAlive();
@@ -3634,6 +3634,7 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     default: {
         qCWarning(canvas3drendering).nospace() << "getShaderParameter():UNSUPPORTED parameter name "
                                                << glEnumToString(pname);
+        m_error |= CANVAS_INVALID_ENUM;
         return QJSValue(QJSValue::NullValue);
     }
     }
@@ -4298,7 +4299,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
                                                << ":INVALID_ENUM:target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
         m_error |= CANVAS_INVALID_ENUM;
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
 
     switch (pname) {
@@ -4315,7 +4316,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 
     qCWarning(canvas3drendering).nospace() << "getBufferParameter():INVALID_ENUM:Unknown pname";
     m_error |= CANVAS_INVALID_ENUM;
-    return m_engine->newObject();
+    return QJSValue(QJSValue::NullValue);
 }
 
 /*!
@@ -5632,8 +5633,8 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
 /*!
  * \internal
  */
-int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums attachment,
-                                                     glEnums pname)
+QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums attachment,
+                                                          glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5643,7 +5644,27 @@ int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums att
     GLint parameter;
     glGetFramebufferAttachmentParameteriv(target, attachment, pname, &parameter);
     logAllGLErrors(__FUNCTION__);
-    return parameter;
+
+    if (m_error != CANVAS_NO_ERRORS)
+        return QJSValue(QJSValue::NullValue);
+
+    switch (pname) {
+    case FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+        return QJSValue(glEnums(parameter));
+    case FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+        // QTBUG-45897
+        // TODO: Get correct return object (= either CanvasRenderBuffer or CanvasTexture)
+        return QJSValue(parameter);
+    case FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+    case FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+        return QJSValue(parameter);
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:invalid pname "
+                                               << glEnumToString(pname);
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);
+    }
 }
 
 /*!
@@ -5654,7 +5675,7 @@ int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums att
 /*!
  * \internal
  */
-int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
+QJSValue CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5664,7 +5685,29 @@ int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
     GLint parameter;
     glGetRenderbufferParameteriv(target, pname, &parameter);
     logAllGLErrors(__FUNCTION__);
-    return parameter;
+
+    if (m_error != CANVAS_NO_ERRORS)
+        return QJSValue(QJSValue::NullValue);
+
+    switch (pname) {
+    case RENDERBUFFER_INTERNAL_FORMAT:
+        return QJSValue(glEnums(parameter));
+    case RENDERBUFFER_WIDTH:
+    case RENDERBUFFER_HEIGHT:
+    case RENDERBUFFER_RED_SIZE:
+    case RENDERBUFFER_GREEN_SIZE:
+    case RENDERBUFFER_BLUE_SIZE:
+    case RENDERBUFFER_ALPHA_SIZE:
+    case RENDERBUFFER_DEPTH_SIZE:
+    case RENDERBUFFER_STENCIL_SIZE:
+        return QJSValue(parameter);
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:invalid pname "
+                                               << glEnumToString(pname);
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);
+    }
 }
 
 /*!
@@ -5692,17 +5735,13 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
     if (isValidTextureBound(target, __FUNCTION__)) {
         switch (pname) {
         case TEXTURE_MAG_FILTER:
-            // Intentional flow through
         case TEXTURE_MIN_FILTER:
-            // Intentional flow through
         case TEXTURE_WRAP_S:
-            // Intentional flow through
         case TEXTURE_WRAP_T:
             glGetTexParameteriv(target, pname, &parameter);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(parameter);
         default:
-            // Intentional flow through
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:invalid pname "
                                                    << glEnumToString(pname)
@@ -5857,7 +5896,6 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             glGetVertexAttribfv(index, GLenum(pname), (float *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-
             QV4::ScopedFunctionObject constructor(scope,
                                                   m_v4engine->typedArrayCtors[
                                                   QV4::Heap::TypedArray::Float32Array]);
@@ -5872,7 +5910,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         }
     }
 
-    return m_engine->newObject();
+    return QJSValue(QJSValue::NullValue);
 }
 
 /*!

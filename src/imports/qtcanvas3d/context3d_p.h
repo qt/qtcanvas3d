@@ -1082,7 +1082,7 @@ public:
     Q_INVOKABLE void useProgram(QJSValue program);
     Q_INVOKABLE void validateProgram(QJSValue program);
     Q_INVOKABLE QJSValue getUniformLocation(QJSValue program,
-                                                          const QString &name);
+                                            const QString &name);
     Q_INVOKABLE int getAttribLocation(QJSValue program, const QString &name);
     Q_INVOKABLE void bindAttribLocation(QJSValue program, int index, const QString &name);
     Q_INVOKABLE QJSValue getProgramInfoLog(QJSValue program);
@@ -1170,10 +1170,10 @@ public:
     Q_INVOKABLE void stencilOp(glEnums fail, glEnums zfail, glEnums zpass);
     Q_INVOKABLE void stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail, glEnums zpass);
 
-    Q_INVOKABLE int getFramebufferAttachmentParameter(glEnums target,
-                                                      glEnums attachment,
-                                                      glEnums pname);
-    Q_INVOKABLE int getRenderbufferParameter(glEnums target, glEnums pname);
+    Q_INVOKABLE QJSValue getFramebufferAttachmentParameter(glEnums target,
+                                                           glEnums attachment,
+                                                           glEnums pname);
+    Q_INVOKABLE QJSValue getRenderbufferParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QJSValue getTexParameter(glEnums target, glEnums pname);
     Q_INVOKABLE QJSValue getUniform(QJSValue program, QJSValue location);
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
