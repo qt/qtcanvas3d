@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
                                                        QString::fromLatin1("qml")));
 
-    viewer.setSource(QUrl(QStringLiteral("qrc:///qml/framebuffer/main.qml")));
+    viewer.setSource(QUrl(QStringLiteral("qrc:/main.qml")));
 
     viewer.setTitle(QStringLiteral("Render into FrameBuffer"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);

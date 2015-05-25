@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 //! [0]
-Qt.include("/gl-matrix.js")
+Qt.include("gl-matrix.js")
 //! [0]
 
 //
@@ -112,7 +112,7 @@ function initializeGL(canvas) {
     qtLogoImage.imageLoadingFailed.connect(function() {
         console.log("Texture load FAILED, "+qtLogoImage.errorString);
     });
-    qtLogoImage.src = "qrc:/qml/textureandlight/qtlogo.png";
+    qtLogoImage.src = "qrc:/qtlogo.png";
 }
 
 function resizeGL(canvas)

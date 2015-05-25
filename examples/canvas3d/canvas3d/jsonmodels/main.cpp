@@ -45,9 +45,9 @@ int main(int argc, char *argv[])
 
     QQmlApplicationEngine engine;
 #ifdef NO_ENTERPRISE
-    engine.load(QUrl(QStringLiteral("qrc:///jsonmodelsbasic.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/jsonmodelsbasic.qml")));
 #else
-    engine.load(QUrl(QStringLiteral("qrc:///jsonmodels.qml")));
+    engine.load(QUrl(QStringLiteral("qrc:/jsonmodels.qml")));
 #endif
 
     return app.exec();

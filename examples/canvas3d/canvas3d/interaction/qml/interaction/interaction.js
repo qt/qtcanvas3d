@@ -34,8 +34,8 @@
 **
 ****************************************************************************/
 
-Qt.include("../../3rdparty/gl-matrix.js")
-Qt.include("../../3rdparty/ThreeJSLoader.js")
+Qt.include("gl-matrix.js")
+Qt.include("ThreeJSLoader.js")
 
 var gl;
 
@@ -150,16 +150,18 @@ function initializeGL(canvas) {
         barrelImage.imageLoadingFailed.connect(function() {
             console.log("Texture load FAILED, "+barrelImage.errorString);
         });
+        // Aliasing doesn't work correctly with QtQuick compiler for some reason,
+        // so use full names for barrel.jpg and barrel.json
         barrelImage.src = "qrc:/qml/interaction/barrel.jpg";
 
         // Load the model
         log("    Create XMLHttpRequest")
         var request = new XMLHttpRequest();
         log("    XMLHttpRequest.open")
-        request.open("GET", "barrel.json");
+        request.open("GET", "qrc:/qml/interaction/barrel.json");
         log("    XMLHttpRequest.onreadystatechange")
         request.onreadystatechange = function () {
-            if (request.readyState == XMLHttpRequest.DONE) {
+            if (request.readyState === XMLHttpRequest.DONE) {
                 handleLoadedModel(JSON.parse(request.responseText));
             }
         }
