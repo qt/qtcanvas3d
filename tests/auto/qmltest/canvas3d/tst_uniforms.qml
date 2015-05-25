@@ -34,74 +34,41 @@
 **
 ****************************************************************************/
 
-#include "uniformlocation_p.h"
+import QtQuick 2.2
+import QtCanvas3D 1.0
+import QtTest 1.0
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
+import "tst_uniforms.js" as Content
 
-/*!
- * \qmltype Canvas3DUniformLocation
- * \since QtCanvas3D 1.0
- * \inqmlmodule QtCanvas3D
- * \brief Contains uniform location id.
- *
- * An uncreatable QML type that contains an uniform location id. You can get it by calling
- * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
- */
+Item {
+    id: top
+    height: 300
+    width: 300
 
-/*!
- * \internal
- */
-CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_location(location),
-    m_type(-1)
-{
+    Canvas3D {
+        id: uniforms_test
+        property bool heightChanged: false
+        property bool widthChanged: false
+        property int initStatus: -1
+        property int renderStatus: -1
+
+        anchors.fill: parent
+        onInitializeGL: initStatus = Content.initializeGL(uniforms_test)
+        onPaintGL: {
+            renderStatus = Content.paintGL(uniforms_test)
+        }
+        onHeightChanged: heightChanged = true
+        onWidthChanged: widthChanged = true
+    }
+
+    TestCase {
+        name: "Canvas3D_test_uniforms"
+        when: windowShown
+
+        function test_uniforms() {
+            waitForRendering(uniforms_test)
+            tryCompare(uniforms_test, "initStatus", 0)
+            tryCompare(uniforms_test, "renderStatus", 0)
+        }
+    }
 }
-
-/*!
- * \internal
- */
-CanvasUniformLocation::~CanvasUniformLocation()
-{
-}
-
-/*!
- * \internal
- */
-int CanvasUniformLocation::id()
-{
-    return m_location;
-}
-
-/*!
- * \internal
- */
-int CanvasUniformLocation::type()
-{
-    return m_type;
-}
-
-/*!
- * \internal
- */
-void CanvasUniformLocation::setType(int type)
-{
-    m_type = type;
-}
-
-/*!
- * \internal
- */
-QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
-{
-    if (uLoc)
-        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
-    else
-        dbg.nospace() << "Canvas3DUniformLocation("<< (void *)(uLoc) << ")";
-
-    return dbg.maybeSpace();
-}
-
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE

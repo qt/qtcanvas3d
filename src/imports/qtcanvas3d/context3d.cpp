@@ -575,6 +575,153 @@ bool CanvasContext::checkParent(QObject *obj, const char *function)
 }
 
 /*!
+ * \internal
+ *
+ * Transposes matrices. \a dim is the dimensions of the square matrices in \a src.
+ * A newly allocated array containing transposed matrices is returned. \a count specifies how many
+ * matrices are handled.
+ * Required for uniformMatrix*fv functions in ES2.
+ */
+float *CanvasContext::transposeMatrix(int dim, int count, float *src)
+{
+    float *dest = new float[dim * dim * count];
+
+    for (int k = 0; k < count; k++) {
+        const int offset = k * dim * dim;
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++)
+                dest[offset + (i * dim) + j] = src[offset + (j * dim) + i];
+        }
+    }
+
+    return dest;
+}
+
+/*!
+ * \internal
+ *
+ * Set matrix uniform values.
+ */
+void CanvasContext::uniformMatrixNfv(int dim, const QJSValue &location3D, bool transpose,
+                                     const QJSValue &array)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "(dim:" << dim
+                                         << ", uniformLocation:" << location3D.toString()
+                                         << ", transpose:" << transpose
+                                         << ", array:" << array.toString()
+                                         <<")";
+
+    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
+        return;
+
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!checkParent(locationObj, __FUNCTION__))
+        return;
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniformMatrixNfva(dim, locationObj, transpose, array.toVariant().toList());
+        return;
+    }
+
+    int arrayLen = 0;
+    float *uniformData = reinterpret_cast<float * >(
+                getTypedArrayAsRawDataPtr(array, arrayLen, QV4::Heap::TypedArray::Float32Array));
+
+    if (!m_currentProgram || !uniformData || !locationObj)
+        return;
+
+    int uniformLocation = locationObj->id();
+    int numMatrices = arrayLen / (dim * dim * 4);
+
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "numMatrices:" << numMatrices;
+
+    float *transposedMatrix = 0;
+    if (m_isOpenGLES2 && transpose) {
+        transpose = false;
+        transposedMatrix = transposeMatrix(dim, numMatrices, uniformData);
+        uniformData = transposedMatrix;
+    }
+
+    switch (dim) {
+    case 2:
+        glUniformMatrix2fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    case 3:
+        glUniformMatrix3fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    case 4:
+        glUniformMatrix4fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
+    logAllGLErrors(__FUNCTION__);
+
+    delete[] transposedMatrix;
+}
+
+/*!
+ * \internal
+ *
+ * Set matrix uniform values from JS array.
+ */
+void CanvasContext::uniformMatrixNfva(int dim, CanvasUniformLocation *uniformLocation,
+                                     bool transpose, const QVariantList &array)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "(dim:" << dim
+                                         << ", location3D:" << uniformLocation
+                                         << ", transpose:" << transpose
+                                         << ", array:" << array
+                                         << ")";
+
+    if (!m_currentProgram || !uniformLocation)
+        return;
+
+    int location3D = uniformLocation->id();
+    int size = array.count();
+    float *dataArray = new float[size];
+    float *arrayPtr = dataArray;
+    int numMatrices = size / (dim * dim);
+
+    ArrayUtils::fillFloatArrayFromVariantList(array, arrayPtr);
+
+    float *transposedMatrix = 0;
+    if (m_isOpenGLES2 && transpose) {
+        transpose = false;
+        transposedMatrix = transposeMatrix(dim, numMatrices, arrayPtr);
+        arrayPtr = transposedMatrix;
+    }
+
+    switch (dim) {
+    case 2:
+        glUniformMatrix2fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    case 3:
+        glUniformMatrix3fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    case 4:
+        glUniformMatrix4fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
+    logAllGLErrors(__FUNCTION__);
+
+    delete[] dataArray;
+    delete[] transposedMatrix;
+}
+
+/*!
  * \qmlmethod void Context3D::generateMipmap(glEnums target)
  * Generates a complete set of mipmaps for a texture object of the currently active texture unit.
  * \a target defines the texture target to which the texture object is bound whose mipmaps will be
@@ -3801,42 +3948,7 @@ void CanvasContext::disableVertexAttribArray(int index)
  */
 void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(uniformLocation:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         <<")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix2fva(locationObj, transpose, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!m_currentProgram || !uniformData || !locationObj)
-        return;
-
-    int uniformLocation = locationObj->id();
-    int numMatrices = arrayLen / (4 * 4);
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << numMatrices;
-
-    glUniformMatrix2fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
-    logAllGLErrors(__FUNCTION__);
+    uniformMatrixNfv(2, location3D, transpose, array);
 }
 
 /*!
@@ -3849,41 +3961,7 @@ void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSVal
  */
 void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         <<")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix3fva(locationObj, transpose, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!m_currentProgram || !uniformData || !locationObj)
-        return;
-
-    int uniformLocation = locationObj->id();
-    int numMatrices = arrayLen / (4 * 9);
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << numMatrices;
-
-    glUniformMatrix3fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
-    logAllGLErrors(__FUNCTION__);
+    uniformMatrixNfv(3, location3D, transpose, array);
 }
 
 /*!
@@ -3896,124 +3974,7 @@ void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSVal
  */
 void CanvasContext::uniformMatrix4fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix4fva(locationObj, transpose,array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!m_currentProgram || !uniformData || !locationObj)
-        return;
-
-    int uniformLocation = locationObj->id();
-    int numMatrices = arrayLen / (4 * 16);
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << numMatrices;
-
-    glUniformMatrix4fv(uniformLocation, numMatrices, transpose, (float *)uniformData);
-    logAllGLErrors(__FUNCTION__);
-}
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix4fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 16;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix4fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
-}
-
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix3fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 9;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix3fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
-}
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 4;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix2fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
+    uniformMatrixNfv(4, location3D, transpose, array);
 }
 
 /*!
@@ -6015,123 +5976,171 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 
     uint programId = program->id();
     uint locationId = location->id();
-    CanvasActiveInfo *info = getActiveUniform(program3D, locationId);
+    int type = location->type();
 
-    int numValues = 4;
-    switch (info->type()) {
-    case SAMPLER_2D:
-        // Intentional flow through
-    case SAMPLER_CUBE:
-        // Intentional flow through
-    case INT: {
-        GLint value = 0;
-        glGetUniformiv(programId, locationId, &value);
-        logAllGLErrors(__FUNCTION__);
-        return QJSValue(value);
-    }
-    case FLOAT: {
-        GLfloat value = 0;
-        glGetUniformfv(programId, locationId, &value);
-        logAllGLErrors(__FUNCTION__);
-        return QJSValue(value);
-    }
-    case BOOL: {
-        GLint value = 0;
-        glGetUniformiv(programId, locationId, &value);
-        logAllGLErrors(__FUNCTION__);
-        return QJSValue(bool(value));
-    }
-    case INT_VEC2:
-        numValues--;
-        // Intentional flow through
-    case INT_VEC3:
-        numValues--;
-        // Intentional flow through
-    case INT_VEC4: {
-        QV4::Scope scope(m_v4engine);
-        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(int) * numValues));
-        glGetUniformiv(programId, locationId, (int *) buffer->data());
-        logAllGLErrors(__FUNCTION__);
+    if (type < 0) {
+        // Resolve location type.
+        // There is no easy way to determine this, as the active uniform
+        // indices do not usually match the uniform locations. We must query
+        // active uniforms until we hit the one we want. This is obviously
+        // extremely inefficient, but luckily getUniform is not something most
+        // users typically need or use.
 
-        QV4::ScopedFunctionObject constructor(scope,
-                                              m_v4engine->typedArrayCtors[
-                                              QV4::Heap::TypedArray::Int32Array]);
-        QV4::ScopedCallData callData(scope, 1);
-        callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
-    }
-    case FLOAT_VEC2:
-        numValues--;
-        // Intentional flow through
-    case FLOAT_VEC3:
-        numValues--;
-        // Intentional flow through
-    case FLOAT_VEC4: {
-        QV4::Scope scope(m_v4engine);
-        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(float) * numValues));
-        glGetUniformfv(programId, locationId, (float *) buffer->data());
-        logAllGLErrors(__FUNCTION__);
+        const int maxCharCount = 512;
+        GLsizei length;
+        GLint size;
+        GLenum glType;
+        char nameBuf[maxCharCount];
+        GLint uniformCount = 0;
+        glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &uniformCount);
+        // Strip any [] from the uniform name, unless part of struct
+        QByteArray strippedName = location->name().toLatin1();
+        int idx = strippedName.indexOf('[');
+        if (idx >= 0) {
+            // Don't truncate if part of struct
+            if (strippedName.indexOf('.') == -1)
+                strippedName.truncate(idx);
+        }
+        for (int i = 0; i < uniformCount; i++) {
+            nameBuf[0] = '\0';
+            glGetActiveUniform(programId, i, maxCharCount, &length, &size, &glType, nameBuf);
+            QByteArray activeName(nameBuf, length);
+            idx = activeName.indexOf('[');
+            if (idx >= 0) {
+                // Don't truncate if part of struct
+                if (activeName.indexOf('.') == -1)
+                    activeName.truncate(idx);
+            }
 
-        QV4::ScopedFunctionObject constructor(scope,
-                                              m_v4engine->typedArrayCtors[
-                                              QV4::Heap::TypedArray::Float32Array]);
-        QV4::ScopedCallData callData(scope, 1);
-        callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
-    }
-    case BOOL_VEC2:
-        numValues--;
-        // Intentional flow through
-    case BOOL_VEC3:
-        numValues--;
-        // Intentional flow through
-    case BOOL_VEC4: {
-        GLint *value = new GLint[numValues];
-        QJSValue array = m_engine->newArray(numValues);
-
-        glGetUniformiv(programId, locationId, value);
-        logAllGLErrors(__FUNCTION__);
-
-        for (int i = 0; i < numValues; i++)
-            array.setProperty(i, bool(value[i]));
-
-        return array;
-    }
-    case FLOAT_MAT2:
-        numValues--;
-        // Intentional flow through
-    case FLOAT_MAT3:
-        numValues--;
-        // Intentional flow through
-    case FLOAT_MAT4: {
-        numValues = numValues * numValues;
-
-
-        QV4::Scope scope(m_v4engine);
-        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(float) * numValues));
-        glGetUniformfv(programId, locationId, (float *) buffer->data());
-        logAllGLErrors(__FUNCTION__);
-
-        QV4::ScopedFunctionObject constructor(scope,
-                                              m_v4engine->typedArrayCtors[
-                                              QV4::Heap::TypedArray::Float32Array]);
-        QV4::ScopedCallData callData(scope, 1);
-        callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
-    }
-    default:
-        break;
+            if (activeName == strippedName) {
+                type = glType;
+                location->setType(type);
+                break;
+            }
+        }
     }
 
+    if (type < 0) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_OPERATION:Uniform type could not be determined";
+        m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::UndefinedValue);
+    } else {
+        int numValues = 4;
+        switch (type) {
+        case SAMPLER_2D:
+            // Intentional flow through
+        case SAMPLER_CUBE:
+            // Intentional flow through
+        case INT: {
+            GLint value = 0;
+            glGetUniformiv(programId, locationId, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QJSValue(value);
+        }
+        case FLOAT: {
+            GLfloat value = 0;
+            glGetUniformfv(programId, locationId, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QJSValue(value);
+        }
+        case BOOL: {
+            GLint value = 0;
+            glGetUniformiv(programId, locationId, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QJSValue(bool(value));
+        }
+        case INT_VEC2:
+            numValues--;
+            // Intentional flow through
+        case INT_VEC3:
+            numValues--;
+            // Intentional flow through
+        case INT_VEC4: {
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(int) * numValues));
+            glGetUniformiv(programId, locationId, (int *) buffer->data());
+            logAllGLErrors(__FUNCTION__);
+
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Int32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
+        }
+        case FLOAT_VEC2:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_VEC3:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_VEC4: {
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * numValues));
+            glGetUniformfv(programId, locationId, (float *) buffer->data());
+            logAllGLErrors(__FUNCTION__);
+
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
+        }
+        case BOOL_VEC2:
+            numValues--;
+            // Intentional flow through
+        case BOOL_VEC3:
+            numValues--;
+            // Intentional flow through
+        case BOOL_VEC4: {
+            GLint *value = new GLint[numValues];
+            QJSValue array = m_engine->newArray(numValues);
+
+            glGetUniformiv(programId, locationId, value);
+            logAllGLErrors(__FUNCTION__);
+
+            for (int i = 0; i < numValues; i++)
+                array.setProperty(i, bool(value[i]));
+
+            return array;
+        }
+        case FLOAT_MAT2:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_MAT3:
+            numValues--;
+            // Intentional flow through
+        case FLOAT_MAT4: {
+            numValues = numValues * numValues;
+
+
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * numValues));
+            glGetUniformfv(programId, locationId, (float *) buffer->data());
+            logAllGLErrors(__FUNCTION__);
+
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
+        }
+        default:
+            break;
+        }
+    }
     return QJSValue(QJSValue::UndefinedValue);
 }
 

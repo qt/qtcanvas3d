@@ -1210,10 +1210,6 @@ private:
     void uniform3iva(CanvasUniformLocation *location, QVariantList array);
     void uniform4iva(CanvasUniformLocation *location, QVariantList array);
 
-    void uniformMatrix2fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-    void uniformMatrix3fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-    void uniformMatrix4fva(CanvasUniformLocation *location, bool transpose, QVariantList value);
-
     void vertexAttrib1fva(uint indx, QVariantList values);
     void vertexAttrib2fva(uint indx, QVariantList values);
     void vertexAttrib3fva(uint indx, QVariantList values);
@@ -1235,6 +1231,12 @@ private:
 
     bool isValidTextureBound(glEnums target, const QString &funcName);
     bool checkParent(QObject *jsObj, const char *function);
+
+    float *transposeMatrix(int dim, int count, float *src);
+    void uniformMatrixNfv(int dim, const QJSValue &location3D, bool transpose,
+                          const QJSValue &array);
+    void uniformMatrixNfva(int dim, CanvasUniformLocation *uniformLocation, bool transpose,
+                           const QVariantList &array);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
