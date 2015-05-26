@@ -17,16 +17,12 @@ var mvMatrixUniformLoc;
 
 var canvas3d;
 
-function log(message) {
-    if (canvas3d.logAllCalls)
-        console.log(message)
-}
 
 function initializeGL(canvas) {
     canvas3d = canvas
     try {
         // Get the context object that represents the 3D API
-        gl = canvas.getContext("canvas3d", {depth:true});
+        gl = canvas.getContext("experimental-webgl", {depth:true});
 
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);
@@ -37,7 +33,6 @@ function initializeGL(canvas) {
         gl.clearColor(0.0, 0.0, 0.0, 1.0);
 
         // Set viewport
-        log("canvas width:"+canvas.width+" height:"+canvas.height+" devicePixelRatio:"+canvas.devicePixelRatio);
         gl.viewport(0, 0, canvas.width * canvas.devicePixelRatio, canvas.height * canvas.devicePixelRatio);
 
         // Initialize vertex and color buffers
@@ -52,22 +47,32 @@ function initializeGL(canvas) {
     }
 }
 
+function resizeGL(canvas) {
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+    if (gl) {
+        gl.viewport(0, 0,
+                    canvas.width * canvas.devicePixelRatio,
+                    canvas.height * canvas.devicePixelRatio);
+    }
+}
+
 function paintGL(canvas) {
-    log("Render Enter *******")
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     gl.useProgram(shaderProgram);
 
-    gl.uniformMatrix4fva(pMatrixUniformLoc, false,
-                         [1.4082912447176388, 0, 0, 0,
-                          0, 2.414213562373095, 0, 0,
-                          0, 0, -1.002002002002002, -1,
-                          0, 0, -0.20020020020020018, 0]);
-    gl.uniformMatrix4fva(mvMatrixUniformLoc, false,
-                         [0.4062233546734186, -0.7219893376569733, -0.5601017607788061, 0,
-                          0.5868604797442467, 0.6759683901051262, -0.4457146092434445, 0,
-                          0.7004122810404072, -0.14764190424242357, 0.6983011561492968, 0,
-                          0, 0, -20, 1]);
+    gl.uniformMatrix4fv(pMatrixUniformLoc, false,
+                        [1.4082912447176388, 0, 0, 0,
+                         0, 2.414213562373095, 0, 0,
+                         0, 0, -1.002002002002002, -1,
+                         0, 0, -0.20020020020020018, 0]);
+    gl.uniformMatrix4fv(mvMatrixUniformLoc, false,
+                        [0.4062233546734186, -0.7219893376569733, -0.5601017607788061, 0,
+                         0.5868604797442467, 0.6759683901051262, -0.4457146092434445, 0,
+                         0.7004122810404072, -0.14764190424242357, 0.6983011561492968, 0,
+                         0, 0, -20, 1]);
 
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.enableVertexAttribArray(vertexPositionAttrLoc);
@@ -79,7 +84,6 @@ function paintGL(canvas) {
 
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    log("Render Exit *******")
 }
 
 function initBuffers() {
@@ -90,63 +94,61 @@ function initBuffers() {
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexPositionBuffer);
     gl.bufferData(
                 gl.ARRAY_BUFFER,
-                Arrays.newFloat32Array([ // front
-                                        -1.0, -1.0,  1.0,
-                                        1.0, -1.0,  1.0,
-                                        1.0,  1.0,  1.0,
-                                        -1.0,  1.0,  1.0,
-                                        // back
-                                        -1.0, -1.0, -1.0,
-                                        1.0, -1.0, -1.0,
-                                        1.0,  1.0, -1.0,
-                                        -1.0,  1.0, -1.0
-                                       ]),
+                new Float32Array([ // front
+                                  -1.0, -1.0,  1.0,
+                                  1.0, -1.0,  1.0,
+                                  1.0,  1.0,  1.0,
+                                  -1.0,  1.0,  1.0,
+                                  // back
+                                  -1.0, -1.0, -1.0,
+                                  1.0, -1.0, -1.0,
+                                  1.0,  1.0, -1.0,
+                                  -1.0,  1.0, -1.0
+                                 ]),
                 gl.STATIC_DRAW);
 
     cubeVertexIndexBuffer = gl.createBuffer();
     cubeVertexIndexBuffer.name = "cubeVertexIndexBuffer";
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-                  Arrays.newUint16Array([// front
-                                         0, 1, 2,
-                                         2, 3, 0,
-                                         // top
-                                         3, 2, 6,
-                                         6, 7, 3,
-                                         // back
-                                         7, 6, 5,
-                                         5, 4, 7,
-                                         // bottom
-                                         4, 5, 1,
-                                         1, 0, 4,
-                                         // left
-                                         4, 0, 3,
-                                         3, 7, 4,
-                                         // right
-                                         1, 5, 6,
-                                         6, 2, 1
-                                        ]),
+                  new Uint16Array([// front
+                                   0, 1, 2,
+                                   2, 3, 0,
+                                   // top
+                                   3, 2, 6,
+                                   6, 7, 3,
+                                   // back
+                                   7, 6, 5,
+                                   5, 4, 7,
+                                   // bottom
+                                   4, 5, 1,
+                                   1, 0, 4,
+                                   // left
+                                   4, 0, 3,
+                                   3, 7, 4,
+                                   // right
+                                   1, 5, 6,
+                                   6, 2, 1
+                                  ]),
                   gl.STATIC_DRAW);
 
     cubeVertexColorBuffer = gl.createBuffer();
     cubeVertexColorBuffer.name = "cubeVertexColorBuffer";
     gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
-    gl.bufferData(gl.ARRAY_BUFFER, Arrays.newFloat32Array([// front
-                                                           0.000,  1.000,  0.000,
-                                                           1.000,  0.000,  1.000,
-                                                           1.000,  1.000,  0.000,
-                                                           1.000,  0.000,  0.000,
-                                                           // back
-                                                           0.435,  0.602,  0.223,
-                                                           0.310,  0.747,  0.185,
-                                                           1.000,  1.000,  1.000,
-                                                           0.000,  0.000,  1.000
-                                                          ]), gl.STATIC_DRAW);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([// front
+                                                     0.000,  1.000,  0.000,
+                                                     1.000,  0.000,  1.000,
+                                                     1.000,  1.000,  0.000,
+                                                     1.000,  0.000,  0.000,
+                                                     // back
+                                                     0.435,  0.602,  0.223,
+                                                     0.310,  0.747,  0.185,
+                                                     1.000,  1.000,  1.000,
+                                                     0.000,  0.000,  1.000
+                                                    ]), gl.STATIC_DRAW);
 }
 
 function initShaders() {
-    log("    Initializing shaders...");
-
     vertexShader = getShader(gl, "attribute highp vec3 aVertexPosition; \
                                   attribute highp vec4 aVertexColor;    \
                                   uniform highp mat4 uMVMatrix;         \
@@ -184,7 +186,6 @@ function initShaders() {
     pMatrixUniformLoc.name = "pMatrixUniformLoc";
     mvMatrixUniformLoc = gl.getUniformLocation(shaderProgram, "uMVMatrix");
     mvMatrixUniformLoc.name = "mvMatrixUniformLoc";
-    log("    ...done")
 }
 
 function getShader(gl, str, type) {

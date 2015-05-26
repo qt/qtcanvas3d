@@ -48,7 +48,8 @@
         <file source="main.cpp" openeditor="true"/>
         <file source="main.qml" target="/qml/%ProjectName%/%ProjectName%.qml" openeditor="true"/>
         <file source="qtcanvas3d.qrc" target="%ProjectName%.qrc"/>"
-        <file source="cube.js" target="/qml/%ProjectName%/cube.js"/>
+        <file source="glcode.js" target="/qml/%ProjectName%/glcode.js"/>
         <file source="project.pro" target="%ProjectName%.pro" openproject="true"/>
+        <file source="deployment.pri" target="deployment.pri"/>
     </files>
 </wizard>

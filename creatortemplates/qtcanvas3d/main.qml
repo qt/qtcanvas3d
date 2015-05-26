@@ -34,13 +34,15 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.4
 import QtCanvas3D 1.0
+import QtQuick.Controls 1.3
 
-import "cube.js" as GLCode
+import "glcode.js" as GLCode
 
-Item {
+ApplicationWindow {
     id: mainview
+    title: qsTr("%ProjectName%")
     width: 1280
     height: 768
     visible: true
@@ -50,13 +52,18 @@ Item {
         anchors.fill: parent
         focus: true
 
-        onInitGL: {
-            GLCode.initGL(canvas3d);
+        onInitializeGL: {
+            GLCode.initializeGL(canvas3d);
         }
 
-        onRenderGL: {
-            GLCode.renderGL(canvas3d);
+        onPaintGL: {
+            GLCode.paintGL(canvas3d);
         }
+
+        onResizeGL: {
+            GLCode.resizeGL(canvas3d);
+        }
+
     }
 }
 
