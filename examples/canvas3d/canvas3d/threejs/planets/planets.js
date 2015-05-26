@@ -287,7 +287,11 @@ function createPlanet(radius, scale, mapTexture, bumpTexture, specularTexture) {
     if (specularTexture) {
         material.specularMap = THREE.ImageUtils.loadTexture(specularTexture);
         material.specular = new THREE.Color('grey');
+        material.shininess = 50.0;
+    } else {
+        material.shininess = 1.0;
     }
+
     var mesh = new THREE.Mesh(commonGeometry, material);
     mesh.scale.set(radius, radius, radius);
 
