@@ -54,7 +54,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 CanvasFrameBuffer::CanvasFrameBuffer(QObject *parent) :
     CanvasAbstractObject(parent),
-    m_framebufferId(0)
+    m_framebufferId(0),
+    m_texture(0)
 {
     initializeOpenGLFunctions();
     glGenFramebuffers(1, &m_framebufferId);
@@ -93,6 +94,22 @@ void CanvasFrameBuffer::del()
 GLuint CanvasFrameBuffer::id()
 {
     return m_framebufferId;
+}
+
+/*!
+ * \internal
+ */
+void CanvasFrameBuffer::setTexture(CanvasTexture *texture)
+{
+    m_texture = texture;
+}
+
+/*!
+ * \internal
+ */
+CanvasTexture *CanvasFrameBuffer::texture()
+{
+    return m_texture;
 }
 
 /*!

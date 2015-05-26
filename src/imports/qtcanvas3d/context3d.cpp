@@ -518,7 +518,6 @@ void CanvasContext::bindTexture(glEnums target, QJSValue texture3D)
             m_currentTexture2D->bind(target);
         else if (target == TEXTURE_CUBE_MAP)
             m_currentTextureCubeMap->bind(target);
-
     } else {
         glBindTexture(GLenum(target), 0);
     }
@@ -1715,6 +1714,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
     }
 
     GLuint textureId = texture ? texture->textureId() : 0;
+    m_currentFramebuffer->setTexture(texture);
     glFramebufferTexture2D(GLenum(target), GLenum(attachment), GLenum(textarget), textureId, level);
     logAllGLErrors(__FUNCTION__);
 }
@@ -5652,9 +5652,19 @@ QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnum
     case FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
         return QJSValue(glEnums(parameter));
     case FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
-        // QTBUG-45897
-        // TODO: Get correct return object (= either CanvasRenderBuffer or CanvasTexture)
-        return QJSValue(parameter);
+    {
+        QJSValue retval;
+        // Check FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, and choose the type based on it
+        GLint type;
+        glGetFramebufferAttachmentParameteriv(target, attachment,
+                                              FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+        logAllGLErrors(__FUNCTION__);
+        if (type == TEXTURE)
+            retval = m_engine->newQObject(m_currentFramebuffer->texture());
+        else
+            retval = m_engine->newQObject(m_currentRenderbuffer);
+        return retval;
+    }
     case FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
     case FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
         return QJSValue(parameter);
