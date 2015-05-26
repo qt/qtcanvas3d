@@ -78,7 +78,7 @@ Item {
             duration: 1000
         }
     }
-
+    //! [1]
     onFocusedPlanetChanged: {
 
         if (focusedPlanet == 100) {
@@ -97,15 +97,16 @@ Item {
         cameraOffsetAnimation.running = true;
 
     }
-
+    //! [1]
+    //! [0]
     Canvas3D {
         id: canvas3d
         anchors.fill: parent
-
+        //! [4]
         onInitializeGL: {
             GLCode.initializeGL(canvas3d, eventSource, mainview);
         }
-
+        //! [4]
         onPaintGL: {
             GLCode.paintGL(canvas3d);
             fpsDisplay.fps = canvas3d.fps;
@@ -114,14 +115,15 @@ Item {
         onResizeGL: {
             GLCode.onResizeGL(canvas3d);
         }
-
+        //! [3]
         ControlEventSource {
             anchors.fill: parent
             focus: true
             id: eventSource
         }
+        //! [3]
     }
-
+    //! [0]
     ListModel {
         id: planetModel
 
@@ -325,7 +327,9 @@ Item {
         value: 1
         minimumValue: 1
         maximumValue: 2
+        //! [2]
         onValueChanged: GLCode.setCameraDistance(value);
+        //! [2]
     }
     Text {
         y: distanceSlider.y + distanceSlider.height + width + 10

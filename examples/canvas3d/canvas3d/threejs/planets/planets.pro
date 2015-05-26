@@ -9,6 +9,8 @@ QT += qml quick
 SOURCES += main.cpp
 
 OTHER_FILES += *.qml \
-               planets.js
+               planets.js \
+               doc/src/* \
+               doc/images/*
 
 RESOURCES += planets.qrc

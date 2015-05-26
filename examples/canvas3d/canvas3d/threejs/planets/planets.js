@@ -115,9 +115,9 @@ function initializeGL(canvas, eventSource, mainView) {
                 { canvas: canvas, antialias: true, devicePixelRatio: canvas.devicePixelRatio });
 
     renderer.setSize(canvas.width, canvas.height);
-
+    //! [5]
     eventSource.mouseDown.connect(onDocumentMouseDown);
-
+    //! [5]
 }
 
 function loadPlanetData() {
