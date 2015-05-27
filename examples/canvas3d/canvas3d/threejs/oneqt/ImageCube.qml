@@ -42,11 +42,9 @@ import "imagecube.js" as GLCode
 Canvas3D {
     id: cube
     //! [0]
+    state: "image6"
     property color backgroundColor: "#FCFCFC"
     property real angleOffset: -180 / 8.0
-    property real xRotation: 0
-    property real yRotation: 0
-    property real zRotation: 0
     property string image1: ""
     //! [0]
     property string image2: ""
@@ -54,7 +52,9 @@ Canvas3D {
     property string image4: ""
     property string image5: ""
     property string image6: ""
-    state: "image6"
+    property real xRotation: 0
+    property real yRotation: 0
+    property real zRotation: 0
 
     onBackgroundColorChanged: { GLCode.setBackgroundColor(cube.backgroundColor); }
 
@@ -125,7 +125,7 @@ Canvas3D {
     }
 
     onResizeGL: {
-        GLCode.onResizeGL(cube);
+        GLCode.resizeGL(cube);
     }
     //! [3]
 

@@ -62,7 +62,8 @@ Rectangle {
         height: 512 * (parent.height / 768)
         anchors.bottom: parent.bottom
         anchors.right: parent.right
-
+        //! [0]
+        angleOffset: -180 / 8.0
         backgroundColor: "#FCFCFC"
         state: "image6"
         image1: "qrc:/textures/devices.png"
@@ -154,7 +155,6 @@ Rectangle {
             }
         }
     }
-    //! [0]
 
     Rectangle {
         id: menuBar

@@ -120,7 +120,7 @@ function setBackgroundColor(backgroundColor) {
         renderer.setClearColor(color);
 }
 
-function onResizeGL(canvas) {
+function resizeGL(canvas) {
     if (camera === undefined) return;
 
     camera.aspect = canvas.width / canvas.height;
