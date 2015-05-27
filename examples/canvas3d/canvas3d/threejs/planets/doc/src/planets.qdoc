@@ -45,7 +45,7 @@
     three.js library-based Canvas3D rendering with Qt Quick 2D elements. The example shows the eight
     planets of our Solar System with the Sun.
 
-    \image planets-example.png
+    \image planets-example.jpg
 
     The planets are rotating around the Sun based on their orbit at a given time. The rotation
     starts at 2000 Jan 0.0 UT. The planet positions are calculated based on the formulas found here:
