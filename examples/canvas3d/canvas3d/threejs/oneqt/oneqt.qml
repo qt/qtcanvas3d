@@ -47,12 +47,12 @@ Rectangle {
     color: "#FCFCFC"
 
     Keys.onPressed: {
-        if (event.key === Qt.Key_1) imageCube.state = 'page1';
-        else if (event.key === Qt.Key_2) imageCube.state = 'page2';
-        else if (event.key === Qt.Key_3) imageCube.state = 'page3';
-        else if (event.key === Qt.Key_4) imageCube.state = 'page4';
-        else if (event.key === Qt.Key_5) imageCube.state = 'page5';
-        else if (event.key === Qt.Key_6) imageCube.state = 'page6';
+        if (event.key === Qt.Key_1) imageCube.state = 'image1';
+        else if (event.key === Qt.Key_2) imageCube.state = 'image2';
+        else if (event.key === Qt.Key_3) imageCube.state = 'image3';
+        else if (event.key === Qt.Key_4) imageCube.state = 'image4';
+        else if (event.key === Qt.Key_5) imageCube.state = 'image5';
+        else if (event.key === Qt.Key_6) imageCube.state = 'image6';
     }
 
     //! [0]
@@ -64,93 +64,93 @@ Rectangle {
         anchors.right: parent.right
 
         backgroundColor: "#FCFCFC"
-        state: "page6"
-        page1: "qrc:/textures/devices.png"
-        page2: "qrc:/textures/iot.png"
-        page3: "qrc:/textures/embedded.png"
-        page4: "qrc:/textures/dataviz.jpg"
-        page5: "qrc:/textures/multiscreen.png"
-        page6: "qrc:/textures/puzzle-pieces.png"
+        state: "image6"
+        image1: "qrc:/textures/devices.png"
+        image2: "qrc:/textures/iot.png"
+        image3: "qrc:/textures/embedded.png"
+        image4: "qrc:/textures/dataviz.jpg"
+        image5: "qrc:/textures/multiscreen.png"
+        image6: "qrc:/textures/puzzle-pieces.png"
 
         onStateChanged: {
-            if (imageCube.state == "page1") {
+            if (imageCube.state == "image1") {
                 page1Button.selected = true;
                 page2Button.selected = false;
                 page3Button.selected = false;
                 page4Button.selected = false;
                 page5Button.selected = false;
                 page6Button.selected = false;
-                page1.visible = true;
-                page2.visible = false;
-                page4.visible = false;
-                page3.visible = false;
-                page5.visible = false;
-                page6.visible = false;
-            } else if (imageCube.state == "page2") {
+                info1.visible = true;
+                info2.visible = false;
+                info4.visible = false;
+                info3.visible = false;
+                info5.visible = false;
+                info6.visible = false;
+            } else if (imageCube.state == "image2") {
                 page1Button.selected = false;
                 page2Button.selected = true;
                 page3Button.selected = false;
                 page4Button.selected = false;
                 page5Button.selected = false;
                 page6Button.selected = false;
-                page1.visible = false;
-                page2.visible = true;
-                page4.visible = false;
-                page3.visible = false;
-                page5.visible = false;
-                page6.visible = false;
-            } else if (imageCube.state == "page3") {
+                info1.visible = false;
+                info2.visible = true;
+                info4.visible = false;
+                info3.visible = false;
+                info5.visible = false;
+                info6.visible = false;
+            } else if (imageCube.state == "image3") {
                 page1Button.selected = false;
                 page2Button.selected = false;
                 page3Button.selected = true;
                 page4Button.selected = false;
                 page5Button.selected = false;
                 page6Button.selected = false;
-                page1.visible = false;
-                page2.visible = false;
-                page3.visible = true;
-                page4.visible = false;
-                page5.visible = false;
-                page6.visible = false;
-            } else if (imageCube.state == "page4") {
+                info1.visible = false;
+                info2.visible = false;
+                info3.visible = true;
+                info4.visible = false;
+                info5.visible = false;
+                info6.visible = false;
+            } else if (imageCube.state == "image4") {
                 page1Button.selected = false;
                 page2Button.selected = false;
                 page3Button.selected = false;
                 page4Button.selected = true;
                 page5Button.selected = false;
                 page6Button.selected = false;
-                page1.visible = false;
-                page2.visible = false;
-                page3.visible = false;
-                page4.visible = true;
-                page5.visible = false;
-                page6.visible = false;
-            } else if (imageCube.state == "page5") {
+                info1.visible = false;
+                info2.visible = false;
+                info3.visible = false;
+                info4.visible = true;
+                info5.visible = false;
+                info6.visible = false;
+            } else if (imageCube.state == "image5") {
                 page1Button.selected = false;
                 page2Button.selected = false;
                 page3Button.selected = false;
                 page4Button.selected = false;
                 page5Button.selected = true;
                 page6Button.selected = false;
-                page1.visible = false;
-                page2.visible = false;
-                page3.visible = false;
-                page4.visible = false;
-                page5.visible = true;
-                page6.visible = false;
-            } else if (imageCube.state == "page6") {
+                info1.visible = false;
+                info2.visible = false;
+                info3.visible = false;
+                info4.visible = false;
+                info5.visible = true;
+                info6.visible = false;
+            } else if (imageCube.state == "image6") {
                 page1Button.selected = false;
                 page2Button.selected = false;
                 page3Button.selected = false;
                 page4Button.selected = false;
                 page5Button.selected = false;
                 page6Button.selected = true;
-                page1.visible = false;
-                page2.visible = false;
-                page3.visible = false;
-                page4.visible = false;
-                page5.visible = false;
-                page6.visible = true;
+                info1.visible = false;
+                info2.visible = false;
+                info3.visible = false;
+                info4.visible = false;
+                info5.visible = false;
+                info6.visible = true;
             }
         }
     }
@@ -180,7 +180,7 @@ Rectangle {
                 id: page1Button
                 text: "Device Creation"
                 stateTarget: imageCube
-                stateSelect: "page1"
+                stateSelect: "image1"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -190,7 +190,7 @@ Rectangle {
                 id: page2Button
                 text: "IoT"
                 stateTarget: imageCube
-                stateSelect: "page2"
+                stateSelect: "image2"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -200,7 +200,7 @@ Rectangle {
                 id: page3Button
                 text: "Rapid Development"
                 stateTarget: imageCube
-                stateSelect: "page3"
+                stateSelect: "image3"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -210,7 +210,7 @@ Rectangle {
                 id: page4Button
                 text: "Modern UX"
                 stateTarget: imageCube
-                stateSelect: "page4"
+                stateSelect: "image4"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -220,7 +220,7 @@ Rectangle {
                 id: page5Button
                 text: "Cross Platform"
                 stateTarget: imageCube
-                stateSelect: "page5"
+                stateSelect: "image5"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -230,7 +230,7 @@ Rectangle {
                 id: page6Button
                 text: "In the Box"
                 stateTarget: imageCube
-                stateSelect: "page6"
+                stateSelect: "image6"
                 Layout.minimumHeight:52
                 Layout.preferredHeight: 52
                 Layout.maximumHeight: 52
@@ -247,7 +247,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page1
+        id: info1
         width: parent.width
         anchors.top: separator.bottom
         anchors.left: parent.left
@@ -262,7 +262,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page2
+        id: info2
         visible: false
         width: parent.width
         anchors.top: separator.bottom
@@ -279,7 +279,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page3
+        id: info3
         visible: false
         width: parent.width
         anchors.top: separator.bottom
@@ -296,7 +296,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page4
+        id: info4
         visible: false
         width: parent.width
         anchors.top: separator.bottom
@@ -312,7 +312,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page5
+        id: info5
         visible: false
         width: parent.width
         anchors.top: separator.bottom
@@ -329,7 +329,7 @@ Rectangle {
     }
 
     InfoSheet {
-        id: page6
+        id: info6
         visible: false
         width: parent.width
         anchors.top: separator.bottom

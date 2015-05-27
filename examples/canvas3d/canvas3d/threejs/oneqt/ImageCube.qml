@@ -47,52 +47,52 @@ Canvas3D {
     property real xRotation: 0
     property real yRotation: 0
     property real zRotation: 0
-    property string page1: ""
+    property string image1: ""
     //! [0]
-    property string page2: ""
-    property string page3: ""
-    property string page4: ""
-    property string page5: ""
-    property string page6: ""
-    state: "page6"
+    property string image2: ""
+    property string image3: ""
+    property string image4: ""
+    property string image5: ""
+    property string image6: ""
+    state: "image6"
 
     onBackgroundColorChanged: { GLCode.setBackgroundColor(cube.backgroundColor); }
 
     //! [1]
     states: [
         State {
-            name: "page1"
+            name: "image1"
             PropertyChanges { target: cube; xRotation: 0; }
             PropertyChanges { target: cube; yRotation: 180 * 1.5 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         //! [1]
         State {
-            name: "page2"
+            name: "image2"
             PropertyChanges { target: cube; xRotation: 0; }
             PropertyChanges { target: cube; yRotation: 180 * 1.0 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         State {
-            name: "page3"
+            name: "image3"
             PropertyChanges { target: cube; xRotation: 0; }
             PropertyChanges { target: cube; yRotation: 180 * 0.5 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         State {
-            name: "page4"
+            name: "image4"
             PropertyChanges { target: cube; xRotation: 0; }
             PropertyChanges { target: cube; yRotation: 0 + angleOffset; }
             PropertyChanges { target: cube; zRotation: 0 }
         },
         State {
-            name: "page5"
+            name: "image5"
             PropertyChanges { target: cube; xRotation: 180 / 2.0; }
             PropertyChanges { target: cube; yRotation: 0; }
             PropertyChanges { target: cube; zRotation: -angleOffset; }
         },
         State {
-            name: "page6"
+            name: "image6"
             PropertyChanges { target: cube; xRotation: -180 / 2.0; }
             PropertyChanges { target: cube; yRotation: 0; }
             PropertyChanges { target: cube; zRotation: angleOffset; }
@@ -134,63 +134,63 @@ Canvas3D {
         anchors.fill: parent
 
         onSwipeRight: {
-            if (cube.state === "page1")
-                cube.state = "page4";
-            else if (cube.state == "page2")
-                cube.state = "page1";
-            else if (cube.state == "page3")
-                cube.state = "page2";
-            else if (cube.state == "page4")
-                cube.state = "page3";
-            else if (cube.state == "page5")
-                cube.state = "page3";
-            else if (cube.state == "page6")
-                cube.state = "page3";
+            if (cube.state === "image1")
+                cube.state = "image4";
+            else if (cube.state == "image2")
+                cube.state = "image1";
+            else if (cube.state == "image3")
+                cube.state = "image2";
+            else if (cube.state == "image4")
+                cube.state = "image3";
+            else if (cube.state == "image5")
+                cube.state = "image3";
+            else if (cube.state == "image6")
+                cube.state = "image3";
         }
 
         onSwipeLeft: {
-            if (cube.state === "page1")
-                cube.state = "page2";
-            else if (cube.state == "page2")
-                cube.state = "page3";
-            else if (cube.state == "page3")
-                cube.state = "page4";
-            else if (cube.state == "page4")
-                cube.state = "page1";
-            else if (cube.state == "page5")
-                cube.state = "page1";
-            else if (cube.state == "page6")
-                cube.state = "page1";
+            if (cube.state === "image1")
+                cube.state = "image2";
+            else if (cube.state == "image2")
+                cube.state = "image3";
+            else if (cube.state == "image3")
+                cube.state = "image4";
+            else if (cube.state == "image4")
+                cube.state = "image1";
+            else if (cube.state == "image5")
+                cube.state = "image1";
+            else if (cube.state == "image6")
+                cube.state = "image1";
         }
 
         onSwipeUp: {
-            if (cube.state === "page1")
-                cube.state = "page6";
-            else if (cube.state == "page2")
-                cube.state = "page6";
-            else if (cube.state == "page3")
-                cube.state = "page6";
-            else if (cube.state == "page4")
-                cube.state = "page6";
-            else if (cube.state == "page5")
-                cube.state = "page4";
-            else if (cube.state == "page6")
-                cube.state = "page2";
+            if (cube.state === "image1")
+                cube.state = "image6";
+            else if (cube.state == "image2")
+                cube.state = "image6";
+            else if (cube.state == "image3")
+                cube.state = "image6";
+            else if (cube.state == "image4")
+                cube.state = "image6";
+            else if (cube.state == "image5")
+                cube.state = "image4";
+            else if (cube.state == "image6")
+                cube.state = "image2";
         }
 
         onSwipeDown: {
-            if (cube.state === "page1")
-                cube.state = "page5";
-            else if (cube.state == "page2")
-                cube.state = "page5";
-            else if (cube.state == "page3")
-                cube.state = "page5";
-            else if (cube.state == "page4")
-                cube.state = "page5";
-            else if (cube.state == "page5")
-                cube.state = "page2";
-            else if (cube.state == "page6")
-                cube.state = "page4";
+            if (cube.state === "image1")
+                cube.state = "image5";
+            else if (cube.state == "image2")
+                cube.state = "image5";
+            else if (cube.state == "image3")
+                cube.state = "image5";
+            else if (cube.state == "image4")
+                cube.state = "image5";
+            else if (cube.state == "image5")
+                cube.state = "image2";
+            else if (cube.state == "image6")
+                cube.state = "image4";
         }
     }
 
