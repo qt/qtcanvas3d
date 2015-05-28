@@ -59,8 +59,8 @@ Item {
         target: mainview
         properties: "xLookAtOffset, yLookAtOffset, zLookAtOffset"
         to: 0
-        easing.type: Easing.InOutQuad
-        duration: 1000
+        easing.type: Easing.InOutQuint
+        duration: 1250
     }
 
     NumberAnimation {
@@ -68,14 +68,14 @@ Item {
         target: mainview
         properties: "xCameraOffset, yCameraOffset, zCameraOffset"
         to: 0
-        easing.type: Easing.InOutQuad
-        duration: 1000
+        easing.type: Easing.InOutQuint
+        duration: 2500
     }
 
     Behavior on cameraNear {
         PropertyAnimation {
-            easing.type: Easing.InOutQuad
-            duration: 1000
+            easing.type: Easing.InOutQuint
+            duration: 2500
         }
     }
     //! [1]
