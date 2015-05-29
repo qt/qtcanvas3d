@@ -80,7 +80,6 @@ Item {
     }
     //! [1]
     onFocusedPlanetChanged: {
-
         if (focusedPlanet == 100) {
             info.opacity = 0;
             updatePlanetInfo();
@@ -93,9 +92,8 @@ Item {
         GLCode.setLookAtOffset();
         GLCode.setCameraOffset();
 
-        lookAtOffsetAnimation.running = true;
-        cameraOffsetAnimation.running = true;
-
+        lookAtOffsetAnimation.restart();
+        cameraOffsetAnimation.restart();
     }
     //! [1]
     //! [0]

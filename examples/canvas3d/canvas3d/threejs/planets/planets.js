@@ -446,6 +446,7 @@ function setLookAtOffset() {
     var planet = 0;
     if (qmlView.focusedPlanet !== SOLAR_SYSTEM)
         planet = qmlView.oldPlanet;
+
     var focusedPlanetPosition = objects[planet].position.clone();
     offset.sub(focusedPlanetPosition);
 
@@ -463,7 +464,7 @@ function setCameraOffset() {
     if (qmlView.focusedPlanet !== SOLAR_SYSTEM)
         planet = qmlView.focusedPlanet;
 
-    var newCameraPosition = getNewCameraPosition(planets[planet]["radius"]);
+    var newCameraPosition = getNewCameraPosition(getOuterRadius(planet));
 
     if (qmlView.focusedPlanet !== SUN)
         offset.sub(newCameraPosition);
@@ -621,25 +622,10 @@ function paintGL(canvas) {
     sun.updateMatrix();
 
     // calculate the outer radius of the focused item
-    var outerRadius = 0;
-    if (qmlView.focusedPlanet !== SOLAR_SYSTEM) {
-        outerRadius = planets[qmlView.focusedPlanet]["radius"];
-        if (qmlView.focusedPlanet === SATURN) {
-            outerRadius =+ saturnOuterRadius;
-        } else if (qmlView.focusedPlanet === URANUS) {
-            outerRadius =+ uranusOuterRadius;
-        } else if (qmlView.focusedPlanet === SUN) {
-            outerRadius = planets[qmlView.focusedPlanet]["radius"] / 100;
-        }
-    }
+    var outerRadius = getOuterRadius(qmlView.focusedPlanet);
 
     // get the appropriate near plane position for the camera and animate it with QML animations
-    if (qmlView.focusedPlanet === SOLAR_SYSTEM)
-        qmlView.cameraNear = 2500000;
-    else if (qmlView.focusedPlanet === SUN)
-        qmlView.cameraNear = planets[qmlView.focusedPlanet]["radius"] / 100;
-    else
-        qmlView.cameraNear = planets[qmlView.focusedPlanet]["radius"];
+    qmlView.cameraNear = outerRadius;
 
     camera.near = qmlView.cameraNear;
     camera.updateProjectionMatrix();
@@ -666,4 +652,21 @@ function paintGL(canvas) {
     // Render the scene
     renderer.render(scene, camera);
 
+}
+
+function getOuterRadius( planet ) {
+
+    var outerRadius = 2500000;
+    if (planet !== SOLAR_SYSTEM) {
+        outerRadius = planets[planet]["radius"];
+        if (planet === SATURN) {
+            outerRadius =+ saturnOuterRadius;
+        } else if (planet === URANUS) {
+            outerRadius =+ uranusOuterRadius;
+        } else if (planet === SUN) {
+            outerRadius = planets[planet]["radius"] / 100;
+        }
+    }
+
+    return outerRadius;
 }
