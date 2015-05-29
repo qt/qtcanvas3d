@@ -1196,9 +1196,9 @@ private:
     CanvasTextureImage* getAsTextureImage(QJSValue image);
     CanvasFrameBuffer *getAsFramebuffer(QJSValue anyObject);
     CanvasRenderBuffer *getAsRenderbuffer3D(QJSValue anyObject) const;
-    CanvasShader *getAsShader3D(QJSValue shader3D) const;
+    CanvasShader *getAsShader3D(QJSValue shader3D, bool deadOrAlive = false) const;
     CanvasUniformLocation *getAsUniformLocation3D(QJSValue anyObject) const;
-    CanvasProgram *getAsProgram3D(QJSValue anyObject) const;
+    CanvasProgram *getAsProgram3D(QJSValue anyObject, bool deadOrAlive = false) const;
     CanvasBuffer *getAsBuffer3D(QJSValue value) const;
 
     void uniform1fva(CanvasUniformLocation *location, QVariantList array);
