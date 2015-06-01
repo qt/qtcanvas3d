@@ -312,11 +312,40 @@ QJSValue CanvasContext::getShaderPrecisionFormat(glEnums shadertype,
     qCDebug(canvas3drendering).nospace() << "Context3D::" << str;
 
     GLint range[2];
-    range[0] = 1;
-    range[1] = 1;
-    GLint precision = 1;
+    GLint precision;
 
-    glGetShaderPrecisionFormat((GLenum)(shadertype), (GLenum)(precisiontype), range, &precision);
+    // Default values from OpenGL ES2 spec
+    switch (precisiontype) {
+    case LOW_INT:
+    case MEDIUM_INT:
+    case HIGH_INT:
+        // 32-bit twos-complement integer format
+        range[0] = 31;
+        range[1] = 30;
+        precision = 0;
+        break;
+    case LOW_FLOAT:
+    case MEDIUM_FLOAT:
+    case HIGH_FLOAT:
+        // IEEE single-precision floating-point format
+        range[0] = 127;
+        range[1] = 127;
+        precision = 23;
+        break;
+    default:
+        range[0] = 1;
+        range[1] = 1;
+        precision = 1;
+        m_error |= CANVAS_INVALID_ENUM;
+        break;
+    }
+
+    // On desktop envs glGetShaderPrecisionFormat is part of OpenGL 4.x, so it is not necessarily
+    // available. Let's just return the default values if not ES2.
+    if (m_isOpenGLES2) {
+        glGetShaderPrecisionFormat((GLenum)(shadertype), (GLenum)(precisiontype),
+                                   range, &precision);
+    }
     logAllGLErrors(str);
 
     CanvasShaderPrecisionFormat *format = new CanvasShaderPrecisionFormat();

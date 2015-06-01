@@ -304,38 +304,34 @@ function initializeGL(canvas) {
                     canvas.width * canvas.devicePixelRatio,
                     canvas.height * canvas.devicePixelRatio);
 
-        // Skipping getShaderPrecisionFormat as on OS X these will
-        // fail as the method doesn't work, it produces INVALID_OPERATION error.
-        // TODO: Uncomment once QTBUG-46410 has been fixed
-
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT, false))
-//            return 20;
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT, false))
-//            return 21;
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT, false))
-//            return 22;
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_INT, false))
-//            return 23;
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_INT, false))
-//            return 24;
-//        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_INT, false))
-//            return 25;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_FLOAT, false))
-//            return 26;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT, false))
-//            return 27;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT, false))
-//            return 28;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_INT, false))
-//            return 29;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_INT, false))
-//            return 30;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_INT, false))
-//            return 31;
-//        if (!getShaderPrecisionFormat(77, gl.LOW_INT, true))
-//            return 32;
-//        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, 77, true))
-//            return 33;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_FLOAT, false))
+            return 20;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_FLOAT, false))
+            return 21;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_FLOAT, false))
+            return 22;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.LOW_INT, false))
+            return 23;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.MEDIUM_INT, false))
+            return 24;
+        if (!getShaderPrecisionFormat(gl.VERTEX_SHADER, gl.HIGH_INT, false))
+            return 25;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_FLOAT, false))
+            return 26;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_FLOAT, false))
+            return 27;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_FLOAT, false))
+            return 28;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.LOW_INT, false))
+            return 29;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.MEDIUM_INT, false))
+            return 30;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, gl.HIGH_INT, false))
+            return 31;
+        if (!getShaderPrecisionFormat(77, gl.LOW_INT, true))
+            return 32;
+        if (!getShaderPrecisionFormat(gl.FRAGMENT_SHADER, 77, true))
+            return 33;
 
         if (!isProgram(shaderProgram, true))
             return 40;
