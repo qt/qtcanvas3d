@@ -221,59 +221,68 @@ function createPlanets() {
 
     objects = [];
 
-    var mesh;
     commonGeometry = new THREE.SphereGeometry(1, 64, 64);
     var ringSegments = 70;
+    var mesh, innerRadius, outerRadius, ring;
 
     for (var i = 0; i < planets.length; i ++) {
-        if (i === 0) {
+        switch (i) {
+        case SUN:
             mesh = createSun(planets[i]["radius"]);
             mesh.position.set(0, 0, 0);
-        } else {
-            if (i === 1) {
-                mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/mercurymap.jpg',
-                                    'qrc:/images/mercurybump.jpg');
-            } else if (i === 2) {
-                mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/venusmap.jpg',
-                                    'qrc:/images/venusbump.jpg');
-            } else if (i === 3) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/earthmap1k.jpg',
-                                    'qrc:/images/earthbump1k.jpg', 'qrc:/images/earthspec1k.jpg');
-                var cloud = createEarthCloud();
-                mesh.add(cloud);
-            } else if (i === 4) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/marsmap1k.jpg',
-                                    'qrc:/images/marsbump1k.jpg');
-            } else if (i === 5) {
-                mesh = createPlanet(planets[i]["radius"], 0.02, 'qrc:/images/jupitermap.jpg',
-                                    'qrc:/images/jupitermap.jpg');
-            } else if (i === 6) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/saturnmap.jpg',
-                                    'qrc:/images/saturnmap.jpg');
-                var innerRadius = (planets[i]["radius"] + 6.630) / planets[i]["radius"];
-                var outerRadius = (planets[i]["radius"] + saturnOuterRadius) / planets[i]["radius"];
-                var ring = createRing(innerRadius, outerRadius, ringSegments,
-                                      'qrc:images/saturnringcolortrans.png');
-                ring.receiveShadow = true;
-                ring.castShadow = true;
-                mesh.add(ring);
-            } else if (i === 7) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/uranusmap.jpg',
-                                    'qrc:/images/uranusmap.jpg');
-                var innerRadius = (planets[i]["radius"] + 2) / planets[i]["radius"];
-                var outerRadius = (planets[i]["radius"] + uranusOuterRadius) / planets[i]["radius"];
-                var ring = createRing(innerRadius, outerRadius, ringSegments,
-                                      'qrc:images/uranusringcolortrans.png');
-                ring.receiveShadow = true;
-                ring.castShadow = true;
-                mesh.add(ring);
-            } else if (i === 8) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/neptunemap.jpg',
-                                    'qrc:/images/neptunemap.jpg');
-            } else if (i === 9) {
-                mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/moonmap1k.jpg',
-                                    'qrc:/images/moonbump1k.jpg');
-            }
+            break;
+        case MERCURY:
+            mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/mercurymap.jpg',
+                                'qrc:/images/mercurybump.jpg');
+            break;
+        case VENUS:
+            mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/venusmap.jpg',
+                                'qrc:/images/venusbump.jpg');
+            break;
+        case EARTH:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/earthmap1k.jpg',
+                                'qrc:/images/earthbump1k.jpg', 'qrc:/images/earthspec1k.jpg');
+            var cloud = createEarthCloud();
+            mesh.add(cloud);
+            break;
+        case MARS:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/marsmap1k.jpg',
+                                'qrc:/images/marsbump1k.jpg');
+            break;
+        case JUPITER:
+            mesh = createPlanet(planets[i]["radius"], 0.02, 'qrc:/images/jupitermap.jpg',
+                                'qrc:/images/jupitermap.jpg');
+            break;
+        case SATURN:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/saturnmap.jpg',
+                                'qrc:/images/saturnmap.jpg');
+            innerRadius = (planets[i]["radius"] + 6.630) / planets[i]["radius"];
+            outerRadius = (planets[i]["radius"] + saturnOuterRadius) / planets[i]["radius"];
+            ring = createRing(innerRadius, outerRadius, ringSegments,
+                                  'qrc:images/saturnringcolortrans.png');
+            ring.receiveShadow = true;
+            ring.castShadow = true;
+            mesh.add(ring);
+            break;
+        case URANUS:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/uranusmap.jpg',
+                                'qrc:/images/uranusmap.jpg');
+            innerRadius = (planets[i]["radius"] + 2) / planets[i]["radius"];
+            outerRadius = (planets[i]["radius"] + uranusOuterRadius) / planets[i]["radius"];
+            ring = createRing(innerRadius, outerRadius, ringSegments,
+                                  'qrc:images/uranusringcolortrans.png');
+            ring.receiveShadow = true;
+            ring.castShadow = true;
+            mesh.add(ring);
+            break;
+        case NEPTUNE:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/neptunemap.jpg',
+                                'qrc:/images/neptunemap.jpg');
+            break;
+        case MOON:
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/moonmap1k.jpg',
+                                'qrc:/images/moonbump1k.jpg');
+            break;
         }
 
         objects.push(mesh);
@@ -656,7 +665,7 @@ function paintGL(canvas) {
 
 function getOuterRadius( planet ) {
 
-    var outerRadius = 2500000;
+    var outerRadius = solarDistance;
     if (planet !== SOLAR_SYSTEM) {
         outerRadius = planets[planet]["radius"];
         if (planet === SATURN) {
