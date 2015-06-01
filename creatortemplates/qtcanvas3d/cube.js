@@ -22,7 +22,7 @@ function log(message) {
         console.log(message)
 }
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     canvas3d = canvas
     try {
         // Get the context object that represents the 3D API
@@ -46,13 +46,13 @@ function initGL(canvas) {
         // Initialize the shader program
         initShaders();
     } catch(e) {
-        console.log("initGL FAILURE!");
+        console.log("initializeGL FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
     }
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     log("Render Enter *******")
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 

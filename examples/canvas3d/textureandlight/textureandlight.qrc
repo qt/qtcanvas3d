@@ -1,8 +1,0 @@
-<RCC>
-    <qresource prefix="/">
-        <file>qml/textureandlight/main.qml</file>
-        <file>qml/textureandlight/textureandlight.js</file>
-        <file>qml/textureandlight/qtlogo.png</file>
-        <file alias="gl-matrix.js">../../../3rdparty/gl-matrix.js</file>
-    </qresource>
-</RCC>

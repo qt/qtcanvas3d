@@ -41,7 +41,7 @@ var buffer;
 var vertexShader;
 var fragmentShader;
 
-function initGL(canvas) {
+function initializeGL(canvas) {
     var initOk = true
     try {
         gl = canvas.getContext("3d");
@@ -71,7 +71,7 @@ function initGL(canvas) {
                         canvas.height * canvas.devicePixelRatio);
         }
     } catch(e) {
-        console.log("initGL(): FAILURE!");
+        console.log("initializeGL(): FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
         initOk = false;
@@ -79,7 +79,7 @@ function initGL(canvas) {
     return initOk;
 }
 
-function renderGL(canvas) {
+function paintGL(canvas) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
 }

@@ -46,8 +46,8 @@ Item {
     Canvas3D {
         id: depth_context
         anchors.fill: parent
-        function initGL() {}
-        function renderGL() {}
+        function initializeGL() {}
+        function paintGL() {}
     }
 
     TestCase {

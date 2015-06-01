@@ -52,9 +52,9 @@ Item {
         property bool initOk: false
         property bool renderOk: false
         anchors.fill: parent
-        onInitGL: initOk = Content.initGL(render_simple)
-        onRenderGL: {
-            Content.renderGL(render_simple)
+        onInitializeGL: initOk = Content.initializeGL(render_simple)
+        onPaintGL: {
+            Content.paintGL(render_simple)
             renderOk = true
         }
         onHeightChanged: heightChanged = true

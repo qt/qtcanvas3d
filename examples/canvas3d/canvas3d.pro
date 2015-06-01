@@ -1,5 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS += textureandlight \
-           framebuffer \
-           interaction \
-           jsonmodels
+SUBDIRS += canvas3d \
+           threejs
