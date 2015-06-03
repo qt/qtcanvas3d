@@ -63,11 +63,14 @@ public:
     virtual ~CanvasUniformLocation();
 
     int id();
+    int type();
+    void setType(int type);
 
     friend QDebug operator<< (QDebug d, const CanvasUniformLocation *uLoc);
 
 private:
     int m_location;
+    int m_type;
 };
 
 QT_CANVAS3D_END_NAMESPACE

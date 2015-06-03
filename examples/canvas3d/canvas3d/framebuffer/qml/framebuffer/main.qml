@@ -155,9 +155,9 @@ Item {
     RowLayout {
         id: controlLayout
         spacing: 5
-        x: 0
-        y: parent.height-100
-        width: parent.width
+        x: 12
+        y: parent.height - 100
+        width: parent.width - (x * 2)
         height: 100
         visible: true
 
@@ -166,13 +166,11 @@ Item {
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: false
             text: "X-axis:"
-            color: "#FFFFFF"
         }
 
         Slider {
             id: xSlider
             Layout.alignment: Qt.AlignLeft
-            Layout.preferredWidth : 300
             Layout.fillWidth: true
             minimumValue: 0;
             maximumValue: 360;
@@ -184,13 +182,11 @@ Item {
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: false
             text: "Y-axis:"
-            color: "#FFFFFF"
         }
 
         Slider {
             id: ySlider
             Layout.alignment: Qt.AlignLeft
-            Layout.preferredWidth : 300
             Layout.fillWidth: true
             minimumValue: 0;
             maximumValue: 360;
@@ -202,13 +198,11 @@ Item {
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: false
             text: "Z-axis:"
-            color: "#FFFFFF"
         }
 
         Slider {
             id: zSlider
             Layout.alignment: Qt.AlignLeft
-            Layout.preferredWidth : 300
             Layout.fillWidth: true
             minimumValue: 0;
             maximumValue: 360;

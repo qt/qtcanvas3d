@@ -51,8 +51,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
    \inqmlmodule QtCanvas3D
    \brief Provides means to print current GL driver state info.
 
-   An uncreatable QML type that provides an extension API that can be used dump current OpenGL
-   driver state as string that can be then e.g. printed on console log. You can get it by
+   An uncreatable QML type that provides an extension API that can be used to the dump current OpenGL
+   driver state as a string that can be then, for example, be printed on the console log. You can get it by
    calling \l{Context3D::getExtension}{Context3D.getExtension} with "QTCANVAS3D_gl_state_dump"
    as parameter.
 
@@ -62,7 +62,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
     var stateDumpExt;
     .
     .
-    // After context has been created from Canvas3D get the extension
+    // After the context has been created from Canvas3D, get the extension
     stateDumpExt = gl.getExtension("QTCANVAS3D_gl_state_dump");
     .
     .

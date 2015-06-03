@@ -40,12 +40,12 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype FrameBuffer3D
+ * \qmltype Canvas3DFrameBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL framebuffer.
  *
- * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling
+ * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling the
  * \l{Context3D::createFramebuffer()}{Context3D.createFramebuffer()} method.
  */
 
@@ -54,7 +54,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 CanvasFrameBuffer::CanvasFrameBuffer(QObject *parent) :
     CanvasAbstractObject(parent),
-    m_framebufferId(0)
+    m_framebufferId(0),
+    m_texture(0)
 {
     initializeOpenGLFunctions();
     glGenFramebuffers(1, &m_framebufferId);
@@ -98,12 +99,28 @@ GLuint CanvasFrameBuffer::id()
 /*!
  * \internal
  */
+void CanvasFrameBuffer::setTexture(CanvasTexture *texture)
+{
+    m_texture = texture;
+}
+
+/*!
+ * \internal
+ */
+CanvasTexture *CanvasFrameBuffer::texture()
+{
+    return m_texture;
+}
+
+/*!
+ * \internal
+ */
 QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
 {
     if (buffer)
-        dbg.nospace() << "FrameBuffer3D("<< buffer->name() <<", id:" << buffer->m_framebufferId << ")";
+        dbg.nospace() << "Canvas3DFrameBuffer("<< buffer->name() <<", id:" << buffer->m_framebufferId << ")";
     else
-        dbg.nospace() << "FrameBuffer3D("<< ((void*) buffer) <<")";
+        dbg.nospace() << "Canvas3DFrameBuffer("<< ((void*) buffer) <<")";
     return dbg.maybeSpace();
 }
 

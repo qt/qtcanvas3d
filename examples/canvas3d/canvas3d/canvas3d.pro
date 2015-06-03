@@ -2,4 +2,7 @@ TEMPLATE = subdirs
 SUBDIRS += textureandlight \
            framebuffer \
            interaction \
-           jsonmodels
+           jsonmodels \
+           threejs
+
+OTHER_FILES += 3rdparty/*

@@ -107,7 +107,7 @@
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 4
 
-    Then we need to create the shader program (Program3D), attach the shaders
+    Then we need to create the shader program (Canvas3DProgram), attach the shaders
     to it, and then link and use the program:
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 5

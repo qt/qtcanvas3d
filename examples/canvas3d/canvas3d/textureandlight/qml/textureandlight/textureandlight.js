@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 //! [0]
-Qt.include("/gl-matrix.js")
+Qt.include("gl-matrix.js")
 //! [0]
 
 //
@@ -69,7 +69,7 @@ function initializeGL(canvas) {
     //! [2]
     // Setup the OpenGL state
     gl.enable(gl.DEPTH_TEST);
-    gl.depthFunc(gl.DEPTH_LESS);
+    gl.depthFunc(gl.LESS);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
     gl.clearColor(0.98, 0.98, 0.98, 1.0);
@@ -91,7 +91,7 @@ function initializeGL(canvas) {
     //! [8]
     qtLogoImage.imageLoaded.connect(function() {
         console.log("Texture loaded, "+qtLogoImage.src);
-        // Create the Texture3D object
+        // Create the Canvas3DTexture object
         cubeTexture = gl.createTexture();
         // Bind it
         gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
@@ -112,7 +112,7 @@ function initializeGL(canvas) {
     qtLogoImage.imageLoadingFailed.connect(function() {
         console.log("Texture load FAILED, "+qtLogoImage.errorString);
     });
-    qtLogoImage.src = "qrc:/qml/textureandlight/qtlogo.png";
+    qtLogoImage.src = "qrc:/qtlogo.png";
 }
 
 function resizeGL(canvas)
@@ -349,7 +349,7 @@ function initShaders()
                                     }", gl.FRAGMENT_SHADER);
     //! [4]
     //! [5]
-    // Create the Program3D for shader
+    // Create the Canvas3DProgram for shader
     var shaderProgram = gl.createProgram();
 
     // Attach the shader sources to the shader program

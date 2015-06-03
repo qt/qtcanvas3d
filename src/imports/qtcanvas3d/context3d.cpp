@@ -55,7 +55,6 @@
 
 #include <QtGui/QOpenGLShader>
 #include <QtOpenGLExtensions/QOpenGLExtensions>
-#include <QtQml/private/qv4typedarray_p.h>
 #include <QtQml/private/qv4arraybuffer_p.h>
 #include <QtQml/private/qjsvalue_p.h>
 #include <QtCore/private/qbytedata_p.h>
@@ -70,7 +69,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \brief Provides the 3D rendering API and context.
  *
  * An uncreatable QML type that provides a WebGL-like API that can be used to draw 3D graphics to
- * the Canvas3D element. You can get it by calling \l{Canvas3D::getContext}{Canvas3D.getContext}
+ * the Canvas3D element. You can get it by calling the \l{Canvas3D::getContext}{Canvas3D.getContext}
  * method.
  *
  * \sa Canvas3D
@@ -166,7 +165,7 @@ Canvas *CanvasContext::canvas()
 
 /*!
  * \qmlproperty int Context3D::drawingBufferWidth
- * Holds the current read-only logical pixel width of the drawing buffer. To get width in physical pixels
+ * Holds the current read-only logical pixel width of the drawing buffer. To get the width in physical pixels
  * you need to multiply this with the \c devicePixelRatio.
  */
 uint CanvasContext::drawingBufferWidth()
@@ -182,7 +181,7 @@ uint CanvasContext::drawingBufferWidth()
 
 /*!
  * \qmlproperty int Context3D::drawingBufferHeight
- * Holds the current read-only logical pixel height of the drawing buffer. To get height in physical pixels
+ * Holds the current read-only logical pixel height of the drawing buffer. To get the height in physical pixels
  * you need to multiply this with the \c devicePixelRatio.
  */
 uint CanvasContext::drawingBufferHeight()
@@ -286,8 +285,8 @@ GLuint CanvasContext::currentFramebuffer()
 }
 
 /*!
- * \qmlmethod ShaderPrecisionFormat Context3D::getShaderPrecisionFormat(glEnums shadertype, glEnums precisiontype)
- * Return a new ShaderPrecisionFormat describing the range and precision for the specified shader
+ * \qmlmethod Canvas3DShaderPrecisionFormat Context3D::getShaderPrecisionFormat(glEnums shadertype, glEnums precisiontype)
+ * Return a new Canvas3DShaderPrecisionFormat describing the range and precision for the specified shader
  * numeric format.
  * \a shadertype Type of the shader, either \c Context3D.FRAGMENT_SHADER or
  * \c{Context3D.VERTEX_SHADER}.
@@ -295,7 +294,7 @@ GLuint CanvasContext::currentFramebuffer()
  * \c{Context3D.HIGH_FLOAT}, \c{Context3D.LOW_INT}, \c{Context3D.MEDIUM_INT} or
  * \c{Context3D.HIGH_INT}.
  *
- * \sa ShaderPrecisionFormat
+ * \sa Canvas3DShaderPrecisionFormat
  */
 /*!
  * \internal
@@ -313,11 +312,40 @@ QJSValue CanvasContext::getShaderPrecisionFormat(glEnums shadertype,
     qCDebug(canvas3drendering).nospace() << "Context3D::" << str;
 
     GLint range[2];
-    range[0] = 1;
-    range[1] = 1;
-    GLint precision = 1;
+    GLint precision;
 
-    glGetShaderPrecisionFormat((GLenum)(shadertype), (GLenum)(precisiontype), range, &precision);
+    // Default values from OpenGL ES2 spec
+    switch (precisiontype) {
+    case LOW_INT:
+    case MEDIUM_INT:
+    case HIGH_INT:
+        // 32-bit twos-complement integer format
+        range[0] = 31;
+        range[1] = 30;
+        precision = 0;
+        break;
+    case LOW_FLOAT:
+    case MEDIUM_FLOAT:
+    case HIGH_FLOAT:
+        // IEEE single-precision floating-point format
+        range[0] = 127;
+        range[1] = 127;
+        precision = 23;
+        break;
+    default:
+        range[0] = 1;
+        range[1] = 1;
+        precision = 1;
+        m_error |= CANVAS_INVALID_ENUM;
+        break;
+    }
+
+    // On desktop envs glGetShaderPrecisionFormat is part of OpenGL 4.x, so it is not necessarily
+    // available. Let's just return the default values if not ES2.
+    if (m_isOpenGLES2) {
+        glGetShaderPrecisionFormat((GLenum)(shadertype), (GLenum)(precisiontype),
+                                   range, &precision);
+    }
     logAllGLErrors(str);
 
     CanvasShaderPrecisionFormat *format = new CanvasShaderPrecisionFormat();
@@ -342,7 +370,7 @@ bool CanvasContext::isContextLost()
 }
 
 /*!
- * \qmlmethod ContextAttributes Context3D::getContextAttributes()
+ * \qmlmethod Canvas3DContextAttributes Context3D::getContextAttributes()
  * Returns a copy of the actual context parameters that are used in the current context.
  */
 /*!
@@ -398,8 +426,8 @@ void CanvasContext::finish()
 }
 
 /*!
- * \qmlmethod Texture3D Context3D::createTexture()
- * Create a Texture3D object and initialize a name for it as by calling \c{glGenTextures()}.
+ * \qmlmethod Canvas3DTexture Context3D::createTexture()
+ * Create a Canvas3DTexture object and initialize a name for it as by calling \c{glGenTextures()}.
  */
 /*!
  * \internal
@@ -415,10 +443,10 @@ QJSValue CanvasContext::createTexture()
 }
 
 /*!
- * \qmlmethod void Context3D::deleteTexture(Texture3D texture3D)
+ * \qmlmethod void Context3D::deleteTexture(Canvas3DTexture texture3D)
  * Deletes the given texture as if by calling \c{glDeleteTextures()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a texture3D is the Texture3D to be deleted.
+ * \a texture3D is the Canvas3DTexture to be deleted.
  */
 /*!
  * \internal
@@ -468,7 +496,7 @@ void CanvasContext::scissor(int x, int y, int width, int height)
 
 /*!
  * \qmlmethod void Context3D::activeTexture(glEnums texture)
- * Sets the given texture unit as active. Number of texture units is implementation dependent,
+ * Sets the given texture unit as active. The number of texture units is implementation dependent,
  * but must be at least 8. Initially \c Context3D.TEXTURE0 is active.
  * \a texture must be one of \c Context3D.TEXTUREi values where \c i ranges from \c 0 to
  * \c{(Context3D.MAX_COMBINED_TEXTURE_IMAGE_UNITS-1)}.
@@ -486,11 +514,11 @@ void CanvasContext::activeTexture(glEnums texture)
 }
 
 /*!
- * \qmlmethod void Context3D::bindTexture(glEnums target, Texture3D texture3D)
- * Bind a Texture3D to a texturing target.
- * \a target is the target of the active texture unit to which the Texture3D will be bound.
+ * \qmlmethod void Context3D::bindTexture(glEnums target, Canvas3DTexture texture3D)
+ * Bind a Canvas3DTexture to a texturing target.
+ * \a target is the target of the active texture unit to which the Canvas3DTexture will be bound.
  * Must be either \c{Context3D.TEXTURE_2D} or \c{Context3D.TEXTURE_CUBE_MAP}.
- * \a texture3D is the Texture3D to be bound.
+ * \a texture3D is the Canvas3DTexture to be bound.
  */
 /*!
  * \internal
@@ -519,7 +547,6 @@ void CanvasContext::bindTexture(glEnums target, QJSValue texture3D)
             m_currentTexture2D->bind(target);
         else if (target == TEXTURE_CUBE_MAP)
             m_currentTextureCubeMap->bind(target);
-
     } else {
         glBindTexture(GLenum(target), 0);
     }
@@ -577,6 +604,155 @@ bool CanvasContext::checkParent(QObject *obj, const char *function)
 }
 
 /*!
+ * \internal
+ *
+ * Transposes matrices. \a dim is the dimensions of the square matrices in \a src.
+ * A newly allocated array containing transposed matrices is returned. \a count specifies how many
+ * matrices are handled.
+ * Required for uniformMatrix*fv functions in ES2.
+ */
+float *CanvasContext::transposeMatrix(int dim, int count, float *src)
+{
+    float *dest = new float[dim * dim * count];
+
+    for (int k = 0; k < count; k++) {
+        const int offset = k * dim * dim;
+        for (int i = 0; i < dim; i++) {
+            for (int j = 0; j < dim; j++)
+                dest[offset + (i * dim) + j] = src[offset + (j * dim) + i];
+        }
+    }
+
+    return dest;
+}
+
+/*!
+ * \internal
+ *
+ * Set matrix uniform values.
+ */
+void CanvasContext::uniformMatrixNfv(int dim, const QJSValue &location3D, bool transpose,
+                                     const QJSValue &array)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "(dim:" << dim
+                                         << ", uniformLocation:" << location3D.toString()
+                                         << ", transpose:" << transpose
+                                         << ", array:" << array.toString()
+                                         <<")";
+
+    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation")) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    CanvasUniformLocation *locationObj =
+            static_cast<CanvasUniformLocation *>(location3D.toQObject());
+
+    if (!checkParent(locationObj, __FUNCTION__))
+        return;
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniformMatrixNfva(dim, locationObj, transpose, array.toVariant().toList());
+        return;
+    }
+
+    int arrayLen = 0;
+    float *uniformData = reinterpret_cast<float * >(
+                getTypedArrayAsRawDataPtr(array, arrayLen, QV4::Heap::TypedArray::Float32Array));
+
+    if (!m_currentProgram || !uniformData || !locationObj)
+        return;
+
+    int uniformLocation = locationObj->id();
+    int numMatrices = arrayLen / (dim * dim * 4);
+
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "numMatrices:" << numMatrices;
+
+    float *transposedMatrix = 0;
+    if (m_isOpenGLES2 && transpose) {
+        transpose = false;
+        transposedMatrix = transposeMatrix(dim, numMatrices, uniformData);
+        uniformData = transposedMatrix;
+    }
+
+    switch (dim) {
+    case 2:
+        glUniformMatrix2fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    case 3:
+        glUniformMatrix3fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    case 4:
+        glUniformMatrix4fv(uniformLocation, numMatrices, transpose, uniformData);
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
+    logAllGLErrors(__FUNCTION__);
+
+    delete[] transposedMatrix;
+}
+
+/*!
+ * \internal
+ *
+ * Set matrix uniform values from JS array.
+ */
+void CanvasContext::uniformMatrixNfva(int dim, CanvasUniformLocation *uniformLocation,
+                                     bool transpose, const QVariantList &array)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "(dim:" << dim
+                                         << ", location3D:" << uniformLocation
+                                         << ", transpose:" << transpose
+                                         << ", array:" << array
+                                         << ")";
+
+    if (!m_currentProgram || !uniformLocation)
+        return;
+
+    int location3D = uniformLocation->id();
+    int size = array.count();
+    float *dataArray = new float[size];
+    float *arrayPtr = dataArray;
+    int numMatrices = size / (dim * dim);
+
+    ArrayUtils::fillFloatArrayFromVariantList(array, arrayPtr);
+
+    float *transposedMatrix = 0;
+    if (m_isOpenGLES2 && transpose) {
+        transpose = false;
+        transposedMatrix = transposeMatrix(dim, numMatrices, arrayPtr);
+        arrayPtr = transposedMatrix;
+    }
+
+    switch (dim) {
+    case 2:
+        glUniformMatrix2fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    case 3:
+        glUniformMatrix3fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    case 4:
+        glUniformMatrix4fv(location3D, numMatrices, transpose, arrayPtr);
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
+    logAllGLErrors(__FUNCTION__);
+
+    delete[] dataArray;
+    delete[] transposedMatrix;
+}
+
+/*!
  * \qmlmethod void Context3D::generateMipmap(glEnums target)
  * Generates a complete set of mipmaps for a texture object of the currently active texture unit.
  * \a target defines the texture target to which the texture object is bound whose mipmaps will be
@@ -601,7 +777,7 @@ void CanvasContext::generateMipmap(glEnums target)
 
 /*!
  * \qmlmethod bool Context3D::isTexture(Object anyObject)
- * Returns true if the given object is a valid Texture3D object.
+ * Returns true if the given object is a valid Canvas3DTexture object.
  * \a anyObject is the object that is to be verified as a valid texture.
  */
 /*!
@@ -625,9 +801,6 @@ bool CanvasContext::isTexture(QJSValue anyObject)
  */
 CanvasTexture *CanvasContext::getAsTexture3D(QJSValue anyObject)
 {
-    if (!anyObject.isQObject())
-        return 0;
-
     if (!isOfType(anyObject, "QtCanvas3D::CanvasTexture"))
         return 0;
 
@@ -640,8 +813,23 @@ CanvasTexture *CanvasContext::getAsTexture3D(QJSValue anyObject)
 
 /*!
  * \qmlmethod void Context3D::compressedTexImage2D(glEnums target, int level, glEnums internalformat, int width, int height, int border, TypedArray pixels)
- * Not supported, \c{Context3D.INVALID_OPERATION} is generated when called.
- * \a target, \a level, \a internalformat, \a width, \a height, \a border and \a pixels are ignored.
+ * Specify a 2D compressed texture image.
+ * \a target specifies the target texture of the active texture unit. Must be one of:
+ * \c{Context3D.TEXTURE_2D},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_X},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Z}, or \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Z}.
+ * \a level specifies the level of detail number. Level \c 0 is the base image level. Level \c n is
+ * the \c{n}th mipmap reduction image.
+ * \a internalformat specifies the internal format of the compressed texture.
+ * \a width specifies the width of the texture image. All implementations will support 2D texture
+ * images that are at least 64 texels wide and cube-mapped texture images that are at least 16
+ * texels wide.
+ * \a height specifies the height of the texture image. All implementations will support 2D texture
+ * images that are at least 64 texels high and cube-mapped texture images that are at least 16
+ * texels high.
+ * \a border must be \c{0}.
+ * \a pixels specifies the TypedArray containing the compressed image data.
  */
 /*!
  * \internal
@@ -663,19 +851,18 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, pixels));
+    int byteLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(pixels, byteLen, QV4::Heap::TypedArray::UInt8Array);
 
-    if (typedArray) {
+    if (srcData) {
         // Driver implementation will handle checking of texture
         // properties for specific compression methods
         glCompressedTexImage2D(target,
                                level,
                                internalformat,
                                width, height, border,
-                               typedArray->byteLength(),
-                               (GLvoid *) typedArray->arrayData()->data());
+                               byteLen,
+                               (GLvoid *)srcData );
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -687,9 +874,22 @@ void CanvasContext::compressedTexImage2D(glEnums target, int level, glEnums inte
 
 /*!
  * \qmlmethod void Context3D::compressedTexSubImage2D(glEnums target, int level, int xoffset, int yoffset, int width, int height, glEnums format, TypedArray pixels)
- * Not supported, \c{Context3D.INVALID_OPERATION} is generated when called.
- * \a target, \a level, \a xoffset, \a yoffset, \a width, \a height, \a format and \a pixels are
- * ignored.
+ * Specify a 2D compressed texture image.
+ * \a target specifies the target texture of the active texture unit. Must be one of:
+ * \c{Context3D.TEXTURE_2D},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_X},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Y},
+ * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Z}, or \c{Context3D.TEXTURE_CUBE_MAP_NEGATIVE_Z}.
+ * \a level specifies the level of detail number. Level \c 0 is the base image level. Level \c n is
+ * the \c{n}th mipmap reduction image.
+ * \a xoffset Specifies a texel offset in the x direction within the texture array.
+ * \a yoffset Specifies a texel offset in the y direction within the texture array.
+ * \a width Width of the texture subimage.
+ * \a height Height of the texture subimage.
+ * \a pixels specifies the TypedArray containing the compressed image data.
+ * \a format Format of the texel data given in \a pixels, must match the value
+ * of \c internalFormat parameter given when the texture was created.
+ * \a pixels TypedArray containing the compressed image data. If pixels is \c null.
  */
 /*!
  * \internal
@@ -714,11 +914,10 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, pixels));
+    int byteLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(pixels, byteLen, QV4::Heap::TypedArray::UInt8Array);
 
-    if (typedArray) {
+    if (srcData) {
         // Driver implementation will handle checking of texture
         // properties for specific compression methods
         glCompressedTexSubImage2D(target,
@@ -726,8 +925,8 @@ void CanvasContext::compressedTexSubImage2D(glEnums target, int level,
                                   xoffset, yoffset,
                                   width, height,
                                   format,
-                                  typedArray->byteLength(),
-                                  (GLvoid *) typedArray->arrayData()->data());
+                                  byteLen,
+                                  (GLvoid *)srcData);
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -922,7 +1121,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         }
 
         if (!srcData)
-            srcData = getAsUint8ArrayRawPtr(pixels);
+            srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
 
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
@@ -943,7 +1142,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
         if (!srcData)
-            srcData = getAsUint16ArrayRawPtr(pixels);
+            srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt16Array);
 
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
@@ -978,7 +1177,8 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
 /*!
  * \internal
  */
-uchar *CanvasContext::getAsUint8ArrayRawPtr(QJSValue jsValue)
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength,
+                                                QV4::Heap::TypedArray::Type type)
 {
     QV4::Scope scope(m_v4engine);
     QV4::Scoped<QV4::TypedArray> typedArray(scope,
@@ -987,28 +1187,48 @@ uchar *CanvasContext::getAsUint8ArrayRawPtr(QJSValue jsValue)
     if (!typedArray)
         return 0;
 
-    if (typedArray->arrayType() != QV4::Heap::TypedArray::UInt8Array)
+    QV4::Heap::TypedArray::Type arrayType = typedArray->arrayType();
+    if (type < QV4::Heap::TypedArray::NTypes && arrayType != type)
         return 0;
 
-    return reinterpret_cast<unsigned char *>(typedArray->arrayData()->data());
+    uchar *dataPtr = reinterpret_cast<uchar *>(typedArray->arrayData()->data());
+    dataPtr += typedArray->d()->byteOffset;
+    byteLength = typedArray->byteLength();
+    return dataPtr;
 }
 
 /*!
  * \internal
  */
-uchar *CanvasContext::getAsUint16ArrayRawPtr(QJSValue jsValue)
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue,
+                                                QV4::Heap::TypedArray::Type type)
+{
+    int dummy;
+    return getTypedArrayAsRawDataPtr(jsValue, dummy, type);
+}
+
+/*!
+ * \internal
+ */
+uchar *CanvasContext::getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength)
+{
+    return getTypedArrayAsRawDataPtr(jsValue, byteLength, QV4::Heap::TypedArray::NTypes);
+}
+
+/*!
+ * \internal
+ */
+uchar *CanvasContext::getArrayBufferAsRawDataPtr(const QJSValue &jsValue, int &byteLength)
 {
     QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, jsValue));
-
-    if (!typedArray)
+    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
+                                              QJSValuePrivate::convertedToValue(m_v4engine, jsValue));
+    if (!arrayBuffer)
         return 0;
 
-    if (typedArray->arrayType() != QV4::Heap::TypedArray::UInt16Array)
-        return 0;
-
-    return reinterpret_cast<unsigned char *>(typedArray->arrayData()->data());
+    uchar *dataPtr = reinterpret_cast<uchar *>(arrayBuffer->data());
+    byteLength = arrayBuffer->byteLength();
+    return dataPtr;
 }
 
 /*!
@@ -1025,12 +1245,11 @@ uchar *CanvasContext::getAsUint16ArrayRawPtr(QJSValue jsValue)
  * \a width Width of the texture subimage.
  * \a height Height of the texture subimage.
  * \a format Format of the texel data given in \a pixels, must match the value
- * of \a internalFormat.
+ * of \c internalFormat parameter given when the texture was created.
  * \a type Data type of the data given in \a pixels, must match the TypedArray type
  * of \a pixels. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a pixels TypedArray containing the image data. If pixels is \c null, a buffer of
- * sufficient size initialized to 0 is passed.
+ * \a pixels TypedArray containing the image data.
  */
 /*!
  * \internal
@@ -1097,7 +1316,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
             return;
         }
 
-        srcData = getAsUint8ArrayRawPtr(pixels);
+        srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
@@ -1115,7 +1334,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     case UNSIGNED_SHORT_4_4_4_4:
     case UNSIGNED_SHORT_5_6_5:
     case UNSIGNED_SHORT_5_5_5_1: {
-        srcData = getAsUint16ArrayRawPtr(pixels);
+        srcData = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt16Array);
         if (!srcData) {
             qCWarning(canvas3drendering).nospace() << "Context3D::"
                                                    << __FUNCTION__
@@ -1190,7 +1409,7 @@ uchar* CanvasContext::unpackPixels(uchar *srcData, bool useSrcDataAsDst,
 
 /*!
  * \qmlmethod void Context3D::texImage2D(glEnums target, int level, glEnums internalformat, glEnums format, glEnums type, TextureImage texImage)
- * Uploads the given TextureImage element to the currently bound Texture3D.
+ * Uploads the given TextureImage element to the currently bound Canvas3DTexture.
  * \a target Target texture of the active texture unit. Must be \c{Context3D.TEXTURE_2D},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_X},
  * \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y}, \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_Y},
@@ -1204,7 +1423,7 @@ uchar* CanvasContext::unpackPixels(uchar *srcData, bool useSrcDataAsDst,
  * \a type Type of the data, conceptually the given image is first converted to this type, then
  * uploaded. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageLoader}.
+ * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageFactory}.
  */
 /*!
  * \internal
@@ -1253,6 +1472,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     if (pixels == 0) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":Conversion of pixels to format failed.";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1270,9 +1490,6 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
  */
 CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
 {
-    if (!anyObject.isQObject())
-        return 0;
-
     if (!isOfType(anyObject, "QtCanvas3D::CanvasTextureImage"))
         return 0;
 
@@ -1283,7 +1500,7 @@ CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
 
 /*!
  * \qmlmethod void Context3D::texSubImage2D(glEnums target, int level, int xoffset, int yoffset, glEnums format, glEnums type, TextureImage texImage)
- * Uploads the given TextureImage element to the currently bound Texture3D.
+ * Uploads the given TextureImage element to the currently bound Canvas3DTexture.
  * \a target specifies the target texture of the active texture unit. Must be
  * \c{Context3D.TEXTURE_2D}, \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_X},
  * \c{Context3D.TEXTURE_CUBE_MAP__NEGATIVE_X}, \c{Context3D.TEXTURE_CUBE_MAP_POSITIVE_Y},
@@ -1298,7 +1515,7 @@ CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
  * \a type Type of the data, conceptually the given image is first converted to this type, then
  * uploaded. Must be \c{Context3D.UNSIGNED_BYTE}, \c{Context3D.UNSIGNED_SHORT_5_6_5},
  * \c{Context3D.UNSIGNED_SHORT_4_4_4_4} or \c{Context3D.UNSIGNED_SHORT_5_5_5_1}.
- * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageLoader}.
+ * \a texImage A complete \c{TextureImage} loaded using the \c{TextureImageFactory}.
  */
 /*!
  * \internal
@@ -1353,6 +1570,7 @@ void CanvasContext::texSubImage2D(glEnums target, int level,
     if (pixels == 0) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":Conversion of pixels to format failed.";
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -1448,8 +1666,8 @@ int CanvasContext::getSufficientSize(glEnums internalFormat, int width, int heig
 }
 
 /*!
- * \qmlmethod FrameBuffer3D Context3D::createFramebuffer()
- * Returns a created FrameBuffer3D object that is initialized with a framebuffer object name as
+ * \qmlmethod Canvas3DFrameBuffer Context3D::createFramebuffer()
+ * Returns a created Canvas3DFrameBuffer object that is initialized with a framebuffer object name as
  * if by calling \c{glGenFramebuffers()}.
  */
 /*!
@@ -1467,7 +1685,7 @@ QJSValue CanvasContext::createFramebuffer()
 }
 
 /*!
- * \qmlmethod void Context3D::bindFramebuffer(glEnums target, FrameBuffer3D buffer)
+ * \qmlmethod void Context3D::bindFramebuffer(glEnums target, Canvas3DFrameBuffer buffer)
  * Binds the given \a buffer object to the given \a target.
  * \a target must be \c{Context3D.FRAMEBUFFER}.
  */
@@ -1525,7 +1743,7 @@ CanvasContext::glEnums CanvasContext::checkFramebufferStatus(glEnums target)
 }
 
 /*!
- * \qmlmethod void Context3D::framebufferRenderbuffer(glEnums target, glEnums attachment, glEnums renderbuffertarget, RenderBuffer3D renderbuffer3D)
+ * \qmlmethod void Context3D::framebufferRenderbuffer(glEnums target, glEnums attachment, glEnums renderbuffertarget, Canvas3DRenderBuffer renderbuffer3D)
  * Attaches the given \a renderbuffer3D object to the \a attachment point of the current framebuffer
  * object.
  * \a target must be \c{Context3D.FRAMEBUFFER}. \a renderbuffertarget must
@@ -1592,7 +1810,7 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
 }
 
 /*!
- * \qmlmethod void Context3D::framebufferTexture2D(glEnums target, glEnums attachment, glEnums textarget, Texture3D texture3D, int level)
+ * \qmlmethod void Context3D::framebufferTexture2D(glEnums target, glEnums attachment, glEnums textarget, Canvas3DTexture texture3D, int level)
  * Attaches the given \a renderbuffer object to the \a attachment point of the current framebuffer
  * object.
  * \a target must be \c{Context3D.FRAMEBUFFER}. \a renderbuffertarget must
@@ -1670,13 +1888,14 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
     }
 
     GLuint textureId = texture ? texture->textureId() : 0;
+    m_currentFramebuffer->setTexture(texture);
     glFramebufferTexture2D(GLenum(target), GLenum(attachment), GLenum(textarget), textureId, level);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
  * \qmlmethod void Context3D::isFramebuffer(Object anyObject)
- * Returns true if the given object is a valid FrameBuffer3D object.
+ * Returns true if the given object is a valid Canvas3DFrameBuffer object.
  * \a anyObject is the object that is to be verified as a valid framebuffer.
  */
 /*!
@@ -1701,9 +1920,6 @@ bool CanvasContext::isFramebuffer(QJSValue anyObject)
  */
 CanvasFrameBuffer *CanvasContext::getAsFramebuffer(QJSValue anyObject)
 {
-    if (!anyObject.isQObject())
-        return 0;
-
     if (!isOfType(anyObject, "QtCanvas3D::CanvasFrameBuffer"))
         return 0;
 
@@ -1716,10 +1932,10 @@ CanvasFrameBuffer *CanvasContext::getAsFramebuffer(QJSValue anyObject)
 }
 
 /*!
- * \qmlmethod void Context3D::deleteFramebuffer(FrameBuffer3D buffer)
+ * \qmlmethod void Context3D::deleteFramebuffer(Canvas3DFrameBuffer buffer)
  * Deletes the given framebuffer as if by calling \c{glDeleteFramebuffers()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a buffer is the FrameBuffer3D to be deleted.
+ * \a buffer is the Canvas3DFrameBuffer to be deleted.
  */
 /*!
  * \internal
@@ -1744,8 +1960,8 @@ void CanvasContext::deleteFramebuffer(QJSValue buffer)
 }
 
 /*!
- * \qmlmethod RenderBuffer3D Context3D::createRenderbuffer()
- * Returns a created RenderBuffer3D object that is initialized with a renderbuffer object name
+ * \qmlmethod Canvas3DRenderBuffer Context3D::createRenderbuffer()
+ * Returns a created Canvas3DRenderBuffer object that is initialized with a renderbuffer object name
  * as if by calling \c{glGenRenderbuffers()}.
  */
 /*!
@@ -1762,7 +1978,7 @@ QJSValue CanvasContext::createRenderbuffer()
 }
 
 /*!
- * \qmlmethod void Context3D::bindRenderbuffer(glEnums target, RenderBuffer3D renderbuffer)
+ * \qmlmethod void Context3D::bindRenderbuffer(glEnums target, Canvas3DRenderBuffer renderbuffer)
  * Binds the given \a renderbuffer3D object to the given \a target.
  * \a target must be \c{Context3D.RENDERBUFFER}.
  */
@@ -1830,7 +2046,7 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
 
 /*!
  * \qmlmethod bool Context3D::isRenderbuffer(Object anyObject)
- * Returns true if the given object is a valid RenderBuffer3D object.
+ * Returns true if the given object is a valid Canvas3DRenderBuffer object.
  * \a anyObject is the object that is to be verified as a valid renderbuffer.
  */
 /*!
@@ -1854,9 +2070,6 @@ bool CanvasContext::isRenderbuffer(QJSValue anyObject)
  */
 CanvasRenderBuffer *CanvasContext::getAsRenderbuffer3D(QJSValue anyObject) const
 {
-    if (!anyObject.isQObject())
-        return 0;
-
     if (!isOfType(anyObject, "QtCanvas3D::CanvasRenderBuffer"))
         return 0;
 
@@ -1868,10 +2081,10 @@ CanvasRenderBuffer *CanvasContext::getAsRenderbuffer3D(QJSValue anyObject) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteRenderbuffer(RenderBuffer3D renderbuffer3D)
+ * \qmlmethod void Context3D::deleteRenderbuffer(Canvas3DRenderBuffer renderbuffer3D)
  * Deletes the given renderbuffer as if by calling \c{glDeleteRenderbuffers()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a renderbuffer3D is the RenderBuffer3D to be deleted.
+ * \a renderbuffer3D is the Canvas3DRenderBuffer to be deleted.
  */
 /*!
  * \internal
@@ -1916,8 +2129,8 @@ void CanvasContext::sampleCoverage(float value, bool invert)
 }
 
 /*!
- * \qmlmethod Program3D Context3D::createProgram()
- * Returns a created Program3D object that is initialized with a program object name as if by
+ * \qmlmethod Canvas3DProgram Context3D::createProgram()
+ * Returns a created Canvas3DProgram object that is initialized with a program object name as if by
  * calling \c{glCreateProgram()}.
  */
 /*!
@@ -1936,7 +2149,7 @@ QJSValue CanvasContext::createProgram()
 
 /*!
  * \qmlmethod bool Context3D::isProgram(Object anyObject)
- * Returns true if the given object is a valid Program3D object.
+ * Returns true if the given object is a valid Canvas3DProgram object.
  * \a anyObject is the object that is to be verified as a valid program.
  */
 /*!
@@ -1958,26 +2171,23 @@ bool CanvasContext::isProgram(QJSValue anyObject)
 /*!
  * \internal
  */
-CanvasProgram *CanvasContext::getAsProgram3D(QJSValue anyObject) const
+CanvasProgram *CanvasContext::getAsProgram3D(QJSValue anyObject, bool deadOrAlive) const
 {
-    if (!anyObject.isQObject())
-        return 0;
-
     if (!isOfType(anyObject, "QtCanvas3D::CanvasProgram"))
         return 0;
 
     CanvasProgram *program = static_cast<CanvasProgram *>(anyObject.toQObject());
-    if (!program->isAlive())
+    if (!deadOrAlive && !program->isAlive())
         return 0;
 
     return program;
 }
 
 /*!
- * \qmlmethod void Context3D::deleteProgram(Program3D program3D)
+ * \qmlmethod void Context3D::deleteProgram(Canvas3DProgram program3D)
  * Deletes the given program as if by calling \c{glDeleteProgram()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a program3D is the Program3D to be deleted.
+ * \a program3D is the Canvas3DProgram to be deleted.
  */
 /*!
  * \internal
@@ -1988,7 +2198,7 @@ void CanvasContext::deleteProgram(QJSValue program3D)
                                          << "(program3D:" << program3D.toString()
                                          << ")";
 
-    CanvasProgram *program = getAsProgram3D(program3D);
+    CanvasProgram *program = getAsProgram3D(program3D, true);
 
     if (program) {
         if (!checkParent(program, __FUNCTION__))
@@ -2004,7 +2214,7 @@ void CanvasContext::deleteProgram(QJSValue program3D)
 }
 
 /*!
- * \qmlmethod void Context3D::attachShader(Program3D program3D, Shader3D shader3D)
+ * \qmlmethod void Context3D::attachShader(Canvas3DProgram program3D, Canvas3DShader shader3D)
  * Attaches the given \a shader3D object to the given \a program3D object.
  * Calling this method repeatedly on the same object has no side effects.
  */
@@ -2025,6 +2235,7 @@ void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): Invalid program handle "
                                                << program3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -2032,6 +2243,7 @@ void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): Invalid shader handle "
                                                << shader3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -2043,31 +2255,38 @@ void CanvasContext::attachShader(QJSValue program3D, QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod list<Shader3D> Context3D::getAttachedShaders(Program3D program3D)
+ * \qmlmethod list<Canvas3DShader> Context3D::getAttachedShaders(Canvas3DProgram program3D)
  * Returns the list of shaders currently attached to the given \a program3D.
  */
 /*!
  * \internal
  */
-QVariantList CanvasContext::getAttachedShaders(QJSValue program3D)
+QJSValue CanvasContext::getAttachedShaders(QJSValue program3D)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program3D:" << program3D.toString()
                                          << ")";
 
-    QVariantList shaderList;
+    int index = 0;
 
     CanvasProgram *program = getAsProgram3D(program3D);
 
-    if (!program || !checkParent(program, __FUNCTION__))
-        return shaderList;
+    if (!program) {
+        m_error |= CANVAS_INVALID_VALUE;
+        return QJSValue(QJSValue::NullValue);
+    }
+
+    if (!checkParent(program, __FUNCTION__))
+        return QJSValue(QJSValue::NullValue);
 
     QList<CanvasShader *> shaders = program->attachedShaders();
+
+    QJSValue shaderList = m_engine->newArray(shaders.count());
 
     for (QList<CanvasShader *>::const_iterator iter = shaders.constBegin();
          iter != shaders.constEnd(); iter++) {
         CanvasShader *shader = *iter;
-        shaderList << QVariant::fromValue(shader);
+        shaderList.setProperty(index++, m_engine->newQObject((CanvasShader *)shader));
     }
 
     return shaderList;
@@ -2075,7 +2294,7 @@ QVariantList CanvasContext::getAttachedShaders(QJSValue program3D)
 
 
 /*!
- * \qmlmethod void Context3D::detachShader(Program3D program, Shader3D shader)
+ * \qmlmethod void Context3D::detachShader(Canvas3DProgram program, Canvas3DShader shader)
  * Detaches given shader object from given program object.
  * \a program3D specifies the program object from which to detach the shader.
  * \a shader3D specifies the shader object to detach.
@@ -2097,6 +2316,7 @@ void CanvasContext::detachShader(QJSValue program3D, QJSValue shader3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): Invalid program handle "
                                                << program3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -2104,6 +2324,7 @@ void CanvasContext::detachShader(QJSValue program3D, QJSValue shader3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << "(): Invalid shader handle "
                                                << shader3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
@@ -2115,7 +2336,7 @@ void CanvasContext::detachShader(QJSValue program3D, QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::linkProgram(Program3D program3D)
+ * \qmlmethod void Context3D::linkProgram(Canvas3DProgram program3D)
  * Links the given program object.
  * \a program3D specifies the program to be linked.
  */
@@ -2130,8 +2351,10 @@ void CanvasContext::linkProgram(QJSValue program3D)
 
     CanvasProgram *program = getAsProgram3D(program3D);
 
-    if (!program || !checkParent(program, __FUNCTION__))
+    if (!program || !checkParent(program, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     program->link();
     logAllGLErrors(__FUNCTION__);
@@ -2324,7 +2547,7 @@ void CanvasContext::blendColor(float red, float green, float blue, float alpha)
 
 /*!
  * \qmlmethod void Context3D::blendEquation(glEnums mode)
- * Sets the equation used for both the RGB blend equation and the alpha blend equation
+ * Sets the equation used for both the RGB blend equation. The alpha blend equation
  * \a mode specifies how source and destination colors are to be combined. Must be
  * \c{Context3D.FUNC_ADD}, \c{Context3D.FUNC_SUBTRACT} or \c{Context3D.FUNC_REVERSE_SUBTRACT}.
  */
@@ -2472,7 +2695,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 }
 
 /*!
- * \qmlmethod variant Context3D::getProgramParameter(Program3D program3D, glEnums paramName)
+ * \qmlmethod variant Context3D::getProgramParameter(Canvas3DProgram program3D, glEnums paramName)
  * Return the value for the passed \a paramName given the passed \a program3D. The type returned is
  * the natural type for the requested paramName.
  * \a paramName must be \c{Context3D.DELETE_STATUS}, \c{Context3D.LINK_STATUS},
@@ -2482,7 +2705,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
 /*!
  * \internal
  */
-QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramName)
+QJSValue CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramName)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program3D:" << program3D.toString()
@@ -2491,8 +2714,10 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
 
     CanvasProgram *program = getAsProgram3D(program3D);
 
-    if (!program || !checkParent(program, __FUNCTION__))
-        return 0;
+    if (!program || !checkParent(program, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::NullValue);
+    }
 
     switch(paramName) {
     case DELETE_STATUS:
@@ -2504,7 +2729,7 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         glGetProgramiv(program->id(), GLenum(paramName), &value);
         logAllGLErrors(__FUNCTION__);
         qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
-        return QVariant::fromValue(value == GL_TRUE);
+        return QJSValue(bool(value));
     }
     case ATTACHED_SHADERS:
         // Intentional flow through
@@ -2515,19 +2740,19 @@ QVariant CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         glGetProgramiv(program->id(), GLenum(paramName), &value);
         logAllGLErrors(__FUNCTION__);
         qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
-        return QVariant::fromValue(value);
+        return QJSValue(value);
     }
     default: {
         m_error |= CANVAS_INVALID_ENUM;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_ENUM illegal parameter name ";
-        return QVariant::fromValue(0);
+        return QJSValue(QJSValue::NullValue);
     }
     }
 }
 
 /*!
- * \qmlmethod Shader3D Context3D::createShader(glEnums type)
+ * \qmlmethod Canvas3DShader Context3D::createShader(glEnums type)
  * Creates a shader of \a type. Must be either \c Context3D.VERTEX_SHADER or
  * \c{Context3D.FRAGMENT_SHADER}.
  */
@@ -2554,7 +2779,7 @@ QJSValue CanvasContext::createShader(glEnums type)
 
 /*!
  * \qmlmethod bool Context3D::isShader(Object anyObject)
- * Returns true if the given object is a valid Shader3D object.
+ * Returns true if the given object is a valid Canvas3DShader object.
  * \a anyObject is the object that is to be verified as a valid shader.
  */
 /*!
@@ -2576,23 +2801,23 @@ bool CanvasContext::isShader(QJSValue anyObject)
 /*!
  * \internal
  */
-CanvasShader *CanvasContext::getAsShader3D(QJSValue shader3D) const
+CanvasShader *CanvasContext::getAsShader3D(QJSValue shader3D, bool deadOrAlive) const
 {
     if (!isOfType(shader3D, "QtCanvas3D::CanvasShader"))
         return 0;
 
     CanvasShader *shader = static_cast<CanvasShader *>(shader3D.toQObject());
-    if (!shader->isAlive())
+    if (!deadOrAlive && !shader->isAlive())
         return 0;
 
     return shader;
 }
 
 /*!
- * \qmlmethod void Context3D::deleteShader(Shader3D shader)
+ * \qmlmethod void Context3D::deleteShader(Canvas3DShader shader)
  * Deletes the given shader as if by calling \c{glDeleteShader()}.
  * Calling this method repeatedly on the same object has no side effects.
- * \a shader is the Shader3D to be deleted.
+ * \a shader is the Canvas3DShader to be deleted.
  */
 /*!
  * \internal
@@ -2604,7 +2829,7 @@ void CanvasContext::deleteShader(QJSValue shader3D)
                                          << "(shader:" << shader3D.toString()
                                          << ")";
 
-    CanvasShader *shader = getAsShader3D(shader3D);
+    CanvasShader *shader = getAsShader3D(shader3D, true);
 
     if (shader) {
         if (!checkParent(shader, __FUNCTION__))
@@ -2620,7 +2845,7 @@ void CanvasContext::deleteShader(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::shaderSource(Shader3D shader, string shaderSource)
+ * \qmlmethod void Context3D::shaderSource(Canvas3DShader shader, string shaderSource)
  * Replaces the shader source code in the given shader object.
  * \a shader specifies the shader object whose source code is to be replaced.
  * \a shaderSource specifies the source code to be loaded in to the shader.
@@ -2642,9 +2867,9 @@ void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
 
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error |= CANVAS_INVALID_VALUE;
+        m_error |= CANVAS_INVALID_OPERATION;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:"
+                                               << ":INVALID_OPERATION:"
                                                << "Invalid shader handle:" << shader3D.toString();
         return;
     }
@@ -2657,7 +2882,7 @@ void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
 
 
 /*!
- * \qmlmethod string Context3D::getShaderSource(Shader3D shader)
+ * \qmlmethod string Context3D::getShaderSource(Canvas3DShader shader)
  * Returns the source code string from the \a shader object.
  */
 /*!
@@ -2671,9 +2896,9 @@ QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
 
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error |= CANVAS_INVALID_VALUE;
+        m_error |= CANVAS_INVALID_OPERATION;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:"
+                                               << ":INVALID_OPERATION:"
                                                << "Invalid shader handle:" << shader3D.toString();
         return m_engine->newObject();
     }
@@ -2684,7 +2909,7 @@ QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod void Context3D::compileShader(Shader3D shader)
+ * \qmlmethod void Context3D::compileShader(Canvas3DShader shader)
  * Compiles the given \a shader object.
  */
 /*!
@@ -2697,9 +2922,9 @@ void CanvasContext::compileShader(QJSValue shader3D)
                                          << ")";
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
-        m_error |= CANVAS_INVALID_VALUE;
+        m_error |= CANVAS_INVALID_OPERATION;
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:"
+                                               << ":INVALID_OPERATION:"
                                                << "Invalid shader handle:" << shader3D.toString();
         return;
     }
@@ -2727,7 +2952,7 @@ CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(QJSValue anyObject)
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1i(UniformLocation3D location3D, int x)
+ * \qmlmethod void Context3D::uniform1i(Canvas3DUniformLocation location3D, int x)
  * Sets the single integer value given in \a x to the given uniform \a location3D.
  */
 /*!
@@ -2741,15 +2966,17 @@ void CanvasContext::uniform1i(QJSValue location3D, int x)
                                          << ")";
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
 
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform1i(locationObj->id(), x);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform1iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2764,32 +2991,33 @@ void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
 
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform1fva(locationObj, array.toVariant().toList());
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
-
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        uniform1iva(locationObj, array.toVariant().toList());
         return;
+    }
 
-    glUniform1iv(locationObj->id(),
-                 typedArray->length(),
-                 (int *)typedArray->arrayData()->data());
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
+
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    arrayLen /= 4; // get value count
+    glUniform1iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1f(UniformLocation3D location3D, float x)
+ * \qmlmethod void Context3D::uniform1f(Canvas3DUniformLocation location3D, float x)
  * Sets the single float value given in \a x to the given uniform \a location3D.
  */
 /*!
@@ -2803,15 +3031,17 @@ void CanvasContext::uniform1f(QJSValue location3D, float x)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform1f(locationObj->id(), x);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform1fvt(UniformLocation3D location3D, Object array)
+ * \qmlmethod void Context3D::uniform1fvt(Canvas3DUniformLocation location3D, Object array)
  * Sets the float array given in \a array to the given uniform \a location3D. \a array must be
  * a JavaScript \c Array object or a \c Float32Array object.
  */
@@ -2826,8 +3056,10 @@ void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -2835,22 +3067,22 @@ void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
 
-    glUniform1fv(locationObj->id(),
-                 typedArray->length(),
-                 (float *)typedArray->arrayData()->data());
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    arrayLen /= 4; // get value count
+    glUniform1fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2f(UniformLocation3D location3D, float x, float y)
+ * \qmlmethod void Context3D::uniform2f(Canvas3DUniformLocation location3D, float x, float y)
  * Sets the two float values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
@@ -2866,15 +3098,17 @@ void CanvasContext::uniform2f(QJSValue location3D, float x, float y)
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
 
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform2f(locationObj->id(), x, y);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform2fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2888,8 +3122,10 @@ void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -2897,22 +3133,22 @@ void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
 
-    glUniform2fv(locationObj->id(),
-                 typedArray->length() / 2,
-                 (float *)typedArray->arrayData()->data());
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    arrayLen /= (4 * 2); // get value count
+    glUniform2fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2i(UniformLocation3D location3D, int x, int y)
+ * \qmlmethod void Context3D::uniform2i(Canvas3DUniformLocation location3D, int x, int y)
  * Sets the two integer values given in \a x and \a y to the given uniform \a location3D.
  */
 /*!
@@ -2928,15 +3164,17 @@ void CanvasContext::uniform2i(QJSValue location3D, int x, int y)
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
 
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform2i(locationObj->id(), x, y);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform2iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform2iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -2950,8 +3188,10 @@ void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -2959,23 +3199,22 @@ void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
+
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
-    glUniform2iv(locationObj->id(),
-                 typedArray->length() / 2,
-                 (int *)typedArray->arrayData()->data());
-
+    arrayLen /= (4 * 2); // get value count
+    glUniform2iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3f(UniformLocation3D location3D, float x, float y, float z)
+ * \qmlmethod void Context3D::uniform3f(Canvas3DUniformLocation location3D, float x, float y, float z)
  * Sets the three float values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
@@ -2991,15 +3230,17 @@ void CanvasContext::uniform3f(QJSValue location3D, float x, float y, float z)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform3f(locationObj->id(), x, y, z);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform3fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3013,8 +3254,10 @@ void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -3022,23 +3265,22 @@ void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array) {
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
+
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
-    glUniform3fv(locationObj->id(),
-                 typedArray->length() / 3,
-                 (float *) typedArray->arrayData()->data());
+    arrayLen /= (4 * 3); // get value count
+    glUniform3fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3i(UniformLocation3D location3D, int x, int y, int z)
+ * \qmlmethod void Context3D::uniform3i(Canvas3DUniformLocation location3D, int x, int y, int z)
  * Sets the three integer values given in \a x , \a y and \a z to the given uniform \a location3D.
  */
 /*!
@@ -3053,15 +3295,17 @@ void CanvasContext::uniform3i(QJSValue location3D, int x, int y, int z)
                                          << ", z:" << z
                                          << ")";
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform3i(locationObj->id(), x, y, z);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform3iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform3iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3075,8 +3319,10 @@ void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -3084,23 +3330,22 @@ void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array) {
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
+
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
-    glUniform3iv(locationObj->id(),
-                 typedArray->length() / 3,
-                 (int *)typedArray->arrayData()->data());
+    arrayLen /= (4 * 3); // get value count
+    glUniform3iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4f(UniformLocation3D location3D, float x, float y, float z, float w)
+ * \qmlmethod void Context3D::uniform4f(Canvas3DUniformLocation location3D, float x, float y, float z, float w)
  * Sets the four float values given in \a x , \a y , \a z and \a w to the given uniform \a location3D.
  */
 /*!
@@ -3116,15 +3361,17 @@ void CanvasContext::uniform4f(QJSValue location3D, float x, float y, float z, fl
                                          << ", w:" << w
                                          << ")";
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform4f(locationObj->id(), x, y, z, w);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4fv(UniformLocation3D location3D, Float32Array array)
+ * \qmlmethod void Context3D::uniform4fv(Canvas3DUniformLocation location3D, Float32Array array)
  * Sets the float array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3138,8 +3385,10 @@ void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
                                          << ")";
 
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -3147,22 +3396,22 @@ void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Float32Array);
 
-    glUniform4fv(locationObj->id(),
-                 typedArray->length() / 4,
-                 (float *)typedArray->arrayData()->data());
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    arrayLen /= (4 * 4); // get value count
+    glUniform4fv(locationObj->id(), arrayLen, (float *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4i(UniformLocation3D location3D, int x, int y, int z, int w)
+ * \qmlmethod void Context3D::uniform4i(Canvas3DUniformLocation location3D, int x, int y, int z, int w)
  * Sets the four integer values given in \a x , \a y , \a z and \a w to the given uniform
  * \a location3D.
  */
@@ -3179,15 +3428,17 @@ void CanvasContext::uniform4i(QJSValue location3D, int x, int y, int z, int w)
                                          << ", w:" << w
                                          << ")";
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     glUniform4i(locationObj->id(), x, y, z, w);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4iv(UniformLocation3D location3D, Int32Array array)
+ * \qmlmethod void Context3D::uniform4iv(Canvas3DUniformLocation location3D, Int32Array array)
  * Sets the integer array given in \a array to the given uniform \a location3D.
  */
 /*!
@@ -3200,8 +3451,10 @@ void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
                                          << ", array:" << array.toString()
                                          << ")";
     CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__))
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
+    }
 
     // Check if we have a JavaScript array
     if (array.isArray()) {
@@ -3209,17 +3462,17 @@ void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Int32Array)
-        return;
+    int arrayLen = 0;
+    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                   QV4::Heap::TypedArray::Int32Array);
 
-    glUniform4iv(locationObj->id(),
-                 typedArray->length() / 4,
-                 (int *)typedArray->arrayData()->data());
+    if (!uniformData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    arrayLen /= (4 * 4); // get value count
+    glUniform4iv(locationObj->id(), arrayLen, (int *)uniformData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3345,10 +3598,6 @@ void CanvasContext::uniform3iva(CanvasUniformLocation *location3D, QVariantList 
 }
 
 /*!
- * \qmlmethod void Context3D::uniform4iva(UniformLocation3D location3D, list<variant> array)
- * Sets the integer array given as JavasScript \a array to the given uniform \a location3D.
- */
-/*!
  * \internal
  */
 void CanvasContext::uniform4iva(CanvasUniformLocation *location3D, QVariantList array)
@@ -3404,14 +3653,14 @@ void CanvasContext::vertexAttrib1fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
 
-    glVertexAttrib1fv(indx, (float *)typedArray->arrayData()->data());
+    if (!attribData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    glVertexAttrib1fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3455,14 +3704,14 @@ void CanvasContext::vertexAttrib2fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
 
-    glVertexAttrib2fv(indx, (float *)typedArray->arrayData()->data());
+    if (!attribData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    glVertexAttrib2fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3507,14 +3756,14 @@ void CanvasContext::vertexAttrib3fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
 
-    glVertexAttrib3fv(indx, (float *)typedArray->arrayData()->data());
+    if (!attribData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    glVertexAttrib3fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -3560,19 +3809,19 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
         return;
     }
 
-    // Check if we have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!typedArray || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, QV4::Heap::TypedArray::Float32Array);
 
-    glVertexAttrib4fv(indx, (float *)typedArray->arrayData()->data());
+    if (!attribData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    glVertexAttrib4fv(indx, (float *)attribData);
     logAllGLErrors(__FUNCTION__);
 }
 
 /*!
- * \qmlmethod int Context3D::getShaderParameter(Shader3D shader, glEnums pname)
+ * \qmlmethod int Context3D::getShaderParameter(Canvas3DShader shader, glEnums pname)
  * Returns the value of the passed \a pname for the given \a shader.
  * \a pname must be one of \c{Context3D.SHADER_TYPE}, \c Context3D.DELETE_STATUS and
  * \c{Context3D.COMPILE_STATUS}.
@@ -3580,7 +3829,7 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
 /*!
  * \internal
  */
-int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
+QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(shader:" << shader3D.toString()
@@ -3589,41 +3838,43 @@ int CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:"
+                                               << ":INVALID_OPERATION:"
                                                <<"Invalid shader handle:" << shader3D.toString();
-        return 0;
+        m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(shader, __FUNCTION__))
-        return 0;
+        return QJSValue(QJSValue::NullValue);
 
     switch (pname) {
     case SHADER_TYPE: {
         GLint shaderType = 0;
-        glGetShaderiv( shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
+        glGetShaderiv(shader->qOGLShader()->shaderId(), GL_SHADER_TYPE, &shaderType);
         logAllGLErrors(__FUNCTION__);
-        return shaderType;
+        return QJSValue(glEnums(shaderType));
     }
     case DELETE_STATUS: {
         bool isDeleted = !shader->isAlive();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isDeleted;
-        return (isDeleted ? GL_TRUE : GL_FALSE);
+        return (isDeleted ? QJSValue(bool(true)) : QJSValue(bool(false)));
     }
     case COMPILE_STATUS: {
         bool isCompiled = shader->qOGLShader()->isCompiled();
         qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << isCompiled;
-        return (isCompiled ? GL_TRUE : GL_FALSE);
+        return (isCompiled ? QJSValue(bool(true)) : QJSValue(bool(false)));
     }
     default: {
         qCWarning(canvas3drendering).nospace() << "getShaderParameter():UNSUPPORTED parameter name "
                                                << glEnumToString(pname);
-        return 0;
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);
     }
     }
 }
 
 /*!
- * \qmlmethod Buffer3D Context3D::createBuffer()
- * Creates a Buffer3D object and initializes it with a buffer object name as if \c glGenBuffers()
+ * \qmlmethod Canvas3DBuffer Context3D::createBuffer()
+ * Creates a Canvas3DBuffer object and initializes it with a buffer object name as if \c glGenBuffers()
  * was called.
  */
 /*!
@@ -3642,8 +3893,8 @@ QJSValue CanvasContext::createBuffer()
 }
 
 /*!
- * \qmlmethod UniformLocation3D Context3D::getUniformLocation(Program3D program3D, string name)
- * Returns UniformLocation3D object that represents the location3D of a specific uniform variable
+ * \qmlmethod Canvas3DUniformLocation Context3D::getUniformLocation(Canvas3DProgram program3D, string name)
+ * Returns Canvas3DUniformLocation object that represents the location3D of a specific uniform variable
  * with the given \a name within the given \a program3D object.
  * Returns \c null if name doesn't correspond to a uniform variable.
  */
@@ -3659,7 +3910,8 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
                                              << ", name:" << name
                                              << "):-1";
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << "WARNING:Invalid Program3D reference " << program;
+                                               << " WARNING:Invalid Canvas3DProgram reference " << program;
+        m_error |= CANVAS_INVALID_OPERATION;
         return 0;
     }
     if (!checkParent(program, __FUNCTION__))
@@ -3683,7 +3935,7 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
 }
 
 /*!
- * \qmlmethod int Context3D::getAttribLocation(Program3D program3D, string name)
+ * \qmlmethod int Context3D::getAttribLocation(Canvas3DProgram program3D, string name)
  * Returns location3D of the given attribute variable \a name in the given \a program3D.
  */
 /*!
@@ -3698,7 +3950,8 @@ int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
                                              << ", name:" << name
                                              << "):-1";
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID Program3D reference " << program;
+                                               << ": INVALID Canvas3DProgram reference " << program;
+        m_error |= CANVAS_INVALID_OPERATION;
         return -1;
     } else {
         if (!checkParent(program, __FUNCTION__))
@@ -3713,7 +3966,7 @@ int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
 }
 
 /*!
- * \qmlmethod void Context3D::bindAttribLocation(Program3D program3D, int index, string name)
+ * \qmlmethod void Context3D::bindAttribLocation(Canvas3DProgram program3D, int index, string name)
  * Binds the attribute \a index with the attribute variable \a name in the given \a program3D.
  */
 /*!
@@ -3730,7 +3983,8 @@ void CanvasContext::bindAttribLocation(QJSValue program3D, int index, const QStr
     CanvasProgram *program = getAsProgram3D(program3D);
     if (!program) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ": INVALID Program3D reference " << program;
+                                               << ": INVALID Canvas3DProgram reference " << program;
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
     if (!checkParent(program, __FUNCTION__))
@@ -3773,7 +4027,7 @@ void CanvasContext::disableVertexAttribArray(int index)
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix2fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix2fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 2x2 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -3782,49 +4036,11 @@ void CanvasContext::disableVertexAttribArray(int index)
  */
 void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(uniformLocation:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         <<")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix2fva(locationObj, transpose, array.toVariant().toList());
-        return;
-    }
-
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 4);
-
-    int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 4;
-    glUniformMatrix2fv(uniformLocation, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
+    uniformMatrixNfv(2, location3D, transpose, array);
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix3fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix3fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 3x3 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -3833,49 +4049,11 @@ void CanvasContext::uniformMatrix2fv(QJSValue location3D, bool transpose, QJSVal
  */
 void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         <<")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix3fva(locationObj, transpose, array.toVariant().toList());
-        return;
-    }
-
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 9);
-
-    int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 9;
-
-    glUniformMatrix3fv(uniformLocation, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
+    uniformMatrixNfv(3, location3D, transpose, array);
 }
 
 /*!
- * \qmlmethod void Context3D::uniformMatrix4fv(UniformLocation3D location3D, bool transpose, Value array)
+ * \qmlmethod void Context3D::uniformMatrix4fv(Canvas3DUniformLocation location3D, bool transpose, Value array)
  * Converts the float array given in \a array to a 4x4 matrix and sets it to the given
  * uniform at \a uniformLocation. Applies \a transpose if set to \c{true}.
  */
@@ -3884,127 +4062,7 @@ void CanvasContext::uniformMatrix3fv(QJSValue location3D, bool transpose, QJSVal
  */
 void CanvasContext::uniformMatrix4fv(QJSValue location3D, bool transpose, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation"))
-        return;
-    CanvasUniformLocation *locationObj =
-            static_cast<CanvasUniformLocation *>(location3D.toQObject());
-
-    if (!checkParent(locationObj, __FUNCTION__))
-        return;
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniformMatrix4fva(locationObj, transpose,array.toVariant().toList());
-        return;
-    }
-
-    // We should have a Float32Array
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, array));
-    if (!m_currentProgram
-            || !typedArray
-            || !locationObj
-            || typedArray->arrayType() != QV4::Heap::TypedArray::Float32Array)
-        return;
-
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "numMatrices:" << (typedArray->length() / 16);
-    int uniformLocation = locationObj->id();
-    float *arrayData = (float *)typedArray->arrayData()->data();
-    int numMatrices = typedArray->length() / 16;
-
-    glUniformMatrix4fv(uniformLocation, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-}
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix4fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 16;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix4fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
-}
-
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix3fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 9;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix3fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
-}
-
-/*!
- * \internal
- */
-void CanvasContext::uniformMatrix2fva(CanvasUniformLocation *uniformLocation, bool transpose,
-                                      QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
-
-    if (!m_currentProgram || !uniformLocation)
-        return;
-
-    int location3D = uniformLocation->id();
-    int size = array.count();
-    float *arrayData = new float[size];
-    int numMatrices = size / 4;
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, arrayData);
-
-    glUniformMatrix2fv(location3D, numMatrices, transpose, arrayData);
-    logAllGLErrors(__FUNCTION__);
-
-    delete [] arrayData;
+    uniformMatrixNfv(4, location3D, transpose, array);
 }
 
 /*!
@@ -4201,29 +4259,19 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
         return;
     }
 
+    int arrayLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, data));
-    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
-                                              QJSValuePrivate::convertedToValue(m_v4engine, data));
+    if (!srcData)
+        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
 
-    if (typedArray) {
-        glBufferData(GLenum(target),
-                     typedArray->byteLength(),
-                     (GLvoid *) typedArray->arrayData()->data(),
-                     GLenum(usage));
-        logAllGLErrors(__FUNCTION__);
-    } else if (arrayBuffer) {
-        glBufferData(GLenum(target),
-                     arrayBuffer->byteLength(),
-                     (GLvoid *) arrayBuffer->data(),
-                     GLenum(usage));
+    if (srcData) {
+        glBufferData(GLenum(target), arrayLen, (GLvoid *)srcData, GLenum(usage));
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:data must be either"
-                                               << "TypedArray or ArrayBuffer";
+                                               << " TypedArray or ArrayBuffer";
         m_error |= CANVAS_INVALID_VALUE;
         return;
     }
@@ -4261,28 +4309,19 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
         return;
     }
 
-    QV4::Scope scope(m_v4engine);
-    QV4::Scoped<QV4::TypedArray> typedArray(scope,
-                                            QJSValuePrivate::convertedToValue(m_v4engine, data));
-    QV4::Scoped<QV4::ArrayBuffer> arrayBuffer(scope,
-                                              QJSValuePrivate::convertedToValue(m_v4engine, data));
+    int arrayLen = 0;
+    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
 
-    if (typedArray) {
-        glBufferSubData(GLenum(target),
-                        offset,
-                        typedArray->byteLength(),
-                        (GLvoid *) typedArray->arrayData()->data());
-        logAllGLErrors(__FUNCTION__);
-    } else if (arrayBuffer) {
-        glBufferSubData(GLenum(target),
-                        offset,
-                        arrayBuffer->byteLength(),
-                        (GLvoid *) arrayBuffer->data());
+    if (!srcData)
+        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
+
+    if (srcData) {
+        glBufferSubData(GLenum(target), offset, arrayLen, (GLvoid *)srcData);
         logAllGLErrors(__FUNCTION__);
     } else {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_VALUE:data must be either"
-                                               << "TypedArray or ArrayBuffer";
+                                               << " TypedArray or ArrayBuffer";
         m_error |= CANVAS_INVALID_VALUE;
         return;
     }
@@ -4309,7 +4348,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
                                                << ":INVALID_ENUM:target must be either ARRAY_BUFFER"
                                                << " or ELEMENT_ARRAY_BUFFER.";
         m_error |= CANVAS_INVALID_ENUM;
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
 
     switch (pname) {
@@ -4326,12 +4365,13 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
 
     qCWarning(canvas3drendering).nospace() << "getBufferParameter():INVALID_ENUM:Unknown pname";
     m_error |= CANVAS_INVALID_ENUM;
-    return m_engine->newObject();
+    return QJSValue(QJSValue::NullValue);
 }
 
 /*!
  * \qmlmethod bool Context3D::isBuffer(Object anyObject)
- * Returns \c true if the given \a anyObect is a valid Buffer3D object and \c false otherwise.
+ * Returns \c true if the given \a anyObect is a valid Canvas3DBuffer object,
+ * \c false otherwise.
  */
 /*!
  * \internal
@@ -4366,8 +4406,8 @@ CanvasBuffer *CanvasContext::getAsBuffer3D(QJSValue anyObject) const
 }
 
 /*!
- * \qmlmethod void Context3D::deleteBuffer(Buffer3D buffer3D)
- * Deletes the \a buffer3D. Has no effect if the Buffer3D object has been deleted already.
+ * \qmlmethod void Context3D::deleteBuffer(Canvas3DBuffer buffer3D)
+ * Deletes the \a buffer3D. Has no effect if the Canvas3DBuffer object has been deleted already.
  */
 /*!
  * \internal
@@ -4382,6 +4422,7 @@ void CanvasContext::deleteBuffer(QJSValue buffer3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": WARNING invalid buffer target"
                                                << buffer3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
     if (!checkParent(bufferObj, __FUNCTION__))
@@ -4657,8 +4698,6 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         callData->args[0] = buffer;
         return QJSValue(m_v4engine, constructor->construct(callData));
     }
-
-        break;
         // Int32Array (with 4 elements)
         // Intentional flow through
     case SCISSOR_BOX:
@@ -4686,10 +4725,10 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         glGetBooleanv(COLOR_WRITEMASK, values);
         logAllGLErrors(__FUNCTION__);
         QJSValue arrayValue = m_engine->newArray(4);
-        arrayValue.setProperty(0, values[0]);
-        arrayValue.setProperty(1, values[1]);
-        arrayValue.setProperty(2, values[2]);
-        arrayValue.setProperty(3, values[3]);
+        arrayValue.setProperty(0, bool(values[0]));
+        arrayValue.setProperty(1, bool(values[1]));
+        arrayValue.setProperty(2, bool(values[2]));
+        arrayValue.setProperty(3, bool(values[3]));
         return arrayValue;
     }
 
@@ -4746,7 +4785,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
 
             QV4::ScopedFunctionObject constructor(scope,
                                                   m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Int32Array]);
+                                                  QV4::Heap::TypedArray::UInt32Array]);
             QV4::ScopedCallData callData(scope, 1);
             callData->args[0] = buffer;
             return QJSValue(m_v4engine, constructor->construct(callData));
@@ -4785,7 +4824,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
 }
 
 /*!
- * \qmlmethod string Context3D::getShaderInfoLog(Shader3D shader)
+ * \qmlmethod string Context3D::getShaderInfoLog(Canvas3DShader shader)
  * Returns the info log string of the given \a shader.
  */
 /*!
@@ -4799,8 +4838,9 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D)
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << "WARNING: invalid shader handle:"
+                                               << " WARNING: invalid shader handle:"
                                                << shader3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return m_engine->newObject();
     }
     if (!checkParent(shader, __FUNCTION__))
@@ -4810,7 +4850,7 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D)
 }
 
 /*!
- * \qmlmethod string Context3D::getProgramInfoLog(Program3D program3D)
+ * \qmlmethod string Context3D::getProgramInfoLog(Canvas3DProgram program3D)
  * Returns the info log string of the given \a program3D.
  */
 /*!
@@ -4825,8 +4865,9 @@ QJSValue CanvasContext::getProgramInfoLog(QJSValue program3D)
 
     if (!program) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << "WARNING: invalid program handle:"
+                                               << " WARNING: invalid program handle:"
                                                << program3D.toString();
+        m_error |= CANVAS_INVALID_OPERATION;
         return m_engine->newObject();
     }
     if (!checkParent(program, __FUNCTION__))
@@ -4836,7 +4877,7 @@ QJSValue CanvasContext::getProgramInfoLog(QJSValue program3D)
 }
 
 /*!
- * \qmlmethod void Context3D::bindBuffer(glEnums target, Buffer3D buffer3D)
+ * \qmlmethod void Context3D::bindBuffer(glEnums target, Canvas3DBuffer buffer3D)
  * Binds the given \a buffer3D to the given \a target. Target must be either
  * \c Context3D.ARRAY_BUFFER or \c{Context3D.ELEMENT_ARRAY_BUFFER}. If the \a buffer3D given is
  * \c{null}, the current buffer bound to the target is unbound.
@@ -4896,7 +4937,7 @@ void CanvasContext::bindBuffer(glEnums target, QJSValue buffer3D)
 
 // TODO: Is this function useful? We don't offer a way to query the status.
 /*!
- * \qmlmethod void Context3D::validateProgram(Program3D program3D)
+ * \qmlmethod void Context3D::validateProgram(Canvas3DProgram program3D)
  * Validates the given \a program3D. The validation status is stored into the state of the shader
  * program container in \a program3D.
  */
@@ -4909,14 +4950,18 @@ void CanvasContext::validateProgram(QJSValue program3D)
                                          << "(program3D:" << program3D.toString() << ")";
 
     CanvasProgram *program = getAsProgram3D(program3D);
-    if (program && checkParent(program, __FUNCTION__)) {
+    if (!program) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+    if (checkParent(program, __FUNCTION__)) {
         program->validateProgram();
         logAllGLErrors(__FUNCTION__);
     }
 }
 
 /*!
- * \qmlmethod void Context3D::useProgram(Program3D program)
+ * \qmlmethod void Context3D::useProgram(Canvas3DProgram program)
  * Installs the given \a program3D as a part of the current rendering state.
  */
 /*!
@@ -4929,9 +4974,16 @@ void CanvasContext::useProgram(QJSValue program3D)
 
     CanvasProgram *program = getAsProgram3D(program3D);
     m_currentProgram = program;
-    if (!program || !program->isLinked() || !checkParent(program, __FUNCTION__))
+
+    if (!program) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return;
-    program->bind();
+    }
+
+    if (!checkParent(program, __FUNCTION__))
+        return;
+
+    glUseProgram(program->id());
     logAllGLErrors(__FUNCTION__);
 }
 
@@ -5014,7 +5066,6 @@ void CanvasContext::depthMask(bool flag)
     logAllGLErrors(__FUNCTION__);
 }
 
-// TODO: Why are all the enums for this commented out?
 /*!
  * \qmlmethod void Context3D::depthFunc(glEnums func)
  * Sets the depth function to \a func. Must be one of \c{Context3D.NEVER}, \c{Context3D.LESS},
@@ -5271,7 +5322,7 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
         return;
     }
 
-    uchar *bufferPtr = getAsUint8ArrayRawPtr(pixels);
+    uchar *bufferPtr = getTypedArrayAsRawDataPtr(pixels, QV4::Heap::TypedArray::UInt8Array);
     if (!bufferPtr) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:pixels must be Uint8Array.";
@@ -5298,10 +5349,10 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveAttrib(Program3D program3D, uint index)
+ * \qmlmethod Canvas3DActiveInfo Context3D::getActiveAttrib(Canvas3DProgram program3D, uint index)
  * Returns information about the given active attribute variable defined by \a index for the given
  * \a program3D.
- * \sa ActiveInfo3D
+ * \sa Canvas3DActiveInfo
  */
 /*!
  * \internal
@@ -5313,8 +5364,10 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
                                          << ", index:" << index << ")";
 
     CanvasProgram *program = getAsProgram3D(program3D);
-    if (!program || !checkParent(program, __FUNCTION__))
+    if (!program || !checkParent(program, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return 0;
+    }
 
     char *name = new char[512];
     GLsizei length = 0;
@@ -5328,10 +5381,10 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
 }
 
 /*!
- * \qmlmethod ActiveInfo3D Context3D::getActiveUniform(Program3D program3D, uint index)
+ * \qmlmethod Canvas3DActiveInfo Context3D::getActiveUniform(Canvas3DProgram program3D, uint index)
  * Returns information about the given active uniform variable defined by \a index for the given
  * \a program3D.
- * \sa ActiveInfo3D
+ * \sa Canvas3DActiveInfo
  */
 /*!
  * \internal
@@ -5343,8 +5396,10 @@ CanvasActiveInfo *CanvasContext::getActiveUniform(QJSValue program3D, uint index
                                          << ", index:" << index << ")";
 
     CanvasProgram *program = getAsProgram3D(program3D);
-    if (!program || !checkParent(program, __FUNCTION__))
+    if (!program || !checkParent(program, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
         return 0;
+    }
 
     char *name = new char[512];
     GLsizei length = 0;
@@ -5646,8 +5701,8 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
 /*!
  * \internal
  */
-int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums attachment,
-                                                     glEnums pname)
+QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums attachment,
+                                                          glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5657,7 +5712,37 @@ int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums att
     GLint parameter;
     glGetFramebufferAttachmentParameteriv(target, attachment, pname, &parameter);
     logAllGLErrors(__FUNCTION__);
-    return parameter;
+
+    if (m_error != CANVAS_NO_ERRORS)
+        return QJSValue(QJSValue::NullValue);
+
+    switch (pname) {
+    case FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+        return QJSValue(glEnums(parameter));
+    case FRAMEBUFFER_ATTACHMENT_OBJECT_NAME:
+    {
+        QJSValue retval;
+        // Check FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, and choose the type based on it
+        GLint type;
+        glGetFramebufferAttachmentParameteriv(target, attachment,
+                                              FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, &type);
+        logAllGLErrors(__FUNCTION__);
+        if (type == TEXTURE)
+            retval = m_engine->newQObject(m_currentFramebuffer->texture());
+        else
+            retval = m_engine->newQObject(m_currentRenderbuffer);
+        return retval;
+    }
+    case FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+    case FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+        return QJSValue(parameter);
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:invalid pname "
+                                               << glEnumToString(pname);
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);
+    }
 }
 
 /*!
@@ -5668,7 +5753,7 @@ int CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnums att
 /*!
  * \internal
  */
-int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
+QJSValue CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5678,7 +5763,29 @@ int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
     GLint parameter;
     glGetRenderbufferParameteriv(target, pname, &parameter);
     logAllGLErrors(__FUNCTION__);
-    return parameter;
+
+    if (m_error != CANVAS_NO_ERRORS)
+        return QJSValue(QJSValue::NullValue);
+
+    switch (pname) {
+    case RENDERBUFFER_INTERNAL_FORMAT:
+        return QJSValue(glEnums(parameter));
+    case RENDERBUFFER_WIDTH:
+    case RENDERBUFFER_HEIGHT:
+    case RENDERBUFFER_RED_SIZE:
+    case RENDERBUFFER_GREEN_SIZE:
+    case RENDERBUFFER_BLUE_SIZE:
+    case RENDERBUFFER_ALPHA_SIZE:
+    case RENDERBUFFER_DEPTH_SIZE:
+    case RENDERBUFFER_STENCIL_SIZE:
+        return QJSValue(parameter);
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:invalid pname "
+                                               << glEnumToString(pname);
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);
+    }
 }
 
 /*!
@@ -5695,7 +5802,7 @@ int CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
 /*!
  * \internal
  */
-QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
+QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target" << glEnumToString(target)
@@ -5706,17 +5813,13 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
     if (isValidTextureBound(target, __FUNCTION__)) {
         switch (pname) {
         case TEXTURE_MAG_FILTER:
-            // Intentional flow through
         case TEXTURE_MIN_FILTER:
-            // Intentional flow through
         case TEXTURE_WRAP_S:
-            // Intentional flow through
         case TEXTURE_WRAP_T:
             glGetTexParameteriv(target, pname, &parameter);
             logAllGLErrors(__FUNCTION__);
-            break;
+            return QJSValue(parameter);
         default:
-            // Intentional flow through
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:invalid pname "
                                                    << glEnumToString(pname)
@@ -5724,11 +5827,10 @@ QVariant CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                                    << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S"
                                                    << " or TEXTURE_WRAP_T";
             m_error |= CANVAS_INVALID_ENUM;
-            break;
+            return QJSValue(QJSValue::NullValue);
         }
     }
-
-    return QVariant::fromValue(parameter);
+    return QJSValue(QJSValue::NullValue);
 }
 
 
@@ -5785,7 +5887,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
  *   \li Returned Type
  * \row
  *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_BUFFER_BINDING}
- *   \li \c{CanvasBuffer}
+ *   \li \c{Canvas3DBuffer}
  * \row
  *   \li \c{Context3D.VERTEX_ATTRIB_ARRAY_ENABLED}
  *   \li \c{boolean}
@@ -5803,7 +5905,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
  *   \li \c{boolean}
  * \row
  *   \li \c{Context3D.CURRENT_VERTEX_ATTRIB}
- *   \li \c{sequence<float>} (with 4 elements)
+ *   \li \c{Float32Array} (with 4 elements)
  *  \endtable
  */
 /*!
@@ -5828,32 +5930,28 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             if (value == 0 || !m_idToCanvasBufferMap.contains(value))
-                return m_engine->newObject();
+                return QJSValue(QJSValue::NullValue);
 
             return m_engine->newQObject(m_idToCanvasBufferMap[value]);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_ENABLED: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(bool(value));
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_SIZE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(value);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_STRIDE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
             logAllGLErrors(__FUNCTION__);
             return QJSValue(value);
         }
-            break;
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             GLint value = 0;
             glGetVertexAttribiv(index, GLenum(pname), &value);
@@ -5867,17 +5965,21 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             return QJSValue(bool(value));
         }
         case CURRENT_VERTEX_ATTRIB: {
-            // TODO: Should be Float32Array
-            GLfloat values[4];
-            glGetVertexAttribfv(index, GLenum(pname), values);
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * 4));
+
+            glGetVertexAttribfv(index, GLenum(pname), (float *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-            QJSValue array = m_engine->newArray(4);
-            array.setProperty(0, values[0]);
-            array.setProperty(1, values[1]);
-            array.setProperty(2, values[2]);
-            array.setProperty(3, values[3]);
-            return array;
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
         }
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -5886,44 +5988,44 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         }
     }
 
-    return m_engine->newObject();
+    return QJSValue(QJSValue::NullValue);
 }
 
 /*!
- * \qmlmethod variant Context3D::getUniform(Program3D program, UniformLocation3D location3D)
+ * \qmlmethod variant Context3D::getUniform(Canvas3DProgram program, Canvas3DUniformLocation location3D)
  * Returns the uniform value at the given \a location3D in the \a program.
  * The type returned is dependent on the uniform type, as shown in the table:
  * \table
  * \header
- *   \li Data Type
+ *   \li Uniform Type
  *   \li Returned Type
  * \row
  *   \li boolean
- *   \li sequence<boolean> (with 1 element)
+ *   \li boolean
  * \row
  *   \li int
- *   \li sequence<int> (with 1 element)
+ *   \li int
  * \row
  *   \li float
- *   \li sequence<float> (with 1 element)
+ *   \li float
  * \row
  *   \li vec2
- *   \li sequence<float> (with 2 elements)
+ *   \li Float32Array (with 2 elements)
  * \row
  *   \li vec3
- *   \li sequence<float> (with 3 elements)
+ *   \li Float32Array (with 3 elements)
  * \row
  *   \li vec4
- *   \li sequence<float> (with 4 elements)
+ *   \li Float32Array (with 4 elements)
  * \row
  *   \li ivec2
- *   \li sequence<int> (with 2 elements)
+ *   \li Int32Array (with 2 elements)
  * \row
  *   \li ivec3
- *   \li sequence<int> (with 3 elements)
+ *   \li Int32Array (with 3 elements)
  * \row
  *   \li ivec4
- *   \li sequence<int> (with 4 elements)
+ *   \li Int32Array (with 4 elements)
  * \row
  *   \li bvec2
  *   \li sequence<boolean> (with 2 elements)
@@ -5935,25 +6037,25 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
  *   \li sequence<boolean> (with 4 elements)
  * \row
  *   \li mat2
- *   \li sequence<float> (with 4 elements)
+ *   \li Float32Array (with 4 elements)
  * \row
  *   \li mat3
- *   \li sequence<float> (with 9 elements)
+ *   \li Float32Array (with 9 elements)
  * \row
  *   \li mat4
- *   \li sequence<float> (with 16 elements)
+ *   \li Float32Array (with 16 elements)
  * \row
  *   \li sampler2D
- *   \li sequence<int> (with 1 element)
+ *   \li int
  * \row
  *   \li samplerCube
- *   \li sequence<int> (with 1 element)
+ *   \li int
  *  \endtable
  */
 /*!
  * \internal
  */
-QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
+QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(program" << program3D.toString()
@@ -5967,19 +6069,72 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:No program was specified";
         m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::UndefinedValue);
+
     } else  if (!location) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:No location3D was specified";
         m_error |= CANVAS_INVALID_OPERATION;
-    } else {
-        if (!checkParent(program, __FUNCTION__) || !checkParent(location, __FUNCTION__))
-            return QVariant();
-        uint programId = program->id();
-        uint locationId = location->id();
-        CanvasActiveInfo *info = getActiveUniform(program3D, locationId);
-        int numValues = 4;
+        return QJSValue(QJSValue::UndefinedValue);
+    }
 
-        switch (info->type()) {
+    if (!checkParent(program, __FUNCTION__) || !checkParent(location, __FUNCTION__))
+        return QJSValue(QJSValue::UndefinedValue);
+
+    uint programId = program->id();
+    uint locationId = location->id();
+    int type = location->type();
+
+    if (type < 0) {
+        // Resolve location type.
+        // There is no easy way to determine this, as the active uniform
+        // indices do not usually match the uniform locations. We must query
+        // active uniforms until we hit the one we want. This is obviously
+        // extremely inefficient, but luckily getUniform is not something most
+        // users typically need or use.
+
+        const int maxCharCount = 512;
+        GLsizei length;
+        GLint size;
+        GLenum glType;
+        char nameBuf[maxCharCount];
+        GLint uniformCount = 0;
+        glGetProgramiv(programId, GL_ACTIVE_UNIFORMS, &uniformCount);
+        // Strip any [] from the uniform name, unless part of struct
+        QByteArray strippedName = location->name().toLatin1();
+        int idx = strippedName.indexOf('[');
+        if (idx >= 0) {
+            // Don't truncate if part of struct
+            if (strippedName.indexOf('.') == -1)
+                strippedName.truncate(idx);
+        }
+        for (int i = 0; i < uniformCount; i++) {
+            nameBuf[0] = '\0';
+            glGetActiveUniform(programId, i, maxCharCount, &length, &size, &glType, nameBuf);
+            QByteArray activeName(nameBuf, length);
+            idx = activeName.indexOf('[');
+            if (idx >= 0) {
+                // Don't truncate if part of struct
+                if (activeName.indexOf('.') == -1)
+                    activeName.truncate(idx);
+            }
+
+            if (activeName == strippedName) {
+                type = glType;
+                location->setType(type);
+                break;
+            }
+        }
+    }
+
+    if (type < 0) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_OPERATION:Uniform type could not be determined";
+        m_error |= CANVAS_INVALID_OPERATION;
+        return QJSValue(QJSValue::UndefinedValue);
+    } else {
+        int numValues = 4;
+        switch (type) {
         case SAMPLER_2D:
             // Intentional flow through
         case SAMPLER_CUBE:
@@ -5988,7 +6143,19 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             GLint value = 0;
             glGetUniformiv(programId, locationId, &value);
             logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
+            return QJSValue(value);
+        }
+        case FLOAT: {
+            GLfloat value = 0;
+            glGetUniformfv(programId, locationId, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QJSValue(value);
+        }
+        case BOOL: {
+            GLint value = 0;
+            glGetUniformiv(programId, locationId, &value);
+            logAllGLErrors(__FUNCTION__);
+            return QJSValue(bool(value));
         }
         case INT_VEC2:
             numValues--;
@@ -5997,23 +6164,20 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             numValues--;
             // Intentional flow through
         case INT_VEC4: {
-            numValues--;
-            GLint *value = new GLint[numValues];
-            glGetUniformiv(programId, locationId, value);
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(int) * numValues));
+            glGetUniformiv(programId, locationId, (int *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-            QList<float> intList;
-            for (int i = 0; i < numValues; i++)
-                intList << value[i];
-
-            // TODO: Should return Int32Array
-            return QVariant::fromValue(intList);
-        }
-        case FLOAT: {
-            GLfloat value = 0;
-            glGetUniformfv(programId, locationId, &value);
-            logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(value);
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Int32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
         }
         case FLOAT_VEC2:
             numValues--;
@@ -6022,24 +6186,20 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             numValues--;
             // Intentional flow through
         case FLOAT_VEC4: {
-            numValues--;
-            GLfloat *value = new GLfloat[numValues];
-
-            glGetUniformfv(programId, locationId, value);
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * numValues));
+            glGetUniformfv(programId, locationId, (float *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-            QList<float> floatList;
-            for (int i = 0; i < numValues; i++)
-                floatList << value[i];
-
-            // TODO: Should return Float32Array
-            return QVariant::fromValue(floatList);
-        }
-        case BOOL: {
-            GLint value = 0;
-            glGetUniformiv(programId, locationId, &value);
-            logAllGLErrors(__FUNCTION__);
-            return QVariant::fromValue(bool(value));
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
         }
         case BOOL_VEC2:
             numValues--;
@@ -6048,17 +6208,16 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             numValues--;
             // Intentional flow through
         case BOOL_VEC4: {
-            numValues--;
             GLint *value = new GLint[numValues];
+            QJSValue array = m_engine->newArray(numValues);
 
             glGetUniformiv(programId, locationId, value);
             logAllGLErrors(__FUNCTION__);
 
-            QList<bool> boolList;
             for (int i = 0; i < numValues; i++)
-                boolList << value[i];
+                array.setProperty(i, bool(value[i]));
 
-            return QVariant::fromValue(boolList);
+            return array;
         }
         case FLOAT_MAT2:
             numValues--;
@@ -6068,24 +6227,28 @@ QVariant CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             // Intentional flow through
         case FLOAT_MAT4: {
             numValues = numValues * numValues;
-            GLfloat *value = new GLfloat[numValues];
 
-            glGetUniformfv(programId, locationId, value);
+
+            QV4::Scope scope(m_v4engine);
+            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
+                                                     m_v4engine,
+                                                     sizeof(float) * numValues));
+            glGetUniformfv(programId, locationId, (float *) buffer->data());
             logAllGLErrors(__FUNCTION__);
 
-            QList<float> floatList;
-            for (int i = 0; i < numValues; i++)
-                floatList << value[i];
-
-            // TODO: Should return Float32Array
-            return QVariant::fromValue(floatList);
+            QV4::ScopedFunctionObject constructor(scope,
+                                                  m_v4engine->typedArrayCtors[
+                                                  QV4::Heap::TypedArray::Float32Array]);
+            QV4::ScopedCallData callData(scope, 1);
+            callData->args[0] = buffer;
+            return QJSValue(m_v4engine, constructor->construct(callData));
         }
         default:
             break;
         }
     }
-
-    return QVariant();
+    return QJSValue(QJSValue::UndefinedValue);
 }
 
 /*!

@@ -40,13 +40,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype UniformLocation
+ * \qmltype Canvas3DUniformLocation
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains uniform location id.
  *
  * An uncreatable QML type that contains an uniform location id. You can get it by calling
- * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
+ * the \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
  */
 
 /*!
@@ -54,7 +54,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
     CanvasAbstractObject(parent),
-    m_location(location)
+    m_location(location),
+    m_type(-1)
 {
 }
 
@@ -76,12 +77,28 @@ int CanvasUniformLocation::id()
 /*!
  * \internal
  */
+int CanvasUniformLocation::type()
+{
+    return m_type;
+}
+
+/*!
+ * \internal
+ */
+void CanvasUniformLocation::setType(int type)
+{
+    m_type = type;
+}
+
+/*!
+ * \internal
+ */
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)
-        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
     else
-        dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *)(uLoc) << ")";
 
     return dbg.maybeSpace();
 }

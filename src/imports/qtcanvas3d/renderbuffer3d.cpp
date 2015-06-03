@@ -40,13 +40,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype RenderBuffer3D
+ * \qmltype Canvas3DRenderBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL renderbuffer.
  *
  * An uncreatable QML type that contains an OpenGL renderbuffer. You can get it by calling
- * \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
+ * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
  */
 
 /*!

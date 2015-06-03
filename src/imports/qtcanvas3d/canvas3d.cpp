@@ -262,7 +262,7 @@ QJSValue Canvas::getContext(const QString &type)
 }
 
 /*!
- * \qmlmethod Context3D Canvas3D::getContext(string type, ContextAttributes options)
+ * \qmlmethod Context3D Canvas3D::getContext(string type, Canvas3DContextAttributes options)
  * Returns the 3D rendering context that allows 3D rendering calls to be made.
  * The \a type parameter is ignored for now, but a string is expected to be given.
  * The \a options parameter is only parsed when the first call to getContext() is
@@ -270,7 +270,7 @@ QJSValue Canvas::getContext(const QString &type)
  * giving the \a options parameter, then the context and render target is initialized with
  * default configuration.
  *
- * \sa ContextAttributes, Context3D
+ * \sa Canvas3DContextAttributes, Context3D
  */
 /*!
  * \internal
@@ -340,7 +340,11 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
         // Create the offscreen surface
         QSurfaceFormat surfaceFormat = m_glContextShare->format();
-        if (!m_isOpenGLES2) {
+
+        if (m_isOpenGLES2) {
+            // Some devices report wrong version, so force 2.0 on ES2
+            surfaceFormat.setVersion(2, 0);
+        } else {
             surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
             surfaceFormat.setSwapInterval(0);
         }
@@ -407,10 +411,25 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         glViewport(0, 0,
                    m_fboSize.width(),
                    m_fboSize.height());
+        glScissor(0, 0,
+                  m_fboSize.width(),
+                  m_fboSize.height());
         m_renderFbo->bind();
         glViewport(0, 0,
                    m_fboSize.width(),
                    m_fboSize.height());
+        glScissor(0, 0,
+                  m_fboSize.width(),
+                  m_fboSize.height());
+
+#if !defined(QT_OPENGL_ES_2)
+        if (!m_isOpenGLES2) {
+            // Make it possible to change point primitive size and use textures with them in
+            // the shaders. These are implicitly enabled in ES2.
+            glEnable(GL_PROGRAM_POINT_SIZE);
+            glEnable(GL_POINT_SPRITE);
+        }
+#endif
 
         // Verify that width and height are not initially too large, in case width and height
         // were set before getting GL_MAX_VIEWPORT_DIMS
@@ -531,6 +550,15 @@ void Canvas::createFBOs()
     QOpenGLFramebufferObject *renderFbo = m_renderFbo;
     QOpenGLFramebufferObject *antialiasFbo = m_antialiasFbo;
 
+    QOpenGLFramebufferObject *dummyFbo = 0;
+    if (!m_renderFbo) {
+        // Create a dummy FBO to work around a weird GPU driver bug on some platforms that
+        // causes the first FBO created to get corrupted in some cases.
+        dummyFbo = new QOpenGLFramebufferObject(m_fboSize.width(),
+                                                m_fboSize.height(),
+                                                m_fboFormat);
+    }
+
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << " Creating front and back FBO's with"
@@ -584,6 +612,9 @@ void Canvas::createFBOs()
         bindCurrentRenderTarget();
         emitNeedRender();
     }
+
+    // Get rid of the dummy FBO, it has served its purpose
+    delete dummyFbo;
 }
 
 /*!
@@ -721,10 +752,17 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
     if (!m_glContextQt) {
         m_glContextQt = window()->openglContext();
         m_isOpenGLES2 = m_glContextQt->isOpenGLES();
-        if (!m_isOpenGLES2 || m_glContextQt->format().majorVersion() >= 3)
+
+        QSurfaceFormat surfaceFormat = m_glContextQt->format();
+        // Some devices report wrong version, so force 2.0 on ES2
+        if (m_isOpenGLES2)
+            surfaceFormat.setVersion(2, 0);
+
+        if (!m_isOpenGLES2 || surfaceFormat.majorVersion() >= 3)
             m_maxSamples = 4;
+
         m_glContextShare = new QOpenGLContext;
-        m_glContextShare->setFormat(m_glContextQt->format());
+        m_glContextShare->setFormat(surfaceFormat);
         m_glContextShare->setShareContext(m_glContextQt);
         QSurface *surface = m_glContextQt->surface();
         m_glContextQt->doneCurrent();
