@@ -51,6 +51,7 @@
 #include "contextattributes_p.h"
 #include "abstractobject3d_p.h"
 #include "canvasglstatedump_p.h"
+#include "canvastextureprovider_p.h"
 
 #include <QtCore/QMutex>
 #include <QtCore/QWaitCondition>
@@ -1181,10 +1182,14 @@ public:
     Q_INVOKABLE uint getVertexAttribOffset(uint index, glEnums pname);
     Q_INVOKABLE QJSValue getVertexAttrib(uint index, glEnums pname);
 
+    QJSValue createTextureFromSource(QQuickItem *item);
+    QMap<QQuickItem *, CanvasTexture *> &quickItemToTextureMap();
+
     void scheduleSyncCommand(GlSyncCommand *command);
 
 public slots:
     void handleFullCommandQueue();
+    void handleTextureIdResolved(QQuickItem *item);
 
 signals:
     void canvasChanged(Canvas *canvas);
@@ -1279,6 +1284,7 @@ private:
     CanvasGlCommandQueue *m_commandQueue; // Not owned
     QMutex m_renderJobMutex;
     QWaitCondition m_renderJobCondition;
+    QMap<QQuickItem *, CanvasTexture *> m_quickItemToTextureMap;
 
     bool invalidEnumFlag;
     bool invalidValueFlag;
@@ -1291,6 +1297,7 @@ private:
 
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;
+    CanvasTextureProvider *m_textureProviderExt;
     QObject *m_standardDerivatives;
     CompressedTextureS3TC *m_compressedTextureS3TC;
     CompressedTexturePVRTC *m_compressedTexturePVRTC;

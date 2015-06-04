@@ -53,14 +53,20 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, QObject *parent) :
-    CanvasAbstractObject(queue, parent),
+CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context,
+                             QQuickItem *quickItem) :
+    CanvasAbstractObject(queue, context),
     m_textureId(queue->createResourceId()),
-    m_isAlive(true)
+    m_isAlive(true),
+    m_context(context),
+    m_quickItem(quickItem)
 {
     Q_ASSERT(m_commandQueue);
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
+    if (m_quickItem)
+        connect(m_quickItem, &QObject::destroyed, this, &CanvasTexture::handleItemDestroyed);
+    else
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
 }
 
 /*!
@@ -96,6 +102,14 @@ GLint CanvasTexture::textureId() const
 /*!
  * \internal
  */
+void CanvasTexture::handleItemDestroyed()
+{
+    del();
+}
+
+/*!
+ * \internal
+ */
 bool CanvasTexture::isAlive() const
 {
     return bool(m_textureId);
@@ -106,8 +120,16 @@ bool CanvasTexture::isAlive() const
  */
 void CanvasTexture::del()
 {
-    if (m_textureId)
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
+    if (m_textureId) {
+        if (m_quickItem) {
+            m_context->quickItemToTextureMap().remove(m_quickItem);
+            m_quickItem = 0;
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearQuickItemAsTexture,
+                                         m_textureId);
+        } else {
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
+        }
+    }
     m_textureId = 0;
 }
 

@@ -49,6 +49,9 @@
 
 #include "context3d_p.h"
 #include "abstractobject3d_p.h"
+#include <QtCore/QPointer>
+
+class QQuickItem;
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -58,7 +61,8 @@ class CanvasTexture : public CanvasAbstractObject
     Q_OBJECT
 
 public:
-    explicit CanvasTexture(CanvasGlCommandQueue *queue, QObject *parent = 0);
+    explicit CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context,
+                           QQuickItem *quickItem = 0);
     ~CanvasTexture();
 
     void bind(CanvasContext::glEnums target);
@@ -69,8 +73,14 @@ public:
 
     friend QDebug operator<< (QDebug d, const CanvasTexture *texture);
 
+public slots:
+    void handleItemDestroyed();
+
+private:
     GLint m_textureId;
     bool m_isAlive;
+    CanvasContext *m_context;
+    QQuickItem *m_quickItem;
 };
 
 QT_CANVAS3D_END_NAMESPACE

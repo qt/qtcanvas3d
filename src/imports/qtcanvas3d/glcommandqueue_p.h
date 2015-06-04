@@ -48,12 +48,16 @@
 #define GLCOMMANDQUEUE_P_H
 
 #include "canvas3dcommon_p.h"
+#include "canvastextureprovider_p.h"
 
 #include <QtCore/QVariantList>
 #include <QtCore/QMutex>
+#include <QtCore/QPointer>
 #include <QtGui/qopengl.h>
 #include <QtGui/QOpenGLShader>
 #include <QtGui/QOpenGLShaderProgram>
+#include <QtQuick/QQuickItem>
+#include <QtQuick/QSGTextureProvider>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -207,6 +211,7 @@ public:
         internalGetUniformType,
         internalClearLocation, // Used to clear a mapped uniform location from map when no longer needed
         internalTextureComplete, // Indicates texture is complete and needs to be updated to screen at this point
+        internalClearQuickItemAsTexture, // Used to clear mapped quick item texture ids when no longer needed
         extStateDump
     };
 
@@ -266,6 +271,19 @@ public:
 
     QMutex *resourceMutex() { return &m_resourceMutex; }
 
+    void addQuickItemAsTexture(QQuickItem *quickItem, GLint textureId);
+    void clearQuickItemAsTextureList();
+
+    struct ProviderCacheItem {
+        ProviderCacheItem(QSGTextureProvider *provider, QQuickItem *item) :
+            providerPtr(provider),
+            quickItem(item) {}
+
+        QPointer<QSGTextureProvider> providerPtr;
+        QQuickItem *quickItem; // Not owned, nor accessed - only used as identifier
+    };
+    QMap<GLint, ProviderCacheItem *> &providerCache() { return m_providerCache; }
+
 signals:
     void queueFull();
 
@@ -280,6 +298,18 @@ private:
     GLint m_nextResourceId;
     bool m_resourceIdOverflow;
     QMutex m_resourceMutex;
+
+    struct ItemAndId {
+        ItemAndId(QQuickItem *item, GLint itemId) :
+            itemPtr(item),
+            id(itemId) {}
+
+        QPointer<QQuickItem> itemPtr;
+        GLint id;
+    };
+    QList<ItemAndId *> m_quickItemsAsTextureList;
+
+    QMap<GLint, ProviderCacheItem *> m_providerCache;
 };
 
 class GlCommand

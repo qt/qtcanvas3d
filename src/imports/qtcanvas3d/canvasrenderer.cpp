@@ -178,6 +178,10 @@ void CanvasRenderer::shutDown()
                     // Nothing to do, uniforms do not actually consume resources
                     break;
                 }
+                case CanvasGlCommandQueue::internalClearQuickItemAsTexture: {
+                    // Nothing to do, scenegraph will handle texture clearing
+                    break;
+                }
                 default:
                     qWarning() << __FUNCTION__ << "Invalid command, cannot cleanup:"
                                << commandId << "Resource:" << glId;
@@ -408,6 +412,40 @@ void CanvasRenderer::render()
 {
     // Skip render if there is no context or nothing to render
     if (m_glContext && m_executeQueueCount) {
+        // Update tracked quick item textures
+        int providerCount = m_commandQueue.providerCache().size();
+        if (providerCount) {
+            QMap<GLint, CanvasGlCommandQueue::ProviderCacheItem *>::iterator i =
+                    m_commandQueue.providerCache().begin();
+            while (i != m_commandQueue.providerCache().end()) {
+                CanvasGlCommandQueue::ProviderCacheItem *cacheItem = i.value();
+                QSGTextureProvider *texProvider = cacheItem->providerPtr.data();
+                GLint id = i.key();
+                QMap<GLint, CanvasGlCommandQueue::ProviderCacheItem *>::iterator prev = i;
+                i++;
+
+                if (texProvider) {
+                    QSGDynamicTexture *texture =
+                            qobject_cast<QSGDynamicTexture *>(texProvider->texture());
+                    if (texture) {
+                        texture->updateTexture();
+                        int textureId = texture->textureId();
+                        int currentTextureId = m_commandQueue.getGlId(id);
+                        if (textureId && textureId != currentTextureId) {
+                            m_commandQueue.setGlIdToMap(
+                                        id, textureId,
+                                        CanvasGlCommandQueue::internalClearQuickItemAsTexture);
+                            emit textureIdResolved(cacheItem->quickItem);
+                        }
+                    }
+                } else {
+                    // Clean obsolete providers off the cache
+                    m_commandQueue.providerCache().erase(prev);
+                    delete cacheItem;
+                }
+            }
+        }
+
         // Render to offscreen fbo
         QOpenGLContext *oldContext = QOpenGLContext::currentContext();
         QSurface *oldSurface = oldContext->surface();
@@ -1273,6 +1311,12 @@ void CanvasRenderer::executeCommandQueue()
         case CanvasGlCommandQueue::internalTextureComplete: {
             finalizeTexture();
             bindCurrentRenderTarget();
+            break;
+        }
+        case CanvasGlCommandQueue::internalClearQuickItemAsTexture: {
+            // Used to clear mapped quick item texture ids when no longer needed
+            m_commandQueue.removeResourceIdFromMap(command.i1);
+            delete m_commandQueue.providerCache().take(command.i1);
             break;
         }
         default: {

@@ -292,6 +292,10 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
                                         contextVersion, extensions,
                                         m_renderer->commandQueue());
 
+        connect(m_renderer, &CanvasRenderer::textureIdResolved,
+                m_context3D, &CanvasContext::handleTextureIdResolved,
+                Qt::QueuedConnection);
+
         // Verify that width and height are not initially too large, in case width and height
         // were set before getting GL_MAX_VIEWPORT_DIMS
         if (width() > m_maxSize.width()) {

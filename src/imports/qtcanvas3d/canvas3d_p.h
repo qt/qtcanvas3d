@@ -94,13 +94,10 @@ public:
     float devicePixelRatio();
     QSize pixelSize();
     void setPixelSize(QSize pixelSize);
-    void createFBOs();
     void setWidth(int width);
     int width();
     void setHeight(int height);
     int height();
-
-    void bindCurrentRenderTarget();
 
     uint fps();
 

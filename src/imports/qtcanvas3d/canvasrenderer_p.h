@@ -55,6 +55,7 @@
 #include <QtGui/QOpenGLContext>
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLFramebufferObject>
+#include <QtQuick/QQuickItem>
 
 QT_BEGIN_NAMESPACE
 
@@ -106,8 +107,8 @@ public slots:
 
 signals:
     void fpsChanged(uint fps);
-
     void textureReady(int id, const QSize &size);
+    void textureIdResolved(QQuickItem *item);
 
 private:
     QSize m_fboSize;

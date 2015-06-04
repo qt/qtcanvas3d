@@ -35,6 +35,8 @@
 ****************************************************************************/
 
 #include "glcommandqueue_p.h"
+#include "canvas3d_p.h" // for logging categories
+
 #include <QtCore/QMap>
 #include <QtCore/QMutexLocker>
 
@@ -89,6 +91,7 @@ GlCommand &CanvasGlCommandQueue::queueCommand(CanvasGlCommandQueue::GlCommandId 
         if (m_queuedCount) {
             deleteUntransferedCommandData();
             m_queuedCount = 0;
+            clearQuickItemAsTextureList();
         }
     }
 
@@ -169,6 +172,33 @@ int CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
     const int count = m_queuedCount;
     m_queuedCount = 0;
 
+    // Grab texture providers from quick items and cache them
+    const int quickItemCount = m_quickItemsAsTextureList.size();
+    if (quickItemCount) {
+        for (int i = 0; i < quickItemCount; i++) {
+            const ItemAndId *itemAndId = m_quickItemsAsTextureList.at(i);
+            if (!itemAndId->itemPtr.isNull()) {
+                QQuickItem *quickItem = itemAndId->itemPtr.data();
+                QSGTextureProvider *texProvider = quickItem->textureProvider();
+                if (texProvider) {
+                    // Make sure the old provider, if any, gets cleared up before inserting a new one
+                    delete m_providerCache.take(itemAndId->id);
+                    m_providerCache.insert(itemAndId->id,
+                                           new ProviderCacheItem(texProvider, quickItem));
+                    // Reset the mapped glId so it gets resolved at render time
+                    setGlIdToMap(itemAndId->id, 0,
+                                 CanvasGlCommandQueue::internalClearQuickItemAsTexture);
+                } else {
+                    qCWarning(canvas3drendering).nospace() << "CanvasGlCommandQueue::"
+                                                           << __FUNCTION__
+                                                           << ": The Quick item doesn't implement a texture provider: "
+                                                           << quickItem;
+                }
+            }
+        }
+        clearQuickItemAsTextureList();
+    }
+
     return count;
 }
 
@@ -180,6 +210,7 @@ int CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
 void CanvasGlCommandQueue::resetQueue(int size)
 {
     deleteUntransferedCommandData();
+    clearQuickItemAsTextureList();
 
     m_queuedCount = 0;
     m_maxSize = size;
@@ -342,6 +373,22 @@ GLuint CanvasGlCommandQueue::takeSingleIdParam(const GlCommand &command)
 void CanvasGlCommandQueue::handleGenerateCommand(const GlCommand &command, GLuint glId)
 {
     setGlIdToMap(command.i1, glId, command.id);
+}
+
+/*!
+ * \internal
+ * Adds a quick item to list of items that need to be converted to texture IDs on the
+ * next command transfer.
+ */
+void CanvasGlCommandQueue::addQuickItemAsTexture(QQuickItem *quickItem, GLint textureId)
+{
+    m_quickItemsAsTextureList.append(new ItemAndId(quickItem, textureId));
+}
+
+void CanvasGlCommandQueue::clearQuickItemAsTextureList()
+{
+    qDeleteAll(m_quickItemsAsTextureList);
+    m_quickItemsAsTextureList.clear();
 }
 
 QT_CANVAS3D_END_NAMESPACE

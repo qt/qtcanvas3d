@@ -34,62 +34,48 @@
 **
 ****************************************************************************/
 
-#ifndef QCANVAS3D_PLUGIN_H
-#define QCANVAS3D_PLUGIN_H
+//
+//  W A R N I N G
+//  -------------
+//
+// This file is not part of the QtCanvas3D API.  It exists purely as an
+// implementation detail.  This header file may change from version to
+// version without notice, or even be removed.
+//
+// We mean it.
 
-#include "canvas3d_p.h"
-#include "texture3d_p.h"
-#include "shader3d_p.h"
-#include "context3d_p.h"
-#include "program3d_p.h"
-#include "buffer3d_p.h"
-#include "uniformlocation_p.h"
-#include "teximage3d_p.h"
-#include "contextattributes_p.h"
-#include "framebuffer3d_p.h"
-#include "renderbuffer3d_p.h"
-#include "shaderprecisionformat_p.h"
-#include "activeinfo3d_p.h"
-#include "canvasglstatedump_p.h"
-#include "canvastextureprovider_p.h"
+#ifndef CANVASTEXTUREPROVIDER_P_H
+#define CANVASTEXTUREPROVIDER_P_H
 
-#include <QQmlExtensionPlugin>
+#include "canvas3dcommon_p.h"
 
-using namespace QtCanvas3D;
-
-Q_DECLARE_METATYPE(CanvasBuffer)
-
-QML_DECLARE_TYPE(Canvas)
-QML_DECLARE_TYPE(CanvasContext)
-QML_DECLARE_TYPE(CanvasTexture)
-QML_DECLARE_TYPE(CanvasShader)
-QML_DECLARE_TYPE(CanvasProgram)
-QML_DECLARE_TYPE(CanvasBuffer)
-QML_DECLARE_TYPE(CanvasUniformLocation)
-QML_DECLARE_TYPE(CanvasTextureImage)
-QML_DECLARE_TYPE(CanvasTextureImageFactory)
-QML_DECLARE_TYPE(CanvasContextAttributes)
-QML_DECLARE_TYPE(CanvasFrameBuffer)
-QML_DECLARE_TYPE(CanvasRenderBuffer)
-QML_DECLARE_TYPE(CanvasShaderPrecisionFormat)
-QML_DECLARE_TYPE(CanvasActiveInfo)
-QML_DECLARE_TYPE(CanvasGLStateDump)
-QML_DECLARE_TYPE(CanvasTextureProvider)
+#include <QtCore/QObject>
+#include <QtGui/qopengl.h>
+#include <QtQuick/QQuickItem>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class QtCanvas3DPlugin : public QQmlExtensionPlugin
+class CanvasContext;
+
+class CanvasTextureProvider : public QObject
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
-
 public:
-    void registerTypes(const char *uri);
+    CanvasTextureProvider(CanvasContext *canvasContext, QObject *parent = 0);
+    ~CanvasTextureProvider();
+
+    Q_INVOKABLE QJSValue createTextureFromSource(QQuickItem *source);
+
+signals:
+    void textureReady(QQuickItem *source);
+
+private:
+    CanvasContext *m_canvasContext;
+    QJSValue m_textureObject;
 };
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE
 
-#endif // QCANVAS3D_PLUGIN_H
-
+#endif // CANVASTEXTUREPROVIDER_P_H

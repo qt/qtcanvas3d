@@ -34,62 +34,41 @@
 **
 ****************************************************************************/
 
-#ifndef QCANVAS3D_PLUGIN_H
-#define QCANVAS3D_PLUGIN_H
+/*!
+    \example canvas3d/quickitemtexture
+    \since QtCanvas3D 1.0
+    \title Qt Quick Item as Texture Example
+    \ingroup qtcanvas3d-examples
+    \brief A simple cube with a Qt Quick item as a texture
 
-#include "canvas3d_p.h"
-#include "texture3d_p.h"
-#include "shader3d_p.h"
-#include "context3d_p.h"
-#include "program3d_p.h"
-#include "buffer3d_p.h"
-#include "uniformlocation_p.h"
-#include "teximage3d_p.h"
-#include "contextattributes_p.h"
-#include "framebuffer3d_p.h"
-#include "renderbuffer3d_p.h"
-#include "shaderprecisionformat_p.h"
-#include "activeinfo3d_p.h"
-#include "canvasglstatedump_p.h"
-#include "canvastextureprovider_p.h"
+    The Qt Quick Item as Texture example shows how to use other Qt Quick items as
+    a texture source for Qt Canvas3D textures.
 
-#include <QQmlExtensionPlugin>
+    \image quickitemtexture-example.png
 
-using namespace QtCanvas3D;
+    \section1 Using Qt Quick Item as a Texture
 
-Q_DECLARE_METATYPE(CanvasBuffer)
+    First we create a \l Rectangle with a label that displays the current frame rate and rotation
+    values of the cube:
 
-QML_DECLARE_TYPE(Canvas)
-QML_DECLARE_TYPE(CanvasContext)
-QML_DECLARE_TYPE(CanvasTexture)
-QML_DECLARE_TYPE(CanvasShader)
-QML_DECLARE_TYPE(CanvasProgram)
-QML_DECLARE_TYPE(CanvasBuffer)
-QML_DECLARE_TYPE(CanvasUniformLocation)
-QML_DECLARE_TYPE(CanvasTextureImage)
-QML_DECLARE_TYPE(CanvasTextureImageFactory)
-QML_DECLARE_TYPE(CanvasContextAttributes)
-QML_DECLARE_TYPE(CanvasFrameBuffer)
-QML_DECLARE_TYPE(CanvasRenderBuffer)
-QML_DECLARE_TYPE(CanvasShaderPrecisionFormat)
-QML_DECLARE_TYPE(CanvasActiveInfo)
-QML_DECLARE_TYPE(CanvasGLStateDump)
-QML_DECLARE_TYPE(CanvasTextureProvider)
+    \snippet canvas3d/quickitemtexture/qml/quickitemtexture/main.qml 0
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
+    We want to use the above \l Rectangle as the texture on our 3D cube. As a \l Rectangle item
+    doesn't implement QQuickItem::textureProvider() by itself, we make it layered by setting the
+    \c{layer.enabled} property to \c{true}.
 
-class QtCanvas3DPlugin : public QQmlExtensionPlugin
-{
-    Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+    To create a Canvas3DTexture out of our layered \l{Rectangle}, we create a
+    \l{Canvas3DTextureProvider}{QTCANVAS3D_texture_provider} extension and the texture
+    in the \c initializeGL() function in our JavaScript implementation:
 
-public:
-    void registerTypes(const char *uri);
-};
+    \snippet canvas3d/quickitemtexture/qml/quickitemtexture/quickitemtexture.js 0
 
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE
+    Once the \c cubeTexture item is created, it can be used like any other texture item in
+    the JavaScript.
 
-#endif // QCANVAS3D_PLUGIN_H
-
+    \note The method of creating the texture from a Qt Quick item differs from how one would create
+    texture from an HTML item in WebGL API. Textures created with
+    \l{Canvas3DTextureProvider}{QTCANVAS3D_texture_provider} extension
+    support automatic live updates, without having to call textureImage2D each frame
+    to re-upload fresh texture data from the item.
+*/

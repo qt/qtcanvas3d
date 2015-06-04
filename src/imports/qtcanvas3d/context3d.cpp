@@ -104,6 +104,7 @@ CanvasContext::CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttrib
     m_isOpenGLES2(isES2),
     m_commandQueue(commandQueue),
     m_stateDumpExt(0),
+    m_textureProviderExt(0),
     m_standardDerivatives(0),
     m_compressedTextureS3TC(0),
     m_compressedTexturePVRTC(0)
@@ -120,6 +121,11 @@ CanvasContext::~CanvasContext()
 {
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__;
     EnumToStringMap::deleteInstance();
+
+    // Cleanup quick item textures to avoid crash when parent gets deleted before children
+    QList<CanvasTexture *> quickItemTextures = m_quickItemToTextureMap.values();
+    foreach (CanvasTexture *texture, quickItemTextures)
+        texture->del();
 }
 
 /*!
@@ -6103,6 +6109,42 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
 }
 
 /*!
+ * \internal
+ *
+ * Implements CanvasTextureProvider::createTextureFromSource() extension functionality
+ */
+QJSValue CanvasContext::createTextureFromSource(QQuickItem *item)
+{
+    // First check if we have a CanvasTexture already for this item
+    CanvasTexture *texture = m_quickItemToTextureMap.value(item, 0);
+    if (!texture)
+        texture = new CanvasTexture(m_commandQueue, this, item);
+
+    m_quickItemToTextureMap.insert(item, texture);
+
+    QJSValue value = m_engine->newQObject(texture);
+
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                         << "(quickItem:" << item
+                                         << "):" << value.toString();
+
+    // We attempt to add item as texture again even if it is already created to make sure the
+    // provider is cached. This allows user to fix the texture after e.g. disabling and enabling
+    // a layer, which destroys and recreates the texture provider.
+    m_commandQueue->addQuickItemAsTexture(item, texture->textureId());
+
+    return value;
+}
+
+/*!
+ * \internal
+ */
+QMap<QQuickItem *, CanvasTexture *> &CanvasContext::quickItemToTextureMap()
+{
+    return m_quickItemToTextureMap;
+}
+
+/*!
  * \qmlmethod variant Context3D::getUniform(Canvas3DProgram program, Canvas3DUniformLocation location3D)
  * Returns the uniform value at the given \a location3D in the \a program.
  * The type returned is dependent on the uniform type, as shown in the table:
@@ -6413,11 +6455,20 @@ void CanvasContext::scheduleSyncCommand(GlSyncCommand *command)
  * \internal
  * Schedules a blocking job to clear the queue.
  */
-
 void CanvasContext::handleFullCommandQueue()
 {
     // Use no command to simply force the execution of the pending queue
     scheduleSyncCommand(0);
+}
+
+/*!
+ * \internal
+ */
+void CanvasContext::handleTextureIdResolved(QQuickItem *item)
+{
+    CanvasTexture *texture = m_quickItemToTextureMap.value(item, 0);
+    if (texture && texture->isAlive() && m_textureProviderExt)
+        emit m_textureProviderExt->textureReady(item);
 }
 
 /*!
@@ -6442,6 +6493,10 @@ QVariant CanvasContext::getExtension(const QString &name)
         if (!m_stateDumpExt)
             m_stateDumpExt = new CanvasGLStateDump(this, m_isOpenGLES2, this);
         return QVariant::fromValue(m_stateDumpExt);
+    } else if (upperCaseName == QStringLiteral("QTCANVAS3D_TEXTURE_PROVIDER")) {
+        if (!m_textureProviderExt)
+            m_textureProviderExt = new CanvasTextureProvider(this, this);
+        return QVariant::fromValue(m_textureProviderExt);
     } else if (upperCaseName == QStringLiteral("OES_STANDARD_DERIVATIVES") &&
                m_extensions.contains("OES_standard_derivatives")) {
         if (!m_standardDerivatives)
