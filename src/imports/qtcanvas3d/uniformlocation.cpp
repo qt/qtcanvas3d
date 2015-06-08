@@ -41,13 +41,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype UniformLocation
+ * \qmltype Canvas3DUniformLocation
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains uniform location id.
  *
  * An uncreatable QML type that contains an uniform location id. You can get it by calling
- * \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
+ * the \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
  */
 
 /*!
@@ -106,9 +106,9 @@ void CanvasUniformLocation::resolveType(GLint programId, CanvasContext *context)
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)
-        dbg.nospace() << "UniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_locationId << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_locationId << ")";
     else
-        dbg.nospace() << "UniformLocation("<< (void *)(uLoc) << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *)(uLoc) << ")";
 
     return dbg.maybeSpace();
 }

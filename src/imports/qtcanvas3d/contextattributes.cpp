@@ -43,13 +43,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype ContextAttributes
+ * \qmltype Canvas3DContextAttributes
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Attribute set for Context3D
  *
- * ContextAttributes is an attribute set that can be given as parameter on first call to
- * Canvas3D object's \l{Canvas3D::getContext}{getContext(string type, ContextAttributes options)}
+ * Canvas3DContextAttributes is an attribute set that can be given as parameter on first call to
+ * Canvas3D object's \l{Canvas3D::getContext}{getContext(string type, Canvas3DContextAttributes options)}
  * method call. It can also be requested from the Context3D later on to verify what exact
  * attributes are in fact enabled/disabled in the created context.
  *
@@ -120,7 +120,7 @@ void CanvasContextAttributes::setFrom(const CanvasContextAttributes &source)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::alpha
+ * \qmlproperty bool Canvas3DContextAttributes::alpha
  * Ignored. Defaults to \c{false}.
  */
 bool CanvasContextAttributes::alpha()  const
@@ -138,7 +138,7 @@ void CanvasContextAttributes::setAlpha(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::depth
+ * \qmlproperty bool Canvas3DContextAttributes::depth
  * Specifies whether a depth attachment is to be created and attached to the default render target
  * of the Context3D.
  * Defaults to \c{false}.
@@ -158,7 +158,7 @@ void CanvasContextAttributes::setDepth(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::stencil
+ * \qmlproperty bool Canvas3DContextAttributes::stencil
  * Specifies whether a stencil attachment is to be created and attached to the default render
  * target of the Context3D.
  * Defaults to \c{false}.
@@ -178,7 +178,7 @@ void CanvasContextAttributes::setStencil(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::antialias
+ * \qmlproperty bool Canvas3DContextAttributes::antialias
  * Specifies whether antialiasing buffer is created for the default render target of the Context3D.
  * Defaults to \c{false}.
  */
@@ -197,7 +197,7 @@ void CanvasContextAttributes::setAntialias(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::premultipliedAlpha
+ * \qmlproperty bool Canvas3DContextAttributes::premultipliedAlpha
  * Ignored. Defaults to \c{false}.
  */
 bool CanvasContextAttributes::premultipliedAlpha() const
@@ -215,7 +215,7 @@ void CanvasContextAttributes::setPremultipliedAlpha(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::preserveDrawingBuffer
+ * \qmlproperty bool Canvas3DContextAttributes::preserveDrawingBuffer
  * Ignored. Defaults to \c{false}.
  */
 bool CanvasContextAttributes::preserveDrawingBuffer() const
@@ -233,7 +233,7 @@ void CanvasContextAttributes::setPreserveDrawingBuffer(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::preferLowPowerToHighPerformance
+ * \qmlproperty bool Canvas3DContextAttributes::preferLowPowerToHighPerformance
  * Ignored. Defaults to \c{false}.
  */
 bool CanvasContextAttributes::preferLowPowerToHighPerformance() const
@@ -251,7 +251,7 @@ void CanvasContextAttributes::setPreferLowPowerToHighPerformance(bool value)
 }
 
 /*!
- * \qmlproperty bool ContextAttributes::failIfMajorPerformanceCaveat
+ * \qmlproperty bool Canvas3DContextAttributes::failIfMajorPerformanceCaveat
  * Ignored. Defaults to \c{false}.
  */
 bool CanvasContextAttributes::failIfMajorPerformanceCaveat() const
@@ -273,7 +273,7 @@ void CanvasContextAttributes::setFailIfMajorPerformanceCaveat(bool value)
  */
 QDebug operator<<(QDebug dbg, const CanvasContextAttributes &attribs)
 {
-    dbg.nospace() << "ContextAttributes(\n    alpha:"<< attribs.m_alpha  <<
+    dbg.nospace() << "Canvas3DContextAttributes(\n    alpha:"<< attribs.m_alpha  <<
                      "\n    depth:" << attribs.m_depth <<
                      "\n    m_stencil:" << attribs.m_stencil <<
                      "\n    antialias:"<< attribs.m_antialias <<

@@ -94,10 +94,16 @@ void CanvasRenderer::createContextShare(QQuickWindow *window, const QSize &initi
     m_initializedSize = initializedSize;
     m_glContextQt = window->openglContext();
     m_isOpenGLES2 = m_glContextQt->isOpenGLES();
-    if (!m_isOpenGLES2 || m_glContextQt->format().majorVersion() >= 3)
+
+    QSurfaceFormat surfaceFormat = m_glContextQt->format();
+    // Some devices report wrong version, so force 2.0 on ES2
+    if (m_isOpenGLES2)
+        surfaceFormat.setVersion(2, 0);
+
+    if (!m_isOpenGLES2 || surfaceFormat.majorVersion() >= 3)
         m_maxSamples = 4;
     m_glContextShare = new QOpenGLContext;
-    m_glContextShare->setFormat(m_glContextQt->format());
+    m_glContextShare->setFormat(surfaceFormat);
     m_glContextShare->setShareContext(m_glContextQt);
     QSurface *surface = m_glContextQt->surface();
     m_glContextQt->doneCurrent();
@@ -278,7 +284,11 @@ bool CanvasRenderer::createContext(QQuickWindow *window,
 
     // Create the offscreen surface
     QSurfaceFormat surfaceFormat = m_glContextShare->format();
-    if (!m_isOpenGLES2) {
+
+    if (m_isOpenGLES2) {
+        // Some devices report wrong version, so force 2.0 on ES2
+        surfaceFormat.setVersion(2, 0);
+    } else {
         surfaceFormat.setSwapBehavior(QSurfaceFormat::SingleBuffer);
         surfaceFormat.setSwapInterval(0);
     }
@@ -344,6 +354,15 @@ bool CanvasRenderer::createContext(QQuickWindow *window,
     // Set the size and create FBOs
     setFboSize(m_initializedSize);
     m_forceViewportRect = QRect(0, 0, m_fboSize.width(), m_fboSize.height());
+
+#if !defined(QT_OPENGL_ES_2)
+    if (!m_isOpenGLES2) {
+        // Make it possible to change point primitive size and use textures with them in
+        // the shaders. These are implicitly enabled in ES2.
+        glEnable(GL_PROGRAM_POINT_SIZE);
+        glEnable(GL_POINT_SPRITE);
+    }
+#endif
 
     m_commandQueue.resetQueue(commandQueueSize);
     m_executeQueue.resize(commandQueueSize);
@@ -464,6 +483,19 @@ void CanvasRenderer::createFBOs()
     QOpenGLFramebufferObject *renderFbo = m_renderFbo;
     QOpenGLFramebufferObject *antialiasFbo = m_antialiasFbo;
 
+    // Initialize the scissor box the first time we create FBOs
+    if (!m_displayFbo)
+        glScissor(0, 0, m_fboSize.width(), m_fboSize.height());
+
+    QOpenGLFramebufferObject *dummyFbo = 0;
+    if (!m_renderFbo) {
+        // Create a dummy FBO to work around a weird GPU driver bug on some platforms that
+        // causes the first FBO created to get corrupted in some cases.
+        dummyFbo = new QOpenGLFramebufferObject(m_fboSize.width(),
+                                                m_fboSize.height(),
+                                                m_fboFormat);
+    }
+
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
                                          << " Creating front and back FBO's with"
@@ -516,6 +548,9 @@ void CanvasRenderer::createFBOs()
 
     if (m_currentFramebufferId)
         bindCurrentRenderTarget();
+
+    // Get rid of the dummy FBO, it has served its purpose
+    delete dummyFbo;
 
     logGlErrors(__FUNCTION__);
 }

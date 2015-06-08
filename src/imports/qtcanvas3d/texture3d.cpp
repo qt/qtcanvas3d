@@ -41,13 +41,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype Texture3D
+ * \qmltype Canvas3DTexture
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL texture.
  *
  * An uncreatable QML type that contains an OpenGL texture. You can get it by calling
- * \l{Context3D::createTexture()}{Context3D.createTexture()} method.
+ * the \l{Context3D::createTexture()}{Context3D.createTexture()} method.
  */
 
 /*!
@@ -117,9 +117,9 @@ void CanvasTexture::del()
 QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
 {
     if (texture)
-        dbg.nospace() << "Texture3D("<< ((void*) texture) << ", name:" << texture->name() << ", id:" << texture->textureId() << ")";
+        dbg.nospace() << "Canvas3DTexture("<< ((void*) texture) << ", name:" << texture->name() << ", id:" << texture->textureId() << ")";
     else
-        dbg.nospace() << "Texture3D("<< ((void*) texture) <<")";
+        dbg.nospace() << "Canvas3DTexture("<< ((void*) texture) <<")";
     return dbg.maybeSpace();
 }
 

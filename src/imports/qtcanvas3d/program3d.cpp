@@ -40,13 +40,13 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype Program3D
+ * \qmltype Canvas3DProgram
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains a shader program.
  *
  * An uncreatable QML type that contains a compiled shader program. You can get it by calling
- * \l{Context3D::createProgram()}{Context3D.createProgram()} method.
+ * the \l{Context3D::createProgram()}{Context3D.createProgram()} method.
  */
 
 /*!
@@ -192,9 +192,9 @@ GLint CanvasProgram::id()
 QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 {
     if (program)
-        dbg.nospace() << "Program3D("<< program->name() << ", id:" << program->m_programId << ")";
+        dbg.nospace() << "Canvas3DProgram("<< program->name() << ", id:" << program->m_programId << ")";
     else
-        dbg.nospace() << "Program3D("<< ((void*) program) <<")";
+        dbg.nospace() << "Canvas3DProgram("<< ((void*) program) <<")";
     return dbg.maybeSpace();
 }
 

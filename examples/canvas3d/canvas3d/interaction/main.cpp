@@ -55,7 +55,7 @@ int main(int argc, char *argv[])
     viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
                                                        QString::fromLatin1("qml")));
 
-    viewer.setSource(QUrl("qrc:/qml/interaction/main.qml"));
+    viewer.setSource(QUrl("qrc:/main.qml"));
 
     viewer.setTitle(QStringLiteral("Interaction"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);

@@ -154,6 +154,17 @@
     For a simple Canvas3D example, see the \l {Lit and Textured Cube Example}.
 
     For all examples, check out \l {Qt Canvas 3D Examples}.
+
+    \section1 Creating Qt Canvas 3D Project
+
+    For convenience, Qt Canvas 3D comes with a Qt Creator wizard template. The template is
+    provided with the source package and can be found under \e{creatortemplates} folder. The Qt
+    Canvas 3D wizard creates a project that includes QML and JavaScript files. It also has, by
+    default, code that draws a cube.
+
+    In order to use the wizard template it needs to be copied to the correct location. For more
+    details of the correct location, please see
+    \l {http://doc.qt.io/qtcreator/creator-project-wizards.html#locating-wizards}{Locating Wizards}.
 */
 
 /*!

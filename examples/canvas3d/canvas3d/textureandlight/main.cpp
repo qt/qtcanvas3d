@@ -65,7 +65,7 @@ int main(int argc, char *argv[])
     viewer.engine()->addImportPath(extraImportPath.arg(QGuiApplication::applicationDirPath(),
                                                        QString::fromLatin1("qml")));
 
-    viewer.setSource(QUrl("qrc:/qml/textureandlight/main.qml"));
+    viewer.setSource(QUrl("qrc:/main.qml"));
 
     viewer.setTitle(QStringLiteral("Textured and Lit Cube"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);

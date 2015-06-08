@@ -43,12 +43,12 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \qmltype Buffer3D
+ * \qmltype Canvas3DBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains an OpenGL buffer.
  *
- * An uncreatable QML type that contains an OpenGL buffer. You can get it by calling
+ * An uncreatable QML type that contains an OpenGL buffer. You can get it by calling the
  * \l{Context3D::createBuffer()}{Context3D.createBuffer()} method.
  */
 
@@ -125,7 +125,7 @@ CanvasBuffer::bindTarget CanvasBuffer::target()
  */
 void CanvasBuffer::setTarget(bindTarget bindPoint)
 {
-    //Q_ASSERT(m_bindTarget == Buffer3D::UNINITIALIZED);
+    //Q_ASSERT(m_bindTarget == CanvasBuffer::UNINITIALIZED);
 
     m_bindTarget = bindPoint;
 }
@@ -144,9 +144,9 @@ GLint CanvasBuffer::id()
 QDebug operator<<(QDebug dbg, const CanvasBuffer *buffer)
 {
     if (buffer)
-        dbg.nospace() << "Buffer3D("<< buffer->name() <<", id:" << buffer->m_bufferId << ")";
+        dbg.nospace() << "Canvas3DBuffer("<< buffer->name() <<", id:" << buffer->m_bufferId << ")";
     else
-        dbg.nospace() << "Buffer3D("<< ((void*) buffer) <<")";
+        dbg.nospace() << "Canvas3DBuffer("<< ((void*) buffer) <<")";
     return dbg.maybeSpace();
 }
 

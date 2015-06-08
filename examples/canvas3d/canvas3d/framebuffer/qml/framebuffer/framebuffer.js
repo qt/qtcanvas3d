@@ -34,7 +34,7 @@
 **
 ****************************************************************************/
 
-Qt.include("../../3rdparty/gl-matrix.js")
+Qt.include("gl-matrix.js")
 
 //
 // Draws a cube that has the Qt logo as decal texture on each face in to a texture.
@@ -109,7 +109,7 @@ function initializeGL(canvas, textureLoader) {
         qtLogoImage.imageLoadingFailed.connect(function() {
             console.log("Texture load FAILED, "+qtLogoImage.errorString);
         });
-        qtLogoImage.src = "qrc:/qml/framebuffer/qtlogo.png";
+        qtLogoImage.src = "qrc:/qtlogo.png";
 
         //! [1]
         // Create the framebuffer object
