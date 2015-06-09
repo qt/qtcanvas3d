@@ -58,7 +58,7 @@
     First we include a JSON model parser, which handles parsing the JSON
     models into our internal models:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 0
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 0
 
     The \c{ThreeJSLoader.js} includes a reimplementation of the JSON parser
     in \c{three.js}, but we will not go into its implementation details.
@@ -67,22 +67,22 @@
 
     First we need to initialize all array buffers for the models:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 1
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 1
     \dots
 
     Then we request the models to be loaded:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 2
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 2
     \dots
 
     Then, when the load requests return, we handle the models:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 3
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 3
     \dots
 
     Each buffer is bound and filled with the data parsed from the json models:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 4
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 4
 
     \section1 Loading the Textures
 
@@ -91,42 +91,42 @@
     \c imageLoadingFailed signals. In the \c imageLoaded signal
     handlers we create the OpenGL textures:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 5
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 5
     \dots
 
     \section1 Input Handling
 
     First we add a MouseArea to fill the Canvas3D:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.qml 0
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.qml 0
     \dots
 
     Before adding some functionality on it, we need to add properties to the
     canvas with initial values set:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.qml 1
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.qml 1
 
     After that, we add rotation on mouse movement when the left mouse button
     is pressed:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.qml 2
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.qml 2
 
     We need to keep the previous x and y values to avoid rotation jumping
     when the mouse button is released and pressed again. We store them in
     these properties:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.qml 3
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.qml 3
 
     Then we add zooming by mouse wheel:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.qml 4
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.qml 4
 
     These properties are then used in the JavaScript side when calculating
     eye/camera movement:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 7
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 7
 
     Converting the rotation values into movement is done as follows:
 
-    \snippet canvas3d/jsonmodels/jsonmodels.js 8
+    \snippet canvas3d/jsonmodels/qml/jsonmodels/jsonmodels.js 8
 */
