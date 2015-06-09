@@ -106,13 +106,13 @@ Text {
                 }
     }
 
-
     MouseArea {
-        id: mouseArea1
+        id: mouseArea
         anchors.fill: parent
         hoverEnabled: true
 
         onPressed: {
+            menubarItem.state = "mouseover";
         }
 
         onReleased: {
