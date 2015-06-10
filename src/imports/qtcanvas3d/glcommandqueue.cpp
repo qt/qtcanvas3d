@@ -261,6 +261,23 @@ GLuint CanvasGlCommandQueue::getGlId(GLint id)
     return m_resourceIdMap.value(id).glId;
 }
 
+GLint CanvasGlCommandQueue::getCanvasId(GLuint glId, GlCommandId type)
+{
+    if (!glId)
+        return 0;
+
+    QMutexLocker locker(&m_resourceMutex);
+
+    QList<GLint> keyList = m_resourceIdMap.keys();
+    foreach (GLint canvasId, keyList) {
+        GlResource value = m_resourceIdMap.value(canvasId);
+        if (value.glId == glId && value.commandId == type)
+            return canvasId;
+    }
+
+    return 0;
+}
+
 void CanvasGlCommandQueue::setShaderToMap(GLint id, QOpenGLShader *shader)
 {
     QMutexLocker locker(&m_resourceMutex);

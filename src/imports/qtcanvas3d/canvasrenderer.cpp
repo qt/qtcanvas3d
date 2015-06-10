@@ -1512,6 +1512,10 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
     case CanvasGlCommandQueue::glGetVertexAttribiv: {
         GLint *retVal = reinterpret_cast<GLint *>(command.returnValue);
         glGetVertexAttribiv(GLuint(command.i1), GLenum(command.i2), retVal);
+        if (command.i2 == GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING) {
+            // We need to return the buffer id of the context side, rather than the GL id.
+            *retVal = m_commandQueue.getCanvasId(*retVal, CanvasGlCommandQueue::glGenBuffers);
+        }
         break;
     }
     case CanvasGlCommandQueue::glGetString: {

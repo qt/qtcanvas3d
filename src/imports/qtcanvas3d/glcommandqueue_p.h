@@ -248,6 +248,7 @@ public:
     void setGlIdToMap(GLint id, GLuint glId, GlCommandId commandId);
     void removeResourceIdFromMap(GLint id);
     GLuint getGlId(GLint id);
+    GLint getCanvasId(GLuint glId, GlCommandId type);
 
     void setShaderToMap(GLint id, QOpenGLShader *shader);
     void setProgramToMap(GLint id, QOpenGLShaderProgram *program);
