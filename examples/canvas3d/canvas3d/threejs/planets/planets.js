@@ -221,7 +221,8 @@ function createPlanets() {
 
     objects = [];
 
-    commonGeometry = new THREE.SphereGeometry(1, 64, 64);
+    commonGeometry = new THREE.BufferGeometry().fromGeometry(new THREE.SphereGeometry(1, 64, 64));
+
     var ringSegments = 70;
     var mesh, innerRadius, outerRadius, ring;
 
@@ -347,7 +348,9 @@ function createEarthCloud() {
 
 function createRing(radius, width, height, texture) {
 
-    var geometry = new THREEx.Planets._RingGeometry(radius, width, height);
+    var geometry = new THREE.BufferGeometry().fromGeometry(
+                new THREEx.Planets._RingGeometry(radius, width, height));
+
     var material = new THREE.MeshPhongMaterial({
                                                    map: THREE.ImageUtils.loadTexture(texture),
                                                    side: THREE.DoubleSide,
@@ -369,7 +372,7 @@ function createStarfield(radius) {
                                                    map: texture,
                                                    side: THREE.BackSide
                                                })
-    var geometry = new THREE.SphereGeometry(radius, 32, 32)
+    var geometry = new THREE.BufferGeometry().fromGeometry(new THREE.SphereGeometry(radius, 32, 32));
     var mesh = new THREE.Mesh(geometry, material)
 
     return mesh
