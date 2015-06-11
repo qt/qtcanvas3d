@@ -102,6 +102,7 @@ public:
     GLuint resolveMSAAFbo();
 
     uint fps();
+    Q_INVOKABLE int frameTimeMs();
 
     Q_INVOKABLE QJSValue getContext(const QString &name);
     Q_INVOKABLE QJSValue getContext(const QString &name, const QVariantMap &options);
@@ -120,6 +121,7 @@ signals:
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
+    void frameTimeChanged(uint frametime);
 
     void initializeGL();
     void paintGL();
@@ -153,6 +155,7 @@ private:
     QQuickWindow *m_contextWindow;
 
     uint m_fps;
+    uint m_frameTimeMs;
     int m_maxSamples;
     float m_devicePixelRatio;
 
