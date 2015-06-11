@@ -331,7 +331,7 @@ Item {
     }
     Text {
         y: distanceSlider.y + distanceSlider.height + width + 10
-        x: distanceSlider.x
+        x: distanceSlider.x + 12
         transform: Rotation {
             origin.x: 0;
             origin.y: 0;
