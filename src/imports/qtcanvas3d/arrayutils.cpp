@@ -37,4 +37,39 @@
 #include "arrayutils_p.h"
 
 QT_BEGIN_NAMESPACE
+QT_CANVAS3D_BEGIN_NAMESPACE
+
+void ArrayUtils::fillFloatArrayFromVariantList(const QVariantList  &list, float *outArray)
+{
+    int idx = 0;
+    for (QVariantList::const_iterator it = list.begin(); it != list.end(); ++it) {
+        QVariant element = *it;
+        if (element.canConvert<float>()) {
+            outArray[idx] = element.toFloat();
+        }
+        else {
+            // Conversion failed, use 0.0 as default value
+            outArray[idx] = 0.f;
+        }
+        idx++;
+    }
+}
+
+void ArrayUtils::fillIntArrayFromVariantList(const QVariantList  &list, int *outArray)
+{
+    int idx = 0;
+    for (QVariantList::const_iterator it = list.begin(); it != list.end(); ++it) {
+        QVariant element = *it;
+        if (element.canConvert<int>()) {
+            outArray[idx] = element.toInt();
+        }
+        else {
+            // Conversion failed, use 0.0 as default value
+            outArray[idx] = 0;
+        }
+        idx++;
+    }
+}
+
+QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE
