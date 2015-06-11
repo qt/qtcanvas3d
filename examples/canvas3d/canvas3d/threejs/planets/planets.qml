@@ -131,7 +131,7 @@ Item {
             temperature: "5 778 K"
             orbitalPeriod: ""
             distance: ""
-            planetImageSource: "qrc:/images/sun.png"
+            planetImageSource: "images/sun.png"
             planetNumber: 0
         }
         ListElement {
@@ -140,7 +140,7 @@ Item {
             temperature: "80-700 K"
             orbitalPeriod: "87.969 d"
             distance: "0.387 098 AU"
-            planetImageSource: "qrc:/images/mercury.png"
+            planetImageSource: "images/mercury.png"
             planetNumber: 1
         }
         ListElement {
@@ -149,7 +149,7 @@ Item {
             temperature: "737 K"
             orbitalPeriod: "224.701 d"
             distance: "0.723 327 AU"
-            planetImageSource: "qrc:/images/venus.png"
+            planetImageSource: "images/venus.png"
             planetNumber: 2
         }
         ListElement {
@@ -158,7 +158,7 @@ Item {
             temperature: "184-330 K"
             orbitalPeriod: "365.256 d"
             distance: "149598261 km (1 AU)"
-            planetImageSource: "qrc:/images/earth.png"
+            planetImageSource: "images/earth.png"
             planetNumber: 3
         }
         ListElement {
@@ -167,7 +167,7 @@ Item {
             temperature: "130-308 K"
             orbitalPeriod: "686.971 d"
             distance: "1.523679 AU"
-            planetImageSource: "qrc:/images/mars.png"
+            planetImageSource: "images/mars.png"
             planetNumber: 4
         }
         ListElement {
@@ -176,7 +176,7 @@ Item {
             temperature: "112-165 K"
             orbitalPeriod: "4332.59 d"
             distance: "5.204267 AU"
-            planetImageSource: "qrc:/images/jupiter.png"
+            planetImageSource: "images/jupiter.png"
             planetNumber: 5
         }
         ListElement {
@@ -185,7 +185,7 @@ Item {
             temperature: "84-134 K"
             orbitalPeriod: "10759.22 d"
             distance: "9.5820172 AU"
-            planetImageSource: "qrc:/images/saturn.png"
+            planetImageSource: "images/saturn.png"
             planetNumber: 6
         }
         ListElement {
@@ -194,7 +194,7 @@ Item {
             temperature: "49-76 K"
             orbitalPeriod: "30687.15 d"
             distance: "19.189253 AU"
-            planetImageSource: "qrc:/images/uranus.png"
+            planetImageSource: "images/uranus.png"
             planetNumber: 7
         }
         ListElement {
@@ -203,7 +203,7 @@ Item {
             temperature: "55-72 K"
             orbitalPeriod: "60190.03 d"
             distance: "30.070900 AU"
-            planetImageSource: "qrc:/images/neptune.png"
+            planetImageSource: "images/neptune.png"
             planetNumber: 8
         }
         ListElement {

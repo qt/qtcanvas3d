@@ -233,30 +233,30 @@ function createPlanets() {
             mesh.position.set(0, 0, 0);
             break;
         case MERCURY:
-            mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/mercurymap.jpg',
-                                'qrc:/images/mercurybump.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.005, 'images/mercurymap.jpg',
+                                'images/mercurybump.jpg');
             break;
         case VENUS:
-            mesh = createPlanet(planets[i]["radius"], 0.005, 'qrc:/images/venusmap.jpg',
-                                'qrc:/images/venusbump.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.005, 'images/venusmap.jpg',
+                                'images/venusbump.jpg');
             break;
         case EARTH:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/earthmap1k.jpg',
-                                'qrc:/images/earthbump1k.jpg', 'qrc:/images/earthspec1k.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/earthmap1k.jpg',
+                                'images/earthbump1k.jpg', 'images/earthspec1k.jpg');
             var cloud = createEarthCloud();
             mesh.add(cloud);
             break;
         case MARS:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/marsmap1k.jpg',
-                                'qrc:/images/marsbump1k.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/marsmap1k.jpg',
+                                'images/marsbump1k.jpg');
             break;
         case JUPITER:
-            mesh = createPlanet(planets[i]["radius"], 0.02, 'qrc:/images/jupitermap.jpg',
-                                'qrc:/images/jupitermap.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.02, 'images/jupitermap.jpg',
+                                'images/jupitermap.jpg');
             break;
         case SATURN:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/saturnmap.jpg',
-                                'qrc:/images/saturnmap.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/saturnmap.jpg',
+                                'images/saturnmap.jpg');
             innerRadius = (planets[i]["radius"] + 6.630) / planets[i]["radius"];
             outerRadius = (planets[i]["radius"] + saturnOuterRadius) / planets[i]["radius"];
             ring = createRing(innerRadius, outerRadius, ringSegments,
@@ -266,8 +266,8 @@ function createPlanets() {
             mesh.add(ring);
             break;
         case URANUS:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/uranusmap.jpg',
-                                'qrc:/images/uranusmap.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/uranusmap.jpg',
+                                'images/uranusmap.jpg');
             innerRadius = (planets[i]["radius"] + 2) / planets[i]["radius"];
             outerRadius = (planets[i]["radius"] + uranusOuterRadius) / planets[i]["radius"];
             ring = createRing(innerRadius, outerRadius, ringSegments,
@@ -277,12 +277,12 @@ function createPlanets() {
             mesh.add(ring);
             break;
         case NEPTUNE:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/neptunemap.jpg',
-                                'qrc:/images/neptunemap.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/neptunemap.jpg',
+                                'images/neptunemap.jpg');
             break;
         case MOON:
-            mesh = createPlanet(planets[i]["radius"], 0.05, 'qrc:/images/moonmap1k.jpg',
-                                'qrc:/images/moonbump1k.jpg');
+            mesh = createPlanet(planets[i]["radius"], 0.05, 'images/moonmap1k.jpg',
+                                'images/moonbump1k.jpg');
             break;
         }
 
@@ -294,7 +294,7 @@ function createPlanets() {
 
 function createSun(radius) {
 
-    var texture = THREE.ImageUtils.loadTexture('qrc:/images/sunmap.jpg');
+    var texture = THREE.ImageUtils.loadTexture('images/sunmap.jpg');
     var material = new THREE.MeshBasicMaterial({
                                                    map: texture,
                                                    bumpMap: texture,
@@ -367,7 +367,7 @@ function createRing(radius, width, height, texture) {
 
 function createStarfield(radius) {
 
-    var texture = THREE.ImageUtils.loadTexture('qrc:/images/galaxy_starfield.png')
+    var texture = THREE.ImageUtils.loadTexture('images/galaxy_starfield.png')
     var material = new THREE.MeshBasicMaterial({
                                                    map: texture,
                                                    side: THREE.BackSide
