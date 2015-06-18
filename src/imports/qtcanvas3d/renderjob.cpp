@@ -64,13 +64,19 @@ CanvasRenderJob::~CanvasRenderJob()
 void CanvasRenderJob::run()
 {
     if (m_renderer && m_renderer->contextCreated()) {
-        // Store Qt context
-        QOpenGLContext *oldContext = QOpenGLContext::currentContext();
-        QSurface *oldSurface = oldContext->surface();
+        // Move commands to execution queue
+        m_renderer->transferCommands();
+
+        // Change to canvas context, if needed
+        QOpenGLContext *oldContext(0);
+        QSurface *oldSurface(0);
+        if (!m_renderer->usingQtContext()) {
+            oldContext = QOpenGLContext::currentContext();
+            oldSurface = oldContext->surface();
+            m_renderer->makeCanvasContextCurrent();
+        }
 
         // Execute pending queue
-        m_renderer->transferCommands();
-        m_renderer->makeCanvasContextCurrent();
         m_renderer->executeCommandQueue();
 
         // Execute synchronous command (if there is one)
@@ -78,10 +84,14 @@ void CanvasRenderJob::run()
             m_renderer->executeSyncCommand(*m_command);
 
         // Restore Qt context
-        if (oldContext && oldSurface) {
-            if (!oldContext->makeCurrent(oldSurface)) {
-                qCWarning(canvas3drendering).nospace() << "CanvasRenderJob::" << __FUNCTION__
-                                                       << " Failed to make old surface current";
+        if (m_renderer->usingQtContext()) {
+            m_renderer->resetQtOpenGLState();
+        } else {
+            if (oldContext && oldSurface) {
+                if (!oldContext->makeCurrent(oldSurface)) {
+                    qCWarning(canvas3drendering).nospace() << "CanvasRenderJob::" << __FUNCTION__
+                                                           << " Failed to make old surface current";
+                }
             }
         }
     }

@@ -60,7 +60,9 @@ CanvasGlCommandQueue::CanvasGlCommandQueue(int size, QObject *parent) :
     m_maxSize(0),
     m_queuedCount(0),
     m_nextResourceId(1),
-    m_resourceIdOverflow(false)
+    m_resourceIdOverflow(false),
+    m_clearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
+
 {
     resetQueue(size);
 }
@@ -389,6 +391,18 @@ void CanvasGlCommandQueue::clearQuickItemAsTextureList()
 {
     qDeleteAll(m_quickItemsAsTextureList);
     m_quickItemsAsTextureList.clear();
+}
+
+void CanvasGlCommandQueue::removeFromClearMask(GLbitfield mask)
+{
+    m_clearMask &= ~mask;
+}
+
+GLbitfield CanvasGlCommandQueue::resetClearMask()
+{
+    GLbitfield returnMask = m_clearMask;
+    m_clearMask = GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT;
+    return returnMask;
 }
 
 QT_CANVAS3D_END_NAMESPACE

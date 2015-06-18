@@ -113,7 +113,10 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
 
     // QtCanvas3D 1.1
 
-    // EXTENSIONS
+    // New revisions
+    qmlRegisterType<Canvas, 1>(uri, 1, 1, "Canvas3D");
+
+    // New types
     qmlRegisterUncreatableType<CanvasTextureProvider>(uri,
                                                       1, 1,
                                                       "Canvas3DTextureProvider",

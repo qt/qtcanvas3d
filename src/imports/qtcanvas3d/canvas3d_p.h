@@ -78,6 +78,9 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
 {
     Q_OBJECT
     Q_DISABLE_COPY(Canvas)
+
+    Q_ENUMS(RenderMode)
+
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
@@ -85,8 +88,15 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
     Q_PROPERTY(int width READ width WRITE setWidth)
     Q_PROPERTY(int height READ height WRITE setHeight)
+    Q_PROPERTY(RenderMode renderMode READ renderMode WRITE setRenderMode NOTIFY renderModeChanged REVISION 1)
 
 public:
+    enum RenderMode {
+        RenderModeOffscreenBuffer,
+        RenderModeBackground,
+        RenderModeForeground
+    };
+
     Canvas(QQuickItem *parent = 0);
     ~Canvas();
 
@@ -98,6 +108,8 @@ public:
     int width();
     void setHeight(int height);
     int height();
+    void setRenderMode(RenderMode mode);
+    RenderMode renderMode() const;
 
     uint fps();
 
@@ -110,6 +122,7 @@ public slots:
     void queueNextRender();
     void queueResizeGL();
     void emitNeedRender();
+    void handleBeforeSynchronizing();
 
 signals:
     void needRender();
@@ -117,6 +130,7 @@ signals:
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
+    void renderModeChanged();
 
     void initializeGL();
     void paintGL();
@@ -132,9 +146,11 @@ protected:
 private:
     void setupAntialiasing();
     void updateWindowParameters();
+    void sync();
+    bool firstSync();
 
     bool m_isNeedRenderQueued;
-    bool m_renderNodeReady;
+    bool m_rendererReady;
     CanvasContext *m_context3D;
     QSize m_fboSize;
     QSize m_maxSize;
@@ -148,8 +164,14 @@ private:
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;
     bool m_resizeGLQueued;
+    bool m_firstSync;
+    RenderMode m_renderMode;
 
     CanvasRenderer *m_renderer;
+
+    GLint m_maxVertexAttribs;
+    int m_contextVersion;
+    QSet<QByteArray> m_extensions;
 };
 
 QT_CANVAS3D_END_NAMESPACE

@@ -436,6 +436,7 @@ void CanvasGLStateDump::doGLStateDump()
  * from all currently active vertex attribute arrays (including the currently bound element array)
  * to verify that there are actual values in the array.
  * \li \c{GLStateDumpExt.DUMP_FULL} Includes everything.
+ * This command is handled synchronously.
  * \endlist
  */
 QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums options)

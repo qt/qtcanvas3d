@@ -85,7 +85,7 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
 Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_isNeedRenderQueued(false),
-    m_renderNodeReady(false),
+    m_rendererReady(false),
     m_context3D(0),
     m_fboSize(0, 0),
     m_maxSize(0, 0),
@@ -94,7 +94,12 @@ Canvas::Canvas(QQuickItem *parent):
     m_isOpenGLES2(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
-    m_renderer(0)
+    m_resizeGLQueued(false),
+    m_firstSync(true),
+    m_renderMode(RenderModeOffscreenBuffer),
+    m_renderer(0),
+    m_maxVertexAttribs(0),
+    m_contextVersion(0)
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::queueNextRender, Qt::QueuedConnection);
@@ -104,7 +109,7 @@ Canvas::Canvas(QQuickItem *parent):
 
     // Set contents to false in case we are in qml designer to make component look nice
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
-    setFlag(ItemHasContents, !m_runningInDesigner);
+    setFlag(ItemHasContents, !(m_runningInDesigner || m_renderMode != RenderModeOffscreenBuffer));
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
     if (QCoreApplication::testAttribute(Qt::AA_UseSoftwareOpenGL))
@@ -113,13 +118,14 @@ Canvas::Canvas(QQuickItem *parent):
 }
 
 /*!
- * \qmlsignal void Canvas::initializeGL()
+ * \qmlsignal void Canvas3D::initializeGL()
  * Emitted once when Canvas3D is ready and OpenGL state initialization can be done by the client.
  */
 
 /*!
- * \qmlsignal void Canvas::paintGL()
- * Emitted each time a new frame should be drawn to Canvas3D. Driven by the QML scenegraph loop.
+ * \qmlsignal void Canvas3D::paintGL()
+ * Emitted each time a new frame should be drawn to Canvas3D.
+ * Driven by the Qt Quick scenegraph loop.
  */
 
 /*!
@@ -197,6 +203,76 @@ int Canvas::height()
 }
 
 /*!
+ * \qmlproperty RenderMode Canvas3D::renderMode
+ * Specifies how the rendering should be done.
+ * \list
+ * \li \c Canvas3D.RenderModeOffscreenBuffer indicates rendering is done into an offscreen
+ * buffer and the finished texture is used for the Canvas3D item. This is the default mode.
+ * \li \c Canvas3D.RenderModeBackground indicates the rendering is done to the background of the
+ * Qt Quick scene, in response to QQuickWindow::beforeRendering() signal.
+ * \li \c Canvas3D.RenderModeForeground indicates the rendering is done to the foreground of the
+ * Qt Quick scene, in response to QQuickWindow::afterRendering() signal.
+ * \endlist
+ *
+ * \c Canvas3D.RenderModeBackground and \c Canvas3D.RenderModeForeground modes render directly to
+ * the same framebuffer the rest of the Qt Quick scene uses. This will improve performance
+ * on platforms that are fill-rate limited, but using these modes imposes several limitations
+ * on the usage of Canvas3D:
+ *
+ * \list
+ * \li Only Canvas3D items that fill the entire window are supported. Note that you can still
+ * control the actual rendering area by using an appropriate viewport.
+ * \li Antialiasing is only supported if the surface format of the window supports multisampling.
+ * You may need to specify the surface format of the window explicitly in your \c{main.cpp}.
+ * \li The default framebuffer needs to be cleared every time before the Qt Quick scene renders a
+ * frame. This means that you cannot use synchronous Context3D commands after any draw command
+ * targeting the default framebuffer in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal
+ * handler, as such commands cause drawing to happen before the default framebuffer is cleared
+ * for that frame.
+ * A synchronous command is any Context3D command that requires waiting for GL command queue
+ * to finish executing before it returns, such as \l{Context3D::getError}{Context3D.getError()}
+ * or \l{Context3D::readPixels}{Context3D.readPixels()}. When in doubt, see the individual command
+ * documentation to see if that command is considered synchronous.
+ * \li When drawing to the foreground, you shouldn't issue a
+ * \l{Context3D::clear}{Context3D.clear(Context3D.GL_COLOR_BUFFER_BIT)} command targeting the
+ * default framebuffer in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal handler,
+ * as that will clear all other Qt Quick items from the scene. Clearing depth and stencil buffers
+ * is allowed.
+ * \li You lose the ability to control the z-order of the Canvas3D item itself, as it is always
+ * drawn either behind or in front of all other Qt Quick items.
+ * \li The context attributes given as Canvas3D.getContext() parameters are ignored and the
+ * corresponding values of the Qt Quick context are used.
+ * \li Drawing to the background or the foreground doesn't work when Qt Quick is using OpenGL
+ * core profile, as Canvas3D requires either OpenGL 2.x compatibility or OpenGL ES2.
+ * \endlist
+ *
+ * This property can only be modified before the Canvas3D item has been rendered for the first time.
+ */
+void Canvas::setRenderMode(RenderMode mode)
+{
+    if (m_firstSync) {
+        RenderMode oldMode = m_renderMode;
+        m_renderMode = mode;
+        if (m_renderMode == RenderModeOffscreenBuffer)
+            setFlag(ItemHasContents, true);
+        else
+            setFlag(ItemHasContents, false);
+        if (oldMode != m_renderMode)
+            emit renderModeChanged();
+    } else {
+        qCWarning(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
+                                               << ": renderMode property can only be "
+                                               << "modified before Canvas3D item is rendered the "
+                                               << "first time";
+    }
+}
+
+Canvas::RenderMode Canvas::renderMode() const
+{
+    return m_renderMode;
+}
+
+/*!
  * \qmlproperty float Canvas3D::devicePixelRatio
  * Specifies the ratio between logical pixels (used by the Qt Quick) and actual physical
  * on-screen pixels (used by the 3D rendering).
@@ -230,12 +306,17 @@ QJSValue Canvas::getContext(const QString &type)
  * \qmlmethod Context3D Canvas3D::getContext(string type, Canvas3DContextAttributes options)
  * Returns the 3D rendering context that allows 3D rendering calls to be made.
  * The \a type parameter is ignored for now, but a string is expected to be given.
+ * If Canvas3D.renderMode property value is either \c Canvas3D.RenderModeBackground or
+ * \c Canvas3D.RenderModeForeground, the \a options parameter is also ignored,
+ * the context attributes of the Qt Quick context are used, and the
+ * \l{Canvas3DContextAttributes::preserveDrawingBuffer}{Canvas3DContextAttributes.preserveDrawingBuffer}
+ * property is forced to \c{false}.
  * The \a options parameter is only parsed when the first call to getContext() is
  * made and is ignored in subsequent calls if given. If the first call is made without
  * giving the \a options parameter, then the context and render target is initialized with
  * default configuration.
  *
- * \sa Canvas3DContextAttributes, Context3D
+ * \sa Canvas3DContextAttributes, Context3D, renderMode
  */
 /*!
  * \internal
@@ -253,6 +334,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         // Accept passed attributes only from first call and ignore for subsequent calls
         m_isContextAttribsSet = true;
         m_contextAttribs.setFrom(options);
+
         qCDebug(canvas3drendering).nospace()  << "Canvas3D::" << __FUNCTION__
                                               << " Context attribs:" << m_contextAttribs;
 
@@ -271,15 +353,11 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_contextAttribs.setFailIfMajorPerformanceCaveat(false);
     }
 
-    GLint maxVertexAttribs = 0;
-    int contextVersion = 0;
-    QSet<QByteArray> extensions;
-
     if (!m_renderer->contextCreated()) {
         updateWindowParameters();
 
-        if (!m_renderer->createContext(window(), m_contextAttribs, maxVertexAttribs, m_maxSize,
-                                       contextVersion, extensions)) {
+        if (!m_renderer->createContext(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
+                                       m_contextVersion, m_extensions)) {
             return QJSValue(QJSValue::NullValue);
         }
 
@@ -288,8 +366,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 
     if (!m_context3D) {
         m_context3D = new CanvasContext(QQmlEngine::contextForObject(this)->engine(),
-                                        m_isOpenGLES2, maxVertexAttribs,
-                                        contextVersion, extensions,
+                                        m_isOpenGLES2, m_maxVertexAttribs,
+                                        m_contextVersion, m_extensions,
                                         m_renderer->commandQueue());
 
         connect(m_renderer, &CanvasRenderer::textureIdResolved,
@@ -384,6 +462,12 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
     if (!window)
         return;
 
+    if (m_renderMode != RenderModeOffscreenBuffer) {
+        connect(window, &QQuickWindow::beforeSynchronizing,
+                this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
+        window->setClearBeforeRendering(false);
+    }
+
     emitNeedRender();
 }
 
@@ -449,6 +533,63 @@ void Canvas::updateWindowParameters()
     }
 }
 
+void Canvas::sync()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    // Update execution queue (GUI thread is locked here)
+    m_renderer->transferCommands();
+
+    // Start queuing up another frame
+    emitNeedRender();
+}
+
+bool Canvas::firstSync()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    if (!m_renderer) {
+        m_renderer = new CanvasRenderer();
+
+        connect(m_renderer, &CanvasRenderer::fpsChanged,
+                this, &Canvas::fpsChanged);
+    }
+
+    if (!m_renderer->qtContextResolved()) {
+        m_firstSync = false;
+        QSize initializedSize = boundingRect().size().toSize();
+        m_renderer->resolveQtContext(window(), initializedSize, m_renderMode);
+        m_isOpenGLES2 = m_renderer->isOpenGLES2();
+
+        if (m_renderMode != RenderModeOffscreenBuffer) {
+            m_renderer->getQtContextAttributes(m_contextAttribs);
+            m_isContextAttribsSet = true;
+            m_renderer->init(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
+                             m_contextVersion, m_extensions);
+            setPixelSize(m_renderer->fboSize());
+        } else {
+            m_renderer->createContextShare();
+            m_maxSamples = m_renderer->maxSamples();
+        }
+
+        connect(window(), &QQuickWindow::sceneGraphInvalidated,
+                m_renderer, &CanvasRenderer::shutDown, Qt::DirectConnection);
+
+        if (m_renderMode == RenderModeForeground) {
+            connect(window(), &QQuickWindow::beforeRendering,
+                    m_renderer, &CanvasRenderer::clearBackground, Qt::DirectConnection);
+            connect(window(), &QQuickWindow::afterRendering,
+                    m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+        } else {
+            connect(window(), &QQuickWindow::beforeRendering,
+                    m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+        }
+
+        return true;
+    }
+    return false;
+}
+
 /*!
  * \internal
  */
@@ -479,32 +620,14 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Returns null";
 
-        m_renderNodeReady = false;
+        m_rendererReady = false;
         return 0;
     }
 
     CanvasRenderNode *node = static_cast<CanvasRenderNode *>(oldNode);
 
-    if (!m_renderer) {
-        m_renderer = new CanvasRenderer();
-
-        connect(m_renderer, &CanvasRenderer::fpsChanged,
-                this, &Canvas::fpsChanged);
-    }
-
-    if (!m_renderer->contextShareCreated()) {
-        m_renderer->createContextShare(window(), initializedSize);
-        m_isOpenGLES2 = m_renderer->isOpenGLES2();
-        m_maxSamples = m_renderer->maxSamples();
-
-        connect(window(), &QQuickWindow::sceneGraphInvalidated,
-                m_renderer, &CanvasRenderer::shutDown, Qt::DirectConnection);
-
-        connect(window(), &QQuickWindow::beforeRendering,
-                m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
-
+    if (firstSync()) {
         update();
-
         return 0;
     }
 
@@ -537,14 +660,10 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
                 node, &CanvasRenderNode::newTexture,
                 Qt::DirectConnection);
 
-        m_renderNodeReady = true;
+        m_rendererReady = true;
     }
 
-    // Update execution queue (GUI thread is locked here)
-    m_renderer->transferCommands();
-
-    // Start queuing up another frame
-    emitNeedRender();
+    sync();
 
     node->setRect(boundingRect());
 
@@ -572,10 +691,10 @@ void Canvas::queueNextRender()
 
     updateWindowParameters();
 
-    // Don't try to do anything before the render node has been created
-    if (!m_renderNodeReady) {
+    // Don't try to do anything before the renderer/node are ready
+    if (!m_rendererReady) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Render node not ready, returning";
+                                             << " Renderer not ready, returning";
         return;
     }
 
@@ -586,7 +705,7 @@ void Canvas::queueNextRender()
         return;
     }
 
-    if (m_renderer && !m_renderer->contextCreated()) {
+    if (!m_context3D) {
         // Call the initialize function from QML/JavaScript. It'll call the getContext()
         // that in turn creates the renderer context.
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -630,8 +749,10 @@ void Canvas::queueNextRender()
     // Indicate texture completion point by queueing internalTextureComplete command
     m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalTextureComplete);
 
-    // Trigger updatePaintNode() and actual frame draw
-    update();
+    if (m_renderMode == RenderModeOffscreenBuffer) {
+        // Trigger updatePaintNode() and actual frame draw
+        update();
+    }
     window()->update();
 }
 
@@ -660,6 +781,20 @@ void Canvas::emitNeedRender()
 
     m_isNeedRenderQueued = true;
     emit needRender();
+}
+
+void Canvas::handleBeforeSynchronizing()
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    updateWindowParameters();
+
+    if (firstSync()) {
+        m_rendererReady = true;
+        return;
+    }
+
+    sync();
 }
 
 QT_CANVAS3D_END_NAMESPACE

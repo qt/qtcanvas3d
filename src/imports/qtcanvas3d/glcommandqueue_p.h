@@ -274,6 +274,9 @@ public:
     void addQuickItemAsTexture(QQuickItem *quickItem, GLint textureId);
     void clearQuickItemAsTextureList();
 
+    void removeFromClearMask(GLbitfield mask);
+    GLbitfield resetClearMask();
+
     struct ProviderCacheItem {
         ProviderCacheItem(QSGTextureProvider *provider, QQuickItem *item) :
             providerPtr(provider),
@@ -310,6 +313,7 @@ private:
     QList<ItemAndId *> m_quickItemsAsTextureList;
 
     QMap<GLint, ProviderCacheItem *> m_providerCache;
+    GLbitfield m_clearMask;
 };
 
 class GlCommand

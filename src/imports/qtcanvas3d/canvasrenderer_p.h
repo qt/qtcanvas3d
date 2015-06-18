@@ -50,6 +50,8 @@
 #include "canvas3dcommon_p.h"
 #include "contextattributes_p.h"
 #include "glcommandqueue_p.h"
+#include "glstatestore_p.h"
+#include "canvas3d_p.h"
 
 #include <QtCore/QElapsedTimer>
 #include <QtGui/QOpenGLContext>
@@ -73,9 +75,14 @@ public:
     CanvasRenderer(QObject *parent = 0);
     ~CanvasRenderer();
 
-    void createContextShare(QQuickWindow *window, const QSize &initializedSize);
-
-    bool createContext(QQuickWindow *window, const CanvasContextAttributes &contexAttributes,
+    void resolveQtContext(QQuickWindow *window, const QSize &initializedSize,
+                          Canvas::RenderMode renderMode);
+    void createContextShare();
+    void getQtContextAttributes(CanvasContextAttributes &contextAttributes);
+    void init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
+              GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
+              QSet<QByteArray> &extensions);
+    bool createContext(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
                        GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
                        QSet<QByteArray> &extensions);
 
@@ -93,17 +100,21 @@ public:
     void executeCommandQueue();
     void executeSyncCommand(GlSyncCommand &command);
     void finalizeTexture();
+    void restoreCanvasOpenGLState();
+    void resetQtOpenGLState();
 
     int maxSamples() const { return m_maxSamples; }
     bool isOpenGLES2() const { return m_isOpenGLES2; }
     bool contextCreated() const { return (m_glContext != 0); }
-    bool contextShareCreated() const { return (m_glContextShare != 0); }
+    bool qtContextResolved() const { return (m_glContextQt != 0); }
+    bool usingQtContext() const { return m_renderMode != Canvas::RenderModeOffscreenBuffer; }
 
     GLuint resolveMSAAFbo();
 
 public slots:
     void shutDown();
     void render();
+    void clearBackground();
 
 signals:
     void fpsChanged(uint fps);
@@ -118,6 +129,8 @@ private:
     QOpenGLContext *m_glContextQt;
     QOpenGLContext *m_glContextShare;
     QQuickWindow *m_contextWindow;
+    Canvas::RenderMode m_renderMode;
+    GLStateStore *m_stateStore;
 
     uint m_fps;
     int m_maxSamples;
@@ -144,6 +157,8 @@ private:
     int m_glError;
     QElapsedTimer m_fpsTimer;
     int m_fpsFrames;
+
+    GLbitfield m_clearMask;
 };
 
 QT_CANVAS3D_END_NAMESPACE

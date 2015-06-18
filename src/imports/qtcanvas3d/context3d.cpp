@@ -232,6 +232,7 @@ void CanvasContext::setDevicePixelRatio(float ratio)
  * \a precisiontype Can be \c{Context3D.LOW_FLOAT}, \c{Context3D.MEDIUM_FLOAT},
  * \c{Context3D.HIGH_FLOAT}, \c{Context3D.LOW_INT}, \c{Context3D.MEDIUM_INT} or
  * \c{Context3D.HIGH_INT}.
+ * This command is handled synchronously.
  *
  * \sa Canvas3DShaderPrecisionFormat
  */
@@ -351,6 +352,7 @@ void CanvasContext::flush()
 /*!
  * \qmlmethod void Context3D::finish()
  * Forces all previous 3D rendering commands to complete.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -713,6 +715,7 @@ void CanvasContext::generateMipmap(glEnums target)
  * \qmlmethod bool Context3D::isTexture(Object anyObject)
  * Returns true if the given object is a valid Canvas3DTexture object.
  * \a anyObject is the object that is to be verified as a valid texture.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -1740,7 +1743,7 @@ void CanvasContext::bindFramebuffer(glEnums target, QJSValue buffer)
  * \qmlmethod Context3D::glEnums Context3D::checkFramebufferStatus(glEnums target)
  * Returns the completeness status of the framebuffer object.
  * \a target must be \c{Context3D.FRAMEBUFFER}.
- *
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -1921,6 +1924,7 @@ void CanvasContext::framebufferTexture2D(glEnums target, glEnums attachment, glE
  * \qmlmethod void Context3D::isFramebuffer(Object anyObject)
  * Returns true if the given object is a valid Canvas3DFrameBuffer object.
  * \a anyObject is the object that is to be verified as a valid framebuffer.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -2076,6 +2080,7 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
  * \qmlmethod bool Context3D::isRenderbuffer(Object anyObject)
  * Returns true if the given object is a valid Canvas3DRenderBuffer object.
  * \a anyObject is the object that is to be verified as a valid renderbuffer.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -2182,6 +2187,7 @@ QJSValue CanvasContext::createProgram()
  * \qmlmethod bool Context3D::isProgram(Object anyObject)
  * Returns true if the given object is a valid Canvas3DProgram object.
  * \a anyObject is the object that is to be verified as a valid program.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -2514,6 +2520,7 @@ void CanvasContext::enable(glEnums cap)
  * \qmlmethod bool Context3D::isEnabled(glEnums cap)
  * Returns whether a capability is enabled.
  * \a cap specifies a constant indicating a GL capability.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -2727,6 +2734,7 @@ void CanvasContext::blendFuncSeparate(glEnums srcRGB, glEnums dstRGB, glEnums sr
  * \a paramName must be \c{Context3D.DELETE_STATUS}, \c{Context3D.LINK_STATUS},
  * \c{Context3D.VALIDATE_STATUS}, \c{Context3D.ATTACHED_SHADERS}, \c{Context3D.ACTIVE_ATTRIBUTES} or
  * \c{Context3D.ACTIVE_UNIFORMS}.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -2808,6 +2816,7 @@ QJSValue CanvasContext::createShader(glEnums type)
  * \qmlmethod bool Context3D::isShader(Object anyObject)
  * Returns true if the given object is a valid Canvas3DShader object.
  * \a anyObject is the object that is to be verified as a valid shader.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -3931,6 +3940,7 @@ void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
  * Returns the value of the passed \a pname for the given \a shader.
  * \a pname must be one of \c{Context3D.SHADER_TYPE}, \c Context3D.DELETE_STATUS and
  * \c{Context3D.COMPILE_STATUS}.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4042,6 +4052,7 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
 /*!
  * \qmlmethod int Context3D::getAttribLocation(Canvas3DProgram program3D, string name)
  * Returns location3D of the given attribute variable \a name in the given \a program3D.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4450,6 +4461,7 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
  * Returns the value for the passed \a pname of the \a target. Target
  * must be either \c Context3D.ARRAY_BUFFER or \c{Context3D.ELEMENT_ARRAY_BUFFER}. pname must be
  * either \c Context3D.BUFFER_SIZE or \c{Context3D.BUFFER_USAGE}.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4492,6 +4504,7 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
  * \qmlmethod bool Context3D::isBuffer(Object anyObject)
  * Returns \c true if the given \a anyObect is a valid Canvas3DBuffer object,
  * \c false otherwise.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4560,6 +4573,7 @@ void CanvasContext::deleteBuffer(QJSValue buffer3D)
 /*!
  * \qmlmethod glEnums Context3D::getError()
  * Returns the error value, if any.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4604,6 +4618,7 @@ CanvasContext::glEnums CanvasContext::getError()
 /*!
  * \qmlmethod variant Context3D::getParameter(glEnums pname)
  * Returns the value for the given \a pname.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4930,6 +4945,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
 /*!
  * \qmlmethod string Context3D::getShaderInfoLog(Canvas3DShader shader)
  * Returns the info log string of the given \a shader.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -4962,6 +4978,7 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D)
 /*!
  * \qmlmethod string Context3D::getProgramInfoLog(Canvas3DProgram program3D)
  * Returns the info log string of the given \a program3D.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -5112,13 +5129,13 @@ void CanvasContext::clear(glEnums flags)
 {
     if (!canvas3drendering().isDebugEnabled()) {
         QString flagStr;
-        if (flags && COLOR_BUFFER_BIT != 0)
+        if (flags & COLOR_BUFFER_BIT)
             flagStr.append(" COLOR_BUFFER_BIT ");
 
-        if (flags && DEPTH_BUFFER_BIT != 0)
+        if (flags & DEPTH_BUFFER_BIT)
             flagStr.append(" DEPTH_BUFFER_BIT ");
 
-        if (flags && STENCIL_BUFFER_BIT != 0)
+        if (flags & STENCIL_BUFFER_BIT)
             flagStr.append(" STENCIL_BUFFER_BIT ");
 
         qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -5126,6 +5143,10 @@ void CanvasContext::clear(glEnums flags)
     }
 
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glClear, GLint(flags));
+
+    // Set clear flags if the clear targets default framebuffer
+    if (!m_currentFramebuffer)
+        m_commandQueue->removeFromClearMask(GLbitfield(flags));
 }
 
 /*!
@@ -5424,6 +5445,7 @@ void CanvasContext::drawElements(glEnums mode, int count, glEnums type, long off
  * Returns the pixel data in the rectangle specified by \a x, \a y, \a width and \a height of the
  * frame buffer in \a pixels using \a format (must be \c{Context3D.RGBA}) and \a type
  * (must be \c{Context3D.UNSIGNED_BYTE}).
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -5473,6 +5495,7 @@ void CanvasContext::readPixels(int x, int y, long width, long height, glEnums fo
  * \qmlmethod Canvas3DActiveInfo Context3D::getActiveAttrib(Canvas3DProgram program3D, uint index)
  * Returns information about the given active attribute variable defined by \a index for the given
  * \a program3D.
+ * This command is handled synchronously.
  * \sa Canvas3DActiveInfo
  */
 /*!
@@ -5507,6 +5530,7 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
  * \qmlmethod Canvas3DActiveInfo Context3D::getActiveUniform(Canvas3DProgram program3D, uint index)
  * Returns information about the given active uniform variable defined by \a index for the given
  * \a program3D.
+ * This command is handled synchronously.
  * \sa Canvas3DActiveInfo
  */
 /*!
@@ -5826,6 +5850,7 @@ void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
  * \qmlmethod int Context3D::getFramebufferAttachmentParameter(glEnums target, glEnums attachment, glEnums pname)
  * Returns information specified by \a pname about given \a attachment of a framebuffer object
  * bound to the given \a target.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -5874,6 +5899,7 @@ QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnum
  * \qmlmethod int Context3D::getRenderbufferParameter(glEnums target, glEnums pname)
  * Returns information specified by \a pname of a renderbuffer object
  * bound to the given \a target.
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -5922,6 +5948,7 @@ QJSValue CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
  * \li \c{Context3D.TEXTURE_WRAP_S}
  * \li \c{Context3D.TEXTURE_WRAP_T}
  * \endlist
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -5971,6 +5998,7 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
  * \li \c{Context3D.TEXTURE_WRAP_S}
  * \li \c{Context3D.TEXTURE_WRAP_T}
  * \endlist
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -6037,6 +6065,7 @@ uint CanvasContext::getVertexAttribOffset(uint index, glEnums pname)
  *   \li \c{Context3D.CURRENT_VERTEX_ATTRIB}
  *   \li \c{Float32Array} (with 4 elements)
  *  \endtable
+ * This command is handled synchronously.
  */
 /*!
  * \internal
@@ -6204,6 +6233,7 @@ QMap<QQuickItem *, CanvasTexture *> &CanvasContext::quickItemToTextureMap()
  *   \li samplerCube
  *   \li int
  *  \endtable
+ * This command is handled synchronously.
  */
 /*!
  * \internal
