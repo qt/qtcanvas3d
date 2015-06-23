@@ -111,6 +111,8 @@ Canvas::Canvas(QQuickItem *parent):
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
     connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::widthChanged, this, &Canvas::widthChanged, Qt::DirectConnection);
+    connect(this, &QQuickItem::heightChanged, this, &Canvas::heightChanged, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -192,7 +194,7 @@ void Canvas::setWidth(int width)
         newWidth = maxWidth;
     }
 
-    QQuickItem::setWidth(newWidth);
+    QQuickItem::setWidth(qreal(newWidth));
 }
 
 /*!
@@ -200,7 +202,7 @@ void Canvas::setWidth(int width)
  */
 int Canvas::width()
 {
-    return QQuickItem::width();
+    return int(QQuickItem::width());
 }
 
 /*!
@@ -221,7 +223,7 @@ void Canvas::setHeight(int height)
         newHeight = maxHeight;
     }
 
-    QQuickItem::setHeight(newHeight);
+    QQuickItem::setHeight(qreal(newHeight));
 }
 
 /*!
@@ -229,7 +231,7 @@ void Canvas::setHeight(int height)
  */
 int Canvas::height()
 {
-    return QQuickItem::height();
+    return int(QQuickItem::height());
 }
 
 /*!
