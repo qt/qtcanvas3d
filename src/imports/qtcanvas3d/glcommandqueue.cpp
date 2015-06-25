@@ -165,13 +165,12 @@ GlCommand &CanvasGlCommandQueue::queueCommand(CanvasGlCommandQueue::GlCommandId 
  * \internal
  *
  * Copies command data to execute queue. GUI thread must be locked when this
- * method is called. Returns the number of commands transferred.
+ * method is called.
  */
-int CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
+void CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
 {
     memcpy(executeQueue.data(), m_queue.data(), m_queuedCount * sizeof(GlCommand));
 
-    const int count = m_queuedCount;
     m_queuedCount = 0;
 
     // Grab texture providers from quick items and cache them
@@ -200,8 +199,6 @@ int CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
         }
         clearQuickItemAsTextureList();
     }
-
-    return count;
 }
 
 /*!

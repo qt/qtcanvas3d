@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 import QtQuick 2.0
-import QtCanvas3D 1.0
+import QtCanvas3D 1.1
 import QtQuick.Controls 1.0
 import QtQuick.Layouts 1.0
 
@@ -50,6 +50,8 @@ Item {
     Canvas3D {
         id: canvas3d
         anchors.fill: parent
+        renderOnDemand: true
+        renderMode: Canvas3D.RenderModeBackground
         property double xRotSlider: 0
         property double yRotSlider: 0
         property double zRotSlider: 0
@@ -96,6 +98,8 @@ Item {
                 objAnimationZ.resume();
             }
         }
+
+        Component.onCompleted: requestRender()
     }
 
     RowLayout {
@@ -114,6 +118,15 @@ Item {
             Layout.preferredWidth : 100
             text: "Fps: " + canvas3d.fps
             color: "#FFFFFF"
+        }
+
+        Button {
+            id: demandButton
+            Layout.fillWidth: false
+            Layout.preferredWidth : 100
+            text: canvas3d.renderOnDemand ? "On-demand" : "Continuous"
+            checkable: false
+            onClicked: canvas3d.renderOnDemand = !canvas3d.renderOnDemand
         }
 
         Label {
@@ -135,6 +148,7 @@ Item {
                 canvas3d.xRotSlider = value;
                 canvas3d.yRotSlider = value;
                 canvas3d.zRotSlider = value;
+                canvas3d.requestRender();
             }
         }
 
@@ -151,11 +165,13 @@ Item {
             Layout.alignment: Qt.AlignLeft
             Layout.preferredWidth : 300
             Layout.fillWidth: true
+            value: 48
             minimumValue: 1
             maximumValue: canvas3d.maxCount
 
             onValueChanged: {
                 canvas3d.itemCount = value;
+                canvas3d.requestRender();
             }
         }
     }

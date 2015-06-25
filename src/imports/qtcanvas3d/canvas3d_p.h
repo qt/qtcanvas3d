@@ -89,6 +89,7 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_PROPERTY(int width READ width WRITE setWidth)
     Q_PROPERTY(int height READ height WRITE setHeight)
     Q_PROPERTY(RenderMode renderMode READ renderMode WRITE setRenderMode NOTIFY renderModeChanged REVISION 1)
+    Q_PROPERTY(bool renderOnDemand READ renderOnDemand WRITE setRenderOnDemand NOTIFY renderOnDemandChanged REVISION 1)
 
 public:
     enum RenderMode {
@@ -110,6 +111,8 @@ public:
     int height();
     void setRenderMode(RenderMode mode);
     RenderMode renderMode() const;
+    void setRenderOnDemand(bool enable);
+    bool renderOnDemand() const;
 
     uint fps();
 
@@ -121,8 +124,10 @@ public:
 public slots:
     void queueNextRender();
     void queueResizeGL();
+    void requestRender();
     void emitNeedRender();
     void handleBeforeSynchronizing();
+    void handleRendererFpsChange(uint fps);
 
 signals:
     void needRender();
@@ -131,6 +136,7 @@ signals:
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
     void renderModeChanged();
+    void renderOnDemandChanged();
 
     void initializeGL();
     void paintGL();
@@ -166,12 +172,15 @@ private:
     bool m_resizeGLQueued;
     bool m_firstSync;
     RenderMode m_renderMode;
+    bool m_renderOnDemand;
 
     CanvasRenderer *m_renderer;
 
     GLint m_maxVertexAttribs;
     int m_contextVersion;
     QSet<QByteArray> m_extensions;
+
+    uint m_fps;
 };
 
 QT_CANVAS3D_END_NAMESPACE

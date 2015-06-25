@@ -110,6 +110,7 @@ public:
     bool usingQtContext() const { return m_renderMode != Canvas::RenderModeOffscreenBuffer; }
 
     GLuint resolveMSAAFbo();
+    void deleteCommandData();
 
 public slots:
     void shutDown();
@@ -151,12 +152,15 @@ private:
     CanvasGlCommandQueue m_commandQueue;
     QVector<GlCommand> m_executeQueue;
     int m_executeQueueCount;
+    int m_executeStartIndex;
+    int m_executeEndIndex;
     GLuint m_currentFramebufferId;
     QRect m_forceViewportRect;
 
     int m_glError;
     QElapsedTimer m_fpsTimer;
     int m_fpsFrames;
+    bool m_textureFinalized;
 
     GLbitfield m_clearMask;
 };

@@ -210,6 +210,7 @@ public:
         glViewport,
         internalGetUniformType,
         internalClearLocation, // Used to clear a mapped uniform location from map when no longer needed
+        internalBeginPaint, // Indicates the beginning of the paintGL(). Needed when rendering to Qt context.
         internalTextureComplete, // Indicates texture is complete and needs to be updated to screen at this point
         internalClearQuickItemAsTexture, // Used to clear mapped quick item texture ids when no longer needed
         extStateDump
@@ -244,7 +245,7 @@ public:
                             GLint i1, GLint i2, GLfloat p1, GLfloat p2 = 0.0f, GLfloat p3 = 0.0f,
                             GLfloat p4 = 0.0f);
 
-    int transferCommands(QVector<GlCommand> &executeQueue);
+    void transferCommands(QVector<GlCommand> &executeQueue);
     void resetQueue(int size);
     void deleteUntransferedCommandData();
 

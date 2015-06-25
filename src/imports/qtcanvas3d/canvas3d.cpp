@@ -97,9 +97,11 @@ Canvas::Canvas(QQuickItem *parent):
     m_resizeGLQueued(false),
     m_firstSync(true),
     m_renderMode(RenderModeOffscreenBuffer),
+    m_renderOnDemand(false),
     m_renderer(0),
     m_maxVertexAttribs(0),
-    m_contextVersion(0)
+    m_contextVersion(0),
+    m_fps(0)
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::queueNextRender, Qt::QueuedConnection);
@@ -222,22 +224,34 @@ int Canvas::height()
  * \list
  * \li Only Canvas3D items that fill the entire window are supported. Note that you can still
  * control the actual rendering area by using an appropriate viewport.
- * \li Antialiasing is only supported if the surface format of the window supports multisampling.
- * You may need to specify the surface format of the window explicitly in your \c{main.cpp}.
- * \li The default framebuffer needs to be cleared every time before the Qt Quick scene renders a
- * frame. This means that you cannot use synchronous Context3D commands after any draw command
- * targeting the default framebuffer in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal
- * handler, as such commands cause drawing to happen before the default framebuffer is cleared
- * for that frame.
- * A synchronous command is any Context3D command that requires waiting for GL command queue
+ * \li The default framebuffer is automatically cleared by Canvas3D every time before the Qt Quick
+ * scene renders a frame, even if there are no Context3D commands queued for that frame.
+ * This requires Canvas3D to store the commands used to draw the previous frame in case the window
+ * is updated by some other component than Canvas3D and use those commands to render the Canvas3D
+ * content for frames that do not have fresh content. Only commands issued inside
+ * \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal handler are stored this way.
+ * You need to make sure that the content of your \l{Canvas3D::paintGL}{Canvas3D.paintGL()}
+ * signal handler is implemented so that it is safe to execute its commands repeatedly.
+ * Mainly this means making sure you don't use any synchronous commands or commands
+ * that create new persistent OpenGL resources there. Another reason not to use synchronous
+ * commands in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal handler is that such
+ * commands cause drawing to happen before the default framebuffer is cleared for that frame.
+ * A synchronous command is any Context3D command that requires waiting for Context3D command queue
  * to finish executing before it returns, such as \l{Context3D::getError}{Context3D.getError()}
  * or \l{Context3D::readPixels}{Context3D.readPixels()}. When in doubt, see the individual command
  * documentation to see if that command is considered synchronous.
- * \li When drawing to the foreground, you shouldn't issue a
+ * \li Issuing Context3D commands outside \l{Canvas3D::paintGL}{Canvas3D.paintGL()} and
+ * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handlers can in some cases cause
+ * unwanted flickering. This is particularly true with synchronous commands.
+ * It is recommended that you only use synchronous commands inside
+ * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handler, and in general avoid issuing
+ * any Context3D commands outside these two signal handlers.
+ * \li When drawing to the foreground, you should never issue a
  * \l{Context3D::clear}{Context3D.clear(Context3D.GL_COLOR_BUFFER_BIT)} command targeting the
- * default framebuffer in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal handler,
- * as that will clear all other Qt Quick items from the scene. Clearing depth and stencil buffers
- * is allowed.
+ * default framebuffer, as that will clear all other Qt Quick items from the scene.
+ * Clearing depth and stencil buffers is allowed.
+ * \li Antialiasing is only supported if the surface format of the window supports multisampling.
+ * You may need to specify the surface format of the window explicitly in your \c{main.cpp}.
  * \li You lose the ability to control the z-order of the Canvas3D item itself, as it is always
  * drawn either behind or in front of all other Qt Quick items.
  * \li The context attributes given as Canvas3D.getContext() parameters are ignored and the
@@ -270,6 +284,31 @@ void Canvas::setRenderMode(RenderMode mode)
 Canvas::RenderMode Canvas::renderMode() const
 {
     return m_renderMode;
+}
+
+/*!
+ * \qmlproperty bool Canvas3D::renderOnDemand
+ * Specifies whether or not the render loop runs constantly (\c{false}) or a new frame is rendered
+ * only when explicitly requested by the application (\c{true}).
+ *
+ * \sa requestRender()
+ */
+void Canvas::setRenderOnDemand(bool enable)
+{
+    qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "(" << enable << ")";
+    if (enable != m_renderOnDemand) {
+        m_renderOnDemand = enable;
+        if (m_renderOnDemand)
+            handleRendererFpsChange(0);
+        else
+            emitNeedRender();
+        emit renderOnDemandChanged();
+    }
+}
+
+bool Canvas::renderOnDemand() const
+{
+    return m_renderOnDemand;
 }
 
 /*!
@@ -541,7 +580,8 @@ void Canvas::sync()
     m_renderer->transferCommands();
 
     // Start queuing up another frame
-    emitNeedRender();
+    if (!m_renderOnDemand)
+        emitNeedRender();
 }
 
 bool Canvas::firstSync()
@@ -552,7 +592,7 @@ bool Canvas::firstSync()
         m_renderer = new CanvasRenderer();
 
         connect(m_renderer, &CanvasRenderer::fpsChanged,
-                this, &Canvas::fpsChanged);
+                this, &Canvas::handleRendererFpsChange);
     }
 
     if (!m_renderer->qtContextResolved()) {
@@ -672,12 +712,18 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 
 /*!
  * \qmlproperty uint Canvas3D::fps
- * This property specifies the current frames per seconds, the value is calculated every
- * 500 ms.
+ * This property specifies the current number of frames rendered per second.
+ * The value is recalculated every 500 ms, as long as any rendering is done.
+ *
+ * \note This property only gets updated after a Canvas3D frame is rendered, so if no frames
+ * are being drawn, this property value won't change.
+ * It is also based on the number of Canvas3D frames actually rendered since the value was
+ * last updated, so it may not accurately reflect the actual rendering performance when
+ * If \l{Canvas3D::renderOnDemand}{Canvas3D.renderOnDemand} property is \c{true}.
  */
 uint Canvas::fps()
 {
-    return m_renderer ? m_renderer->fps() : 0;
+    return m_fps;
 }
 
 /*!
@@ -695,6 +741,7 @@ void Canvas::queueNextRender()
     if (!m_rendererReady) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Renderer not ready, returning";
+        requestRender();
         return;
     }
 
@@ -702,6 +749,7 @@ void Canvas::queueNextRender()
     if (!isComponentComplete()) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Component is not complete, skipping drawing";
+        requestRender();
         return;
     }
 
@@ -744,6 +792,9 @@ void Canvas::queueNextRender()
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << " Emit paintGL() signal";
 
+    if (m_renderMode != RenderModeOffscreenBuffer)
+        m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalBeginPaint);
+
     emit paintGL();
 
     // Indicate texture completion point by queueing internalTextureComplete command
@@ -764,6 +815,18 @@ void Canvas::queueResizeGL()
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
 
     m_resizeGLQueued = true;
+}
+
+/*!
+ * \qmlmethod void Canvas3D::requestRender()
+ * Queues a new frame for rendering when \l{Canvas3D::renderOnDemand}{Canvas3D.renderOnDemand}
+ * property is \c{true}.
+ * Does nothing when \l{Canvas3D::renderOnDemand}{Canvas3D.renderOnDemand} property is \c{false}.
+ */
+void Canvas::requestRender()
+{
+    if (m_renderOnDemand)
+        emitNeedRender();
 }
 
 /*!
@@ -795,6 +858,14 @@ void Canvas::handleBeforeSynchronizing()
     }
 
     sync();
+}
+
+void Canvas::handleRendererFpsChange(uint fps)
+{
+    if (fps != m_fps) {
+        m_fps = fps;
+        emit fpsChanged(m_fps);
+    }
 }
 
 QT_CANVAS3D_END_NAMESPACE

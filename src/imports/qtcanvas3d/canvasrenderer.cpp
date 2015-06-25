@@ -76,9 +76,12 @@ CanvasRenderer::CanvasRenderer(QObject *parent):
     m_commandQueue(0), // command queue will be reset when context is created.
     m_executeQueue(0),
     m_executeQueueCount(0),
+    m_executeStartIndex(0),
+    m_executeEndIndex(0),
     m_currentFramebufferId(0),
     m_glError(0),
     m_fpsFrames(0),
+    m_textureFinalized(false),
     m_clearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 {
     m_fpsTimer.start();
@@ -179,6 +182,8 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     m_commandQueue.resetQueue(commandQueueSize);
     m_executeQueue.resize(commandQueueSize);
     m_executeQueueCount = 0;
+    m_executeStartIndex = 0;
+    m_executeEndIndex = 0;
 
 #ifndef QT_NO_DEBUG
     const GLubyte *version = m_glContext->functions()->glGetString(GL_VERSION);
@@ -298,8 +303,7 @@ void CanvasRenderer::shutDown()
         m_commandQueue.resourceMutex()->unlock();
     }
 
-    for (int i = 0; i < m_executeQueueCount; i++)
-        m_executeQueue[i].deleteData();
+    deleteCommandData();
     m_executeQueue.clear();
 
     delete m_renderFbo;
@@ -459,6 +463,7 @@ void CanvasRenderer::render()
         clearBackground();
     }
 
+
     // Skip render if there is no context or nothing to render
     if (m_glContext && m_executeQueueCount) {
         // Update tracked quick item textures
@@ -515,6 +520,21 @@ void CanvasRenderer::render()
                                                        << " Failed to make old surface current";
             }
         }
+
+        // Calculate the fps
+        if (m_textureFinalized) {
+            m_textureFinalized = false;
+            ++m_fpsFrames;
+            if (m_fpsTimer.elapsed() >= 500) {
+                qreal avgtime = qreal(m_fpsTimer.restart()) / qreal(m_fpsFrames);
+                uint avgFps = qRound(1000.0 / avgtime);
+                if (avgFps != m_fps) {
+                    m_fps = avgFps;
+                    emit fpsChanged(avgFps);
+                }
+                m_fpsFrames = 0;
+            }
+        }
     }
 }
 
@@ -526,7 +546,7 @@ void CanvasRenderer::render()
  */
 void CanvasRenderer::clearBackground()
 {
-    if (m_clearMask) {
+    if (m_glContext && m_clearMask) {
         if (m_clearMask & GL_COLOR_BUFFER_BIT) {
             glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         }
@@ -718,9 +738,21 @@ void CanvasRenderer::logGlErrors(const char *funcName)
 void CanvasRenderer::transferCommands()
 {
     if (m_glContext) {
-        m_executeQueueCount = m_commandQueue.transferCommands(m_executeQueue);
-        if (m_renderMode != Canvas::RenderModeOffscreenBuffer)
+        const int count = m_commandQueue.queuedCount();
+        if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+            m_executeQueueCount = count;
+            m_commandQueue.transferCommands(m_executeQueue);
+        } else {
             m_clearMask = m_commandQueue.resetClearMask();
+            // Use previous frame count and indices if no new commands, otherwise reset values
+            if (count) {
+                deleteCommandData();
+                m_executeQueueCount = count;
+                m_executeStartIndex = 0;
+                m_executeEndIndex = 0;
+                m_commandQueue.transferCommands(m_executeQueue);
+            }
+        }
     }
 }
 
@@ -809,8 +841,10 @@ void CanvasRenderer::executeCommandQueue()
 
     GLuint u1(0); // A generic variable used in the following switch statement
 
+    const int executeEndIndex = m_executeEndIndex ? m_executeEndIndex : m_executeQueueCount;
+
     // Execute the execution queue
-    for (int i = 0; i < m_executeQueueCount; i++) {
+    for (int i = m_executeStartIndex; i < executeEndIndex; i++) {
         GlCommand &command = m_executeQueue[i];
         switch (command.id) {
         case CanvasGlCommandQueue::glActiveTexture: {
@@ -841,7 +875,6 @@ void CanvasRenderer::executeCommandQueue()
                                                       << ": Failed to bind attribute ("
                                                       << command.data << ") to program " << program;
             }
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glBindBuffer: {
@@ -892,14 +925,12 @@ void CanvasRenderer::executeCommandQueue()
             glBufferData(GLenum(command.i1), qopengl_GLsizeiptr(command.i2),
                          data, GLenum(command.i3));
 
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glBufferSubData: {
             const void *data = static_cast<const void *>(command.data->constData());
             glBufferSubData(GLenum(command.i1), qopengl_GLintptr(command.i2),
                             qopengl_GLsizeiptr(command.data->size()), data);
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glClear: {
@@ -935,7 +966,6 @@ void CanvasRenderer::executeCommandQueue()
                                                       << ": Failed to compile shader "
                                                       << shader;
             }
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glCompressedTexImage2D: {
@@ -943,7 +973,6 @@ void CanvasRenderer::executeCommandQueue()
             glCompressedTexImage2D(GLenum(command.i1), command.i2, GLenum(command.i3),
                                    GLsizei(command.i4), GLsizei(command.i5), command.i6,
                                    GLsizei(command.data->size()), data);
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glCompressedTexSubImage2D: {
@@ -951,7 +980,6 @@ void CanvasRenderer::executeCommandQueue()
             glCompressedTexSubImage2D(GLenum(command.i1), command.i2, command.i3, command.i4,
                                       GLsizei(command.i5), GLsizei(command.i6), GLenum(command.i7),
                                       GLsizei(command.data->size()), data);
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glCopyTexImage2D: {
@@ -1106,7 +1134,6 @@ void CanvasRenderer::executeCommandQueue()
                                               : GLuint(-1);
             // command.i1 is the location id, so use standard handler function to generate mapping
             m_commandQueue.handleGenerateCommand(command, glLocation);
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glHint: {
@@ -1181,7 +1208,6 @@ void CanvasRenderer::executeCommandQueue()
             glTexImage2D(GLenum(command.i1), command.i2, command.i3, GLsizei(command.i4),
                          GLsizei(command.i5), command.i6, GLenum(command.i7), GLenum(command.i8),
                          reinterpret_cast<const GLvoid *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glTexParameterf: {
@@ -1197,7 +1223,6 @@ void CanvasRenderer::executeCommandQueue()
                             GLsizei(command.i5), GLsizei(command.i6), GLenum(command.i7),
                             GLenum(command.i8),
                             reinterpret_cast<const GLvoid *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform1f: {
@@ -1239,70 +1264,59 @@ void CanvasRenderer::executeCommandQueue()
         case CanvasGlCommandQueue::glUniform1fv: {
             glUniform1fv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform2fv: {
             glUniform2fv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform3fv: {
             glUniform3fv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform4fv: {
             glUniform4fv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform1iv: {
             glUniform1iv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLint *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform2iv: {
             glUniform2iv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLint *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform3iv: {
             glUniform3iv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLint *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniform4iv: {
             glUniform4iv(GLint(m_commandQueue.getGlId(command.i1)), GLsizei(command.i2),
                          reinterpret_cast<const GLint *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniformMatrix2fv: {
             glUniformMatrix2fv(GLint(m_commandQueue.getGlId(command.i1)),
                                GLsizei(command.i2), GLboolean(command.i3),
                                reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniformMatrix3fv: {
             glUniformMatrix3fv(GLint(m_commandQueue.getGlId(command.i1)),
                                GLsizei(command.i2), GLboolean(command.i3),
                                reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUniformMatrix4fv: {
             glUniformMatrix4fv(GLint(m_commandQueue.getGlId(command.i1)),
                                GLsizei(command.i2), GLboolean(command.i3),
                                reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glUseProgram: {
@@ -1348,25 +1362,21 @@ void CanvasRenderer::executeCommandQueue()
         case CanvasGlCommandQueue::glVertexAttrib1fv: {
             glVertexAttrib1fv(GLuint(command.i1),
                               reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glVertexAttrib2fv: {
             glVertexAttrib2fv(GLuint(command.i1),
                               reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glVertexAttrib3fv: {
             glVertexAttrib3fv(GLuint(command.i1),
                               reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glVertexAttrib4fv: {
             glVertexAttrib4fv(GLuint(command.i1),
                               reinterpret_cast<const GLfloat *>(command.data->constData()));
-            command.deleteData();
             break;
         }
         case CanvasGlCommandQueue::glVertexAttribPointer: {
@@ -1392,9 +1402,18 @@ void CanvasRenderer::executeCommandQueue()
             m_commandQueue.removeResourceIdFromMap(command.i1);
             break;
         }
+        case CanvasGlCommandQueue::internalBeginPaint: {
+            // Remember the beginning of the latest paint
+            m_executeStartIndex = i + 1;
+            break;
+        }
         case CanvasGlCommandQueue::internalTextureComplete: {
             finalizeTexture();
             bindCurrentRenderTarget();
+            // Remember the end of latest paint for back/foreground rendering
+            if (m_renderMode != Canvas::RenderModeOffscreenBuffer) {
+                m_executeEndIndex = i + 1;
+            }
             break;
         }
         case CanvasGlCommandQueue::internalClearQuickItemAsTexture: {
@@ -1416,10 +1435,15 @@ void CanvasRenderer::executeCommandQueue()
         logGlErrors(__FUNCTION__);
     }
 
-    m_executeQueueCount = 0;
-
     // Rebind default FBO
     QOpenGLFramebufferObject::bindDefault();
+
+    // If rendering to offscreen buffer, we  can delete command data already here so we don't
+    // waste any time during sync.
+    if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+        deleteCommandData();
+        m_executeQueueCount = 0;
+    }
 }
 
 /*!
@@ -1793,17 +1817,7 @@ void CanvasRenderer::finalizeTexture()
     glFlush();
     glFinish();
 
-    // Update frames per second reading after glFinish()
-    ++m_fpsFrames;
-    if (m_fpsTimer.elapsed() >= 500) {
-        qreal avgtime = qreal(m_fpsTimer.restart()) / qreal(m_fpsFrames);
-        uint avgFps = qRound(1000.0 / avgtime);
-        if (avgFps != m_fps) {
-            m_fps = avgFps;
-            emit fpsChanged(avgFps);
-        }
-        m_fpsFrames = 0;
-    }
+    m_textureFinalized = true;
 
     if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
         // Swap
@@ -1858,6 +1872,15 @@ GLuint CanvasRenderer::resolveMSAAFbo()
     QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
 
     return m_renderFbo->handle();
+}
+
+void CanvasRenderer::deleteCommandData()
+{
+    for (int i = 0; i < m_executeQueueCount; i++) {
+        GlCommand &command = m_executeQueue[i];
+        if (command.data)
+            command.deleteData();
+    }
 }
 
 QT_CANVAS3D_END_NAMESPACE
