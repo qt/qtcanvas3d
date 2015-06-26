@@ -76,7 +76,7 @@ public:
     ~CanvasRenderer();
 
     void resolveQtContext(QQuickWindow *window, const QSize &initializedSize,
-                          Canvas::RenderMode renderMode);
+                          Canvas::RenderTarget renderTarget);
     void createContextShare();
     void getQtContextAttributes(CanvasContextAttributes &contextAttributes);
     void init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
@@ -107,7 +107,7 @@ public:
     bool isOpenGLES2() const { return m_isOpenGLES2; }
     bool contextCreated() const { return (m_glContext != 0); }
     bool qtContextResolved() const { return (m_glContextQt != 0); }
-    bool usingQtContext() const { return m_renderMode != Canvas::RenderModeOffscreenBuffer; }
+    bool usingQtContext() const { return m_renderTarget != Canvas::RenderTargetOffscreenBuffer; }
 
     GLuint resolveMSAAFbo();
     void deleteCommandData();
@@ -130,7 +130,7 @@ private:
     QOpenGLContext *m_glContextQt;
     QOpenGLContext *m_glContextShare;
     QQuickWindow *m_contextWindow;
-    Canvas::RenderMode m_renderMode;
+    Canvas::RenderTarget m_renderTarget;
     GLStateStore *m_stateStore;
 
     uint m_fps;

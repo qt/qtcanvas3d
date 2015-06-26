@@ -96,7 +96,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isContextAttribsSet(false),
     m_resizeGLQueued(false),
     m_firstSync(true),
-    m_renderMode(RenderModeOffscreenBuffer),
+    m_renderTarget(RenderTargetOffscreenBuffer),
     m_renderOnDemand(false),
     m_renderer(0),
     m_maxVertexAttribs(0),
@@ -111,7 +111,7 @@ Canvas::Canvas(QQuickItem *parent):
 
     // Set contents to false in case we are in qml designer to make component look nice
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
-    setFlag(ItemHasContents, !(m_runningInDesigner || m_renderMode != RenderModeOffscreenBuffer));
+    setFlag(ItemHasContents, !(m_runningInDesigner || m_renderTarget != RenderTargetOffscreenBuffer));
 
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
     if (QCoreApplication::testAttribute(Qt::AA_UseSoftwareOpenGL))
@@ -205,20 +205,20 @@ int Canvas::height()
 }
 
 /*!
- * \qmlproperty RenderMode Canvas3D::renderMode
+ * \qmlproperty RenderTarget Canvas3D::renderTarget
  * Specifies how the rendering should be done.
  * \list
- * \li \c Canvas3D.RenderModeOffscreenBuffer indicates rendering is done into an offscreen
- * buffer and the finished texture is used for the Canvas3D item. This is the default mode.
- * \li \c Canvas3D.RenderModeBackground indicates the rendering is done to the background of the
+ * \li \c Canvas3D.RenderTargetOffscreenBuffer indicates rendering is done into an offscreen
+ * buffer and the finished texture is used for the Canvas3D item. This is the default target.
+ * \li \c Canvas3D.RenderTargetBackground indicates the rendering is done to the background of the
  * Qt Quick scene, in response to QQuickWindow::beforeRendering() signal.
- * \li \c Canvas3D.RenderModeForeground indicates the rendering is done to the foreground of the
+ * \li \c Canvas3D.RenderTargetForeground indicates the rendering is done to the foreground of the
  * Qt Quick scene, in response to QQuickWindow::afterRendering() signal.
  * \endlist
  *
- * \c Canvas3D.RenderModeBackground and \c Canvas3D.RenderModeForeground modes render directly to
- * the same framebuffer the rest of the Qt Quick scene uses. This will improve performance
- * on platforms that are fill-rate limited, but using these modes imposes several limitations
+ * \c Canvas3D.RenderTargetBackground and \c Canvas3D.RenderTargetForeground targets render directly
+ * to the same framebuffer the rest of the Qt Quick scene uses. This will improve performance
+ * on platforms that are fill-rate limited, but using these targets imposes several limitations
  * on the usage of Canvas3D:
  *
  * \list
@@ -262,28 +262,28 @@ int Canvas::height()
  *
  * This property can only be modified before the Canvas3D item has been rendered for the first time.
  */
-void Canvas::setRenderMode(RenderMode mode)
+void Canvas::setRenderTarget(RenderTarget target)
 {
     if (m_firstSync) {
-        RenderMode oldMode = m_renderMode;
-        m_renderMode = mode;
-        if (m_renderMode == RenderModeOffscreenBuffer)
+        RenderTarget oldTarget = m_renderTarget;
+        m_renderTarget = target;
+        if (m_renderTarget == RenderTargetOffscreenBuffer)
             setFlag(ItemHasContents, true);
         else
             setFlag(ItemHasContents, false);
-        if (oldMode != m_renderMode)
-            emit renderModeChanged();
+        if (oldTarget != m_renderTarget)
+            emit renderTargetChanged();
     } else {
         qCWarning(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                               << ": renderMode property can only be "
+                                               << ": renderTarget property can only be "
                                                << "modified before Canvas3D item is rendered the "
                                                << "first time";
     }
 }
 
-Canvas::RenderMode Canvas::renderMode() const
+Canvas::RenderTarget Canvas::renderTarget() const
 {
-    return m_renderMode;
+    return m_renderTarget;
 }
 
 /*!
@@ -345,8 +345,8 @@ QJSValue Canvas::getContext(const QString &type)
  * \qmlmethod Context3D Canvas3D::getContext(string type, Canvas3DContextAttributes options)
  * Returns the 3D rendering context that allows 3D rendering calls to be made.
  * The \a type parameter is ignored for now, but a string is expected to be given.
- * If Canvas3D.renderMode property value is either \c Canvas3D.RenderModeBackground or
- * \c Canvas3D.RenderModeForeground, the \a options parameter is also ignored,
+ * If Canvas3D.renderTarget property value is either \c Canvas3D.RenderTargetBackground or
+ * \c Canvas3D.RenderTargetForeground, the \a options parameter is also ignored,
  * the context attributes of the Qt Quick context are used, and the
  * \l{Canvas3DContextAttributes::preserveDrawingBuffer}{Canvas3DContextAttributes.preserveDrawingBuffer}
  * property is forced to \c{false}.
@@ -355,7 +355,7 @@ QJSValue Canvas::getContext(const QString &type)
  * giving the \a options parameter, then the context and render target is initialized with
  * default configuration.
  *
- * \sa Canvas3DContextAttributes, Context3D, renderMode
+ * \sa Canvas3DContextAttributes, Context3D, renderTarget
  */
 /*!
  * \internal
@@ -501,7 +501,7 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
     if (!window)
         return;
 
-    if (m_renderMode != RenderModeOffscreenBuffer) {
+    if (m_renderTarget != RenderTargetOffscreenBuffer) {
         connect(window, &QQuickWindow::beforeSynchronizing,
                 this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
         window->setClearBeforeRendering(false);
@@ -598,10 +598,10 @@ bool Canvas::firstSync()
     if (!m_renderer->qtContextResolved()) {
         m_firstSync = false;
         QSize initializedSize = boundingRect().size().toSize();
-        m_renderer->resolveQtContext(window(), initializedSize, m_renderMode);
+        m_renderer->resolveQtContext(window(), initializedSize, m_renderTarget);
         m_isOpenGLES2 = m_renderer->isOpenGLES2();
 
-        if (m_renderMode != RenderModeOffscreenBuffer) {
+        if (m_renderTarget != RenderTargetOffscreenBuffer) {
             m_renderer->getQtContextAttributes(m_contextAttribs);
             m_isContextAttribsSet = true;
             m_renderer->init(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
@@ -615,7 +615,7 @@ bool Canvas::firstSync()
         connect(window(), &QQuickWindow::sceneGraphInvalidated,
                 m_renderer, &CanvasRenderer::shutDown, Qt::DirectConnection);
 
-        if (m_renderMode == RenderModeForeground) {
+        if (m_renderTarget == RenderTargetForeground) {
             connect(window(), &QQuickWindow::beforeRendering,
                     m_renderer, &CanvasRenderer::clearBackground, Qt::DirectConnection);
             connect(window(), &QQuickWindow::afterRendering,
@@ -792,7 +792,7 @@ void Canvas::queueNextRender()
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << " Emit paintGL() signal";
 
-    if (m_renderMode != RenderModeOffscreenBuffer)
+    if (m_renderTarget != RenderTargetOffscreenBuffer)
         m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalBeginPaint);
 
     emit paintGL();
@@ -800,7 +800,7 @@ void Canvas::queueNextRender()
     // Indicate texture completion point by queueing internalTextureComplete command
     m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalTextureComplete);
 
-    if (m_renderMode == RenderModeOffscreenBuffer) {
+    if (m_renderTarget == RenderTargetOffscreenBuffer) {
         // Trigger updatePaintNode() and actual frame draw
         update();
     }

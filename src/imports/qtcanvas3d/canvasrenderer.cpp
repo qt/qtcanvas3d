@@ -61,7 +61,7 @@ CanvasRenderer::CanvasRenderer(QObject *parent):
     m_glContextQt(0),
     m_glContextShare(0),
     m_contextWindow(0),
-    m_renderMode(Canvas::RenderModeOffscreenBuffer),
+    m_renderTarget(Canvas::RenderTargetOffscreenBuffer),
     m_stateStore(0),
     m_fps(0),
     m_maxSamples(0),
@@ -93,14 +93,14 @@ CanvasRenderer::~CanvasRenderer()
 }
 
 void CanvasRenderer::resolveQtContext(QQuickWindow *window, const QSize &initializedSize,
-                                      Canvas::RenderMode renderMode)
+                                      Canvas::RenderTarget renderTarget)
 {
     m_initializedSize = initializedSize;
     m_glContextQt = window->openglContext();
     m_isOpenGLES2 = m_glContextQt->isOpenGLES();
-    m_renderMode = renderMode;
+    m_renderTarget = renderTarget;
 
-    if (m_renderMode != Canvas::RenderModeOffscreenBuffer)
+    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer)
         m_glContext = m_glContextQt;
 }
 
@@ -204,7 +204,7 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
 
     extensions = m_glContext->extensions();
 
-    if (m_renderMode != Canvas::RenderModeOffscreenBuffer)
+    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer)
         m_stateStore = new GLStateStore(m_glContext, maxVertexAttribs, m_commandQueue);
 
     logGlErrors(__FUNCTION__);
@@ -225,7 +225,7 @@ void CanvasRenderer::shutDown()
 
     m_fps = 0;
 
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer)
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer)
         m_glContext->makeCurrent(m_offscreenSurface);
 
     if ((m_commandQueue.resourceMap().size()
@@ -310,7 +310,7 @@ void CanvasRenderer::shutDown()
     delete m_displayFbo;
     delete m_antialiasFbo;
 
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
         m_glContext->doneCurrent();
         delete m_glContext;
     }
@@ -457,8 +457,8 @@ void CanvasRenderer::render()
     // If rendering to background, we need to clear the framebuffer before rendering the frame.
     // When rendering to foreground, we cannot clear the color buffer here, as that would erase
     // the rest of the scene, but we do need to clear depth and stencil buffers even in that case.
-    if (m_renderMode != Canvas::RenderModeOffscreenBuffer) {
-        if (m_renderMode == Canvas::RenderModeForeground)
+    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
+        if (m_renderTarget == Canvas::RenderTargetForeground)
             m_clearMask &= ~GL_COLOR_BUFFER_BIT;
         clearBackground();
     }
@@ -503,7 +503,7 @@ void CanvasRenderer::render()
         // Change to canvas context, if needed
         QOpenGLContext *oldContext(0);
         QSurface *oldSurface(0);
-        if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
             oldContext = QOpenGLContext::currentContext();
             oldSurface = oldContext->surface();
             makeCanvasContextCurrent();
@@ -512,7 +512,7 @@ void CanvasRenderer::render()
         executeCommandQueue();
 
         // Restore Qt context
-        if (m_renderMode != Canvas::RenderModeOffscreenBuffer) {
+        if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
             resetQtOpenGLState();
         } else {
             if (!oldContext->makeCurrent(oldSurface)) {
@@ -739,7 +739,7 @@ void CanvasRenderer::transferCommands()
 {
     if (m_glContext) {
         const int count = m_commandQueue.queuedCount();
-        if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
             m_executeQueueCount = count;
             m_commandQueue.transferCommands(m_executeQueue);
         } else {
@@ -767,7 +767,7 @@ void CanvasRenderer::bindCurrentRenderTarget()
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__ << "()";
 
     if (m_currentFramebufferId == 0) {
-        if (m_renderMode != Canvas::RenderModeOffscreenBuffer) {
+        if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
             QOpenGLFramebufferObject::bindDefault();
         } else {
             // Bind default framebuffer
@@ -820,7 +820,7 @@ void CanvasRenderer::executeCommandQueue()
     if (!m_glContext)
         return;
 
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer && m_recreateFbos) {
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && m_recreateFbos) {
         createFBOs();
         m_recreateFbos = false;
     }
@@ -836,7 +836,7 @@ void CanvasRenderer::executeCommandQueue()
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
                                          << " Viewport set to " << m_forceViewportRect;
 
-    if (m_renderMode != Canvas::RenderModeOffscreenBuffer)
+    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer)
         restoreCanvasOpenGLState();
 
     GLuint u1(0); // A generic variable used in the following switch statement
@@ -1411,7 +1411,7 @@ void CanvasRenderer::executeCommandQueue()
             finalizeTexture();
             bindCurrentRenderTarget();
             // Remember the end of latest paint for back/foreground rendering
-            if (m_renderMode != Canvas::RenderModeOffscreenBuffer) {
+            if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
                 m_executeEndIndex = i + 1;
             }
             break;
@@ -1440,7 +1440,7 @@ void CanvasRenderer::executeCommandQueue()
 
     // If rendering to offscreen buffer, we  can delete command data already here so we don't
     // waste any time during sync.
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
         deleteCommandData();
         m_executeQueueCount = 0;
     }
@@ -1719,7 +1719,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
     case CanvasGlCommandQueue::glReadPixels: {
         // Check if the buffer is antialiased. If it is, we need to blit to the final buffer before
         // reading the value.
-        if (m_renderMode == Canvas::RenderModeOffscreenBuffer && m_antialias
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && m_antialias
                 && !m_currentFramebufferId) {
             GLuint readFbo = resolveMSAAFbo();
             glBindFramebuffer(GL_FRAMEBUFFER, readFbo);
@@ -1809,7 +1809,7 @@ void CanvasRenderer::finalizeTexture()
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__ << "()";
 
     // Resolve MSAA
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer && m_antialias)
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && m_antialias)
         resolveMSAAFbo();
 
     // We need to flush the contents to the FBO before posting the texture,
@@ -1819,7 +1819,7 @@ void CanvasRenderer::finalizeTexture()
 
     m_textureFinalized = true;
 
-    if (m_renderMode == Canvas::RenderModeOffscreenBuffer) {
+    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
         // Swap
         qSwap(m_renderFbo, m_displayFbo);
         qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__

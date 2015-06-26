@@ -79,7 +79,7 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_OBJECT
     Q_DISABLE_COPY(Canvas)
 
-    Q_ENUMS(RenderMode)
+    Q_ENUMS(RenderTarget)
 
     Q_INTERFACES(QQmlParserStatus)
     Q_PROPERTY(CanvasContext *context READ context NOTIFY contextChanged)
@@ -88,14 +88,14 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
     Q_PROPERTY(int width READ width WRITE setWidth)
     Q_PROPERTY(int height READ height WRITE setHeight)
-    Q_PROPERTY(RenderMode renderMode READ renderMode WRITE setRenderMode NOTIFY renderModeChanged REVISION 1)
+    Q_PROPERTY(RenderTarget renderTarget READ renderTarget WRITE setRenderTarget NOTIFY renderTargetChanged REVISION 1)
     Q_PROPERTY(bool renderOnDemand READ renderOnDemand WRITE setRenderOnDemand NOTIFY renderOnDemandChanged REVISION 1)
 
 public:
-    enum RenderMode {
-        RenderModeOffscreenBuffer,
-        RenderModeBackground,
-        RenderModeForeground
+    enum RenderTarget {
+        RenderTargetOffscreenBuffer,
+        RenderTargetBackground,
+        RenderTargetForeground
     };
 
     Canvas(QQuickItem *parent = 0);
@@ -109,8 +109,8 @@ public:
     int width();
     void setHeight(int height);
     int height();
-    void setRenderMode(RenderMode mode);
-    RenderMode renderMode() const;
+    void setRenderTarget(RenderTarget target);
+    RenderTarget renderTarget() const;
     void setRenderOnDemand(bool enable);
     bool renderOnDemand() const;
 
@@ -135,7 +135,7 @@ signals:
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
-    void renderModeChanged();
+    void renderTargetChanged();
     void renderOnDemandChanged();
 
     void initializeGL();
@@ -171,7 +171,7 @@ private:
     bool m_isContextAttribsSet;
     bool m_resizeGLQueued;
     bool m_firstSync;
-    RenderMode m_renderMode;
+    RenderTarget m_renderTarget;
     bool m_renderOnDemand;
 
     CanvasRenderer *m_renderer;

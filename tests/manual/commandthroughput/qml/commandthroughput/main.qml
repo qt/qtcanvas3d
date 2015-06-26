@@ -51,7 +51,7 @@ Item {
         id: canvas3d
         anchors.fill: parent
         renderOnDemand: true
-        renderMode: Canvas3D.RenderModeBackground
+        renderTarget: Canvas3D.RenderTargetBackground
         property double xRotSlider: 0
         property double yRotSlider: 0
         property double zRotSlider: 0
