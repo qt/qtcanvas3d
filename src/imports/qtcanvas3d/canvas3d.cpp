@@ -222,8 +222,23 @@ int Canvas::height()
  * on the usage of Canvas3D:
  *
  * \list
+ * \li Synchronous Context3D commands are not supported outside
+ * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handler when rendering directly
+ * to Qt Quick scene framebuffer, as they cause portions of the command queue to be executed
+ * outside the normal frame render sequence, which interferes with the frame clearing logic.
+ * Using them will usually result in Canvas3D content not rendering properly.
+ * A synchronous command is any Context3D command that requires waiting for Context3D command queue
+ * to finish executing before it returns, such as \l{Context3D::getError}{Context3D.getError()},
+ * \l{Context3D::finish}{Context3D.finish()},
+ * or \l{Context3D::readPixels}{Context3D.readPixels()}. When in doubt, see the individual command
+ * documentation to see if that command is synchronous.
+ * If your application requires synchronous commands outside
+ * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handler, you should use
+ * \c{Canvas3D.RenderTargetOffscreenBuffer} render target.
+ *
  * \li Only Canvas3D items that fill the entire window are supported. Note that you can still
  * control the actual rendering area by using an appropriate viewport.
+ *
  * \li The default framebuffer is automatically cleared by Canvas3D every time before the Qt Quick
  * scene renders a frame, even if there are no Context3D commands queued for that frame.
  * This requires Canvas3D to store the commands used to draw the previous frame in case the window
@@ -233,29 +248,27 @@ int Canvas::height()
  * You need to make sure that the content of your \l{Canvas3D::paintGL}{Canvas3D.paintGL()}
  * signal handler is implemented so that it is safe to execute its commands repeatedly.
  * Mainly this means making sure you don't use any synchronous commands or commands
- * that create new persistent OpenGL resources there. Another reason not to use synchronous
- * commands in your \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal handler is that such
- * commands cause drawing to happen before the default framebuffer is cleared for that frame.
- * A synchronous command is any Context3D command that requires waiting for Context3D command queue
- * to finish executing before it returns, such as \l{Context3D::getError}{Context3D.getError()}
- * or \l{Context3D::readPixels}{Context3D.readPixels()}. When in doubt, see the individual command
- * documentation to see if that command is considered synchronous.
+ * that create new persistent OpenGL resources there.
+ *
  * \li Issuing Context3D commands outside \l{Canvas3D::paintGL}{Canvas3D.paintGL()} and
  * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handlers can in some cases cause
- * unwanted flickering. This is particularly true with synchronous commands.
- * It is recommended that you only use synchronous commands inside
- * \l{Canvas3D::initializeGL}{Canvas3D.initializeGL()} signal handler, and in general avoid issuing
- * any Context3D commands outside these two signal handlers.
+ * unwanted flickering of Canvas3D content, particularly if on-demand rendering is used.
+ * It is recommended to avoid issuing any Context3D commands outside these two signal handlers.
+ *
  * \li When drawing to the foreground, you should never issue a
  * \l{Context3D::clear}{Context3D.clear(Context3D.GL_COLOR_BUFFER_BIT)} command targeting the
  * default framebuffer, as that will clear all other Qt Quick items from the scene.
  * Clearing depth and stencil buffers is allowed.
+ *
  * \li Antialiasing is only supported if the surface format of the window supports multisampling.
  * You may need to specify the surface format of the window explicitly in your \c{main.cpp}.
+ *
  * \li You lose the ability to control the z-order of the Canvas3D item itself, as it is always
  * drawn either behind or in front of all other Qt Quick items.
+ *
  * \li The context attributes given as Canvas3D.getContext() parameters are ignored and the
  * corresponding values of the Qt Quick context are used.
+ *
  * \li Drawing to the background or the foreground doesn't work when Qt Quick is using OpenGL
  * core profile, as Canvas3D requires either OpenGL 2.x compatibility or OpenGL ES2.
  * \endlist
