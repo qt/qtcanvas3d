@@ -55,16 +55,17 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * The command data is copied for execution when GUI thread is blocked, so no extra synchronization
  * is needed for that.
  */
-CanvasGlCommandQueue::CanvasGlCommandQueue(int size, QObject *parent) :
+CanvasGlCommandQueue::CanvasGlCommandQueue(int initialSize, int maxSize, QObject *parent) :
     QObject(parent),
-    m_maxSize(0),
+    m_maxSize(maxSize),
+    m_size(0),
     m_queuedCount(0),
     m_nextResourceId(1),
     m_resourceIdOverflow(false),
     m_clearMask(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT)
 
 {
-    resetQueue(size);
+    resetQueue(initialSize);
 }
 
 CanvasGlCommandQueue::~CanvasGlCommandQueue()
@@ -79,21 +80,31 @@ CanvasGlCommandQueue::~CanvasGlCommandQueue()
  * \internal
  *
  * Queues a new command \a id to the next available slot and returns a reference to that command,
- * so the caller can give it additional parameters.
+ * so the caller can give it additional parameters. If the queue is full, we simply reallocate some
+ * more space up to the max size.
  */
 GlCommand &CanvasGlCommandQueue::queueCommand(CanvasGlCommandQueue::GlCommandId id)
 {
-    // If queue is full, we need to clear it first
-    if (m_queuedCount == m_maxSize) {
-        emit queueFull();
-        // queueFull handling should reset the queue, but in case renderer thread is not available
-        // to handle the commands for some reason, let's reset the count. In that case the entire
-        // queue is lost, so results may not be pretty, but nothing much can be done about it.
-        // Let's at least make sure we don't leak any memory.
-        if (m_queuedCount) {
-            deleteUntransferedCommandData();
-            m_queuedCount = 0;
-            clearQuickItemAsTextureList();
+    // Increase queue size if we run out of space. Note that this should only happen on the first
+    // frame on most applications, as we never decrease the allocated size.
+    if (m_queuedCount == m_size) {
+        // If queue is full and at max size, we need to synchronously execute all commands
+        if (m_queuedCount == m_maxSize) {
+            emit queueFull();
+            // queueFull handling should reset the queue, but in case renderer thread is not available
+            // to handle the commands for some reason, let's reset the count. In that case the entire
+            // queue is lost, so results may not be pretty, but nothing much can be done about it.
+            // Let's at least make sure we don't leak any memory.
+            if (m_queuedCount) {
+                deleteUntransferedCommandData();
+                m_queuedCount = 0;
+                clearQuickItemAsTextureList();
+            }
+        } else {
+            m_size += m_size / 2;
+            if (m_size > m_maxSize)
+                m_size = m_maxSize;
+            m_queue.resize(m_size);
         }
     }
 
@@ -212,10 +223,12 @@ void CanvasGlCommandQueue::resetQueue(int size)
     clearQuickItemAsTextureList();
 
     m_queuedCount = 0;
-    m_maxSize = size;
+    m_size = size;
+    if (m_size > m_maxSize)
+        m_size = m_maxSize;
 
     m_queue.clear();
-    m_queue.resize(m_maxSize);
+    m_queue.resize(m_size);
 
     m_resourceIdOverflow = false;
     m_nextResourceId = 1;

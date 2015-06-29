@@ -48,7 +48,8 @@
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-const int commandQueueSize = 10000;
+const int initialQueueSize = 256;
+const int maxQueueSize = 1000000;
 
 /*!
  * \internal
@@ -73,7 +74,7 @@ CanvasRenderer::CanvasRenderer(QObject *parent):
     m_displayFbo(0),
     m_recreateFbos(false),
     m_offscreenSurface(0),
-    m_commandQueue(0), // command queue will be reset when context is created.
+    m_commandQueue(0, maxQueueSize), // command queue size will be reset when context is created.
     m_executeQueue(0),
     m_executeQueueCount(0),
     m_executeStartIndex(0),
@@ -179,8 +180,8 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     }
 #endif
 
-    m_commandQueue.resetQueue(commandQueueSize);
-    m_executeQueue.resize(commandQueueSize);
+    m_commandQueue.resetQueue(initialQueueSize);
+    m_executeQueue.resize(initialQueueSize);
     m_executeQueueCount = 0;
     m_executeStartIndex = 0;
     m_executeEndIndex = 0;
@@ -739,6 +740,8 @@ void CanvasRenderer::transferCommands()
 {
     if (m_glContext) {
         const int count = m_commandQueue.queuedCount();
+        if (count > m_executeQueue.size())
+            m_executeQueue.resize(count);
         if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
             m_executeQueueCount = count;
             m_commandQueue.transferCommands(m_executeQueue);

@@ -227,7 +227,7 @@ public:
 
     };
 
-    CanvasGlCommandQueue(int size = 10000, QObject *parent = 0);
+    CanvasGlCommandQueue(int initialSize, int maxSize, QObject *parent = 0);
     ~CanvasGlCommandQueue();
 
     int queuedCount() const { return m_queuedCount; }
@@ -294,6 +294,7 @@ signals:
 private:
     QVector<GlCommand> m_queue;
     int m_maxSize;
+    int m_size;
     int m_queuedCount;
 
     QMap<GLint, GlResource> m_resourceIdMap;
@@ -351,14 +352,14 @@ public:
         data = 0;
     }
 
-    CanvasGlCommandQueue::GlCommandId id;
-
     // Optional extra data such as buffer contents for commands that need it. The data is deleted
     // after the command is handled. Not owned by command itself.
     // Queue owns the data before it is transferred to execution, after which the CanvasRenderer
     // owns it. In case of unqueued commands (i.e. synchronous commands), the data is owned by
     // whoever owns the command object.
     QByteArray *data;
+
+    CanvasGlCommandQueue::GlCommandId id;
 
     GLint i1;
     GLint i2;
