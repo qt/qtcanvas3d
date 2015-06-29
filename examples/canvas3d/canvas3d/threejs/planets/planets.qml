@@ -53,6 +53,9 @@ Item {
     property real yCameraOffset: 0
     property real zCameraOffset: 0
     property real cameraNear: 0
+    property int sliderLength: (width < height) ? width / 2 : height / 2
+    property real textSize: (sliderLength < 320) ? (sliderLength / 20) : 16
+    property real planetButtonSize: (height < 768) ? (height / 11) : 70
 
     NumberAnimation {
         id: lookAtOffsetAnimation
@@ -220,6 +223,8 @@ Item {
             text: name
             focusPlanet: planetNumber
             planetSelector: mainview
+            buttonSize: planetButtonSize
+            fontSize: textSize
         }
     }
 
@@ -228,10 +233,10 @@ Item {
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 15
-        anchors.bottomMargin: 10
-        spacing: 10
-        width: 100
+        anchors.rightMargin: planetButtonSize / 5
+        anchors.bottomMargin: planetButtonSize / 7
+        spacing: planetButtonSize / 7
+        width: planetButtonSize * 1.4
         interactive: false
         model: planetModel
         delegate: planetButtonDelegate
@@ -276,7 +281,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 400
+        width: sliderLength
         value: 0.2
         minimumValue: 0
         maximumValue: 1
@@ -287,7 +292,7 @@ Item {
         anchors.verticalCenter: speedSlider.verticalCenter
         anchors.rightMargin: 10
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Rotation Speed"
@@ -298,7 +303,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 400
+        width: sliderLength
         value: 1200
         minimumValue: 1
         maximumValue: 2000
@@ -309,7 +314,7 @@ Item {
         anchors.verticalCenter: scaleSlider.verticalCenter
         anchors.rightMargin: 10
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Planet Size"
@@ -321,7 +326,7 @@ Item {
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
         orientation: Qt.Vertical
-        height: 400
+        height: sliderLength
         value: 1
         minimumValue: 1
         maximumValue: 2
@@ -331,14 +336,14 @@ Item {
     }
     Text {
         y: distanceSlider.y + distanceSlider.height + width + 10
-        x: distanceSlider.x + 12
+        x: distanceSlider.x + 30 - textSize
         transform: Rotation {
             origin.x: 0;
             origin.y: 0;
             angle: -90
         }
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Viewing Distance"
