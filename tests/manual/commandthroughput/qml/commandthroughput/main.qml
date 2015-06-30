@@ -98,8 +98,6 @@ Item {
                 objAnimationZ.resume();
             }
         }
-
-        Component.onCompleted: requestRender()
     }
 
     RowLayout {

@@ -301,10 +301,13 @@ Canvas::RenderTarget Canvas::renderTarget() const
 
 /*!
  * \qmlproperty bool Canvas3D::renderOnDemand
- * Specifies whether or not the render loop runs constantly (\c{false}) or a new frame is rendered
- * only when explicitly requested by the application (\c{true}).
- *
- * \sa requestRender()
+ * If the value is \c{false}, the render loop runs constantly and
+ * \l{Canvas3D::paintGL}{Canvas3D.paintGL()} signal is emitted once per frame.
+ * If the value is \c{true}, \l{Canvas3D::paintGL}{Canvas3D.paintGL()} is only emitted when
+ * Canvas3D content needs to be re-rendered because a geometry change or some other event
+ * affecting the Canvas3D content occurred.
+ * The application can also request a render using
+ * \l{Canvas3D::requestRender}{Canvas3D.requestRender()} method.
  */
 void Canvas::setRenderOnDemand(bool enable)
 {
@@ -714,6 +717,7 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
                 Qt::DirectConnection);
 
         m_rendererReady = true;
+        emitNeedRender();
     }
 
     sync();
@@ -754,15 +758,6 @@ void Canvas::queueNextRender()
     if (!m_rendererReady) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Renderer not ready, returning";
-        requestRender();
-        return;
-    }
-
-    // Check that we're complete component before drawing
-    if (!isComponentComplete()) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Component is not complete, skipping drawing";
-        requestRender();
         return;
     }
 
@@ -867,6 +862,7 @@ void Canvas::handleBeforeSynchronizing()
 
     if (firstSync()) {
         m_rendererReady = true;
+        emitNeedRender();
         return;
     }
 
