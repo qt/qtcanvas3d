@@ -464,7 +464,6 @@ void CanvasRenderer::render()
         clearBackground();
     }
 
-
     // Skip render if there is no context or nothing to render
     if (m_glContext && m_executeQueueCount) {
         // Update tracked quick item textures
@@ -577,7 +576,10 @@ void CanvasRenderer::setFboSize(const QSize &fboSize)
         return;
 
     m_fboSize = fboSize;
-    m_recreateFbos = true;
+    if (m_fboSize.width() > 0 && m_fboSize.height() > 0)
+        m_recreateFbos = true;
+    else
+        m_recreateFbos = false;
 }
 
 /*!

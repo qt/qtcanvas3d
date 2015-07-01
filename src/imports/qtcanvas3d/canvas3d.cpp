@@ -494,9 +494,6 @@ void Canvas::setPixelSize(QSize pixelSize)
         pixelSize.setHeight(m_maxSize.height());
     }
 
-    if (m_renderer)
-        m_renderer->setFboSize(pixelSize);
-
     if (m_fboSize == pixelSize)
         return;
 
@@ -591,6 +588,8 @@ void Canvas::updateWindowParameters()
 void Canvas::sync()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
+
+    m_renderer->setFboSize(m_fboSize);
 
     // Update execution queue (GUI thread is locked here)
     m_renderer->transferCommands();
