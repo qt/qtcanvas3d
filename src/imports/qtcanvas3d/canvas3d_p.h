@@ -173,6 +173,7 @@ private:
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;
+    bool m_alphaChanged;
     bool m_resizeGLQueued;
     bool m_firstSync;
     RenderTarget m_renderTarget;

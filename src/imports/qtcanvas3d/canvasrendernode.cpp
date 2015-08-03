@@ -48,12 +48,14 @@ CanvasRenderNode::CanvasRenderNode(QQuickWindow *window) :
     QObject(),
     QSGSimpleTextureNode(),
     m_texture(0),
-    m_window(window)
+    m_window(window),
+    m_textureOptions(QQuickWindow::TextureHasAlphaChannel)
 {
     qCDebug(canvas3drendering).nospace() << "CanvasRenderNode::" << __FUNCTION__;
 
     // Our texture node must have a texture, so use the default 0 texture.
-    m_texture = m_window->createTextureFromId(0, QSize(1, 1));
+    m_texture = m_window->createTextureFromId(0, QSize(1, 1), m_textureOptions);
+
     setTexture(m_texture);
     setFiltering(QSGTexture::Linear);
     setTextureCoordinatesTransform(QSGSimpleTextureNode::MirrorVertically);
@@ -62,6 +64,13 @@ CanvasRenderNode::CanvasRenderNode(QQuickWindow *window) :
 CanvasRenderNode::~CanvasRenderNode()
 {
     delete m_texture;
+}
+
+void CanvasRenderNode::setAlpha(bool alpha)
+{
+     m_textureOptions = alpha
+             ? QQuickWindow::TextureHasAlphaChannel
+             : QQuickWindow::CreateTextureOption(0);
 }
 
 // Called in render thread as a response to CanvasRenderer::textureReady signal.
@@ -75,8 +84,9 @@ void CanvasRenderNode::newTexture(int id, const QSize &size)
                                              << " size:" << size
                                              << " targetRect:" << rect();
         delete m_texture;
-        m_texture = m_window->createTextureFromId(id, size);
+        m_texture = m_window->createTextureFromId(id, size, m_textureOptions);
         setTexture(m_texture);
+
         qCDebug(canvas3drendering).nospace() << "CanvasRenderNode::" << __FUNCTION__
                                              << " SGTexture size:" << m_texture->textureSize()
                                              << " normalizedTextureSubRect:"

@@ -48,6 +48,49 @@ Window {
     height: 600
     visible: true
     title: "Qt Quick Item as Texture"
+    color: "#f9f9f9"
+
+    ColumnLayout {
+        Layout.fillWidth: true
+        x: 4
+        y: 4
+        //! [0]
+        Rectangle {
+            id: textureSource
+            color: "lightgreen"
+            width: 256
+            height: 256
+            border.color: "blue"
+            border.width: 4
+            layer.enabled: true
+            layer.smooth: true
+            Label {
+                anchors.fill: parent
+                anchors.margins: 16
+                text: "X Rot:" + (canvas3d.xRotAnim | 0) + "\n"
+                    + "Y Rot:" + (canvas3d.yRotAnim | 0) + "\n"
+                    + "Z Rot:" + (canvas3d.zRotAnim | 0) + "\n"
+                    + "FPS:" + canvas3d.fps
+                color: "red"
+                font.pointSize: 30
+                horizontalAlignment: Text.AlignLeft
+                verticalAlignment: Text.AlignVCenter
+            }
+        }
+        //! [0]
+        Button {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 256
+            text: textureSource.visible ? "Hide texture source" : "Show texture source"
+            onClicked: textureSource.visible = !textureSource.visible
+        }
+        Button {
+            Layout.fillWidth: true
+            Layout.minimumWidth: 256
+            text: "Quit"
+            onClicked: Qt.quit()
+        }
+    }
 
     Canvas3D {
         id: canvas3d
@@ -57,49 +100,6 @@ Window {
         property double yRotAnim: 0
         property double zRotAnim: 0
         property bool isRunning: true
-
-        ColumnLayout {
-            Layout.fillWidth: true
-            x: 4
-            y: 4
-            //! [0]
-            Rectangle {
-                id: textureSource
-                color: "lightgreen"
-                width: 256
-                height: 256
-                border.color: "blue"
-                border.width: 4
-                layer.enabled: true
-                layer.smooth: true
-                opacity: 0.8
-                Label {
-                    anchors.fill: parent
-                    anchors.margins: 16
-                    text: "X Rot:" + (canvas3d.xRotAnim | 0) + "\n"
-                        + "Y Rot:" + (canvas3d.yRotAnim | 0) + "\n"
-                        + "Z Rot:" + (canvas3d.zRotAnim | 0) + "\n"
-                        + "FPS:" + canvas3d.fps
-                    color: "red"
-                    font.pointSize: 30
-                    horizontalAlignment: Text.AlignLeft
-                    verticalAlignment: Text.AlignVCenter
-                }
-            }
-            //! [0]
-            Button {
-                Layout.fillWidth: true
-                Layout.minimumWidth: 256
-                text: textureSource.visible ? "Hide texture source" : "Show texture source"
-                onClicked: textureSource.visible = !textureSource.visible
-            }
-            Button {
-                Layout.fillWidth: true
-                Layout.minimumWidth: 256
-                text: "Quit"
-                onClicked: Qt.quit()
-            }
-        }
 
         // Emitted when one time initializations should happen
         onInitializeGL: {

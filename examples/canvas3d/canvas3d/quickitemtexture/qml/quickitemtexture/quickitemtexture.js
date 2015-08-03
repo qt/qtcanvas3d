@@ -71,9 +71,12 @@ function initializeGL(canvas, textureSource) {
     gl.depthFunc(gl.LESS);
     gl.enable(gl.CULL_FACE);
     gl.cullFace(gl.BACK);
-    gl.clearColor(0.98, 0.98, 0.98, 1.0);
     gl.clearDepth(1.0);
     gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, false);
+
+    // Use fully transparent clear color to allow other QML components to be seen through
+    // Canvas3D where not obscured by the rotating cube.
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
 
     // Set viewport
     gl.viewport(0, 0, canvas.width, canvas.height);

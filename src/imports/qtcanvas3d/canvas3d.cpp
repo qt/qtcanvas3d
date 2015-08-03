@@ -95,6 +95,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_isOpenGLES2(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
+    m_alphaChanged(false),
     m_resizeGLQueued(false),
     m_firstSync(true),
     m_renderTarget(RenderTargetOffscreenBuffer),
@@ -391,6 +392,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
     if (!m_isContextAttribsSet) {
         // Accept passed attributes only from first call and ignore for subsequent calls
         m_isContextAttribsSet = true;
+        m_alphaChanged = true;
         m_contextAttribs.setFrom(options);
 
         qCDebug(canvas3drendering).nospace()  << "Canvas3D::" << __FUNCTION__
@@ -722,6 +724,11 @@ QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 
         m_rendererReady = true;
         emitNeedRender();
+    }
+
+    if (m_alphaChanged) {
+        node->setAlpha(m_contextAttribs.alpha());
+        m_alphaChanged = false;
     }
 
     sync();

@@ -65,12 +65,15 @@ public:
     CanvasRenderNode(QQuickWindow *window);
     ~CanvasRenderNode();
 
+    void setAlpha(bool alpha);
+
 public slots:
     void newTexture(int id, const QSize &size);
 
 private:
     QSGTexture *m_texture;
     QQuickWindow *m_window;
+    QQuickWindow::CreateTextureOptions m_textureOptions;
 };
 
 QT_CANVAS3D_END_NAMESPACE
