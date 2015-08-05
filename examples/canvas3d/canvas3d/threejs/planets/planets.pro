@@ -14,3 +14,9 @@ OTHER_FILES += *.qml \
                doc/images/*
 
 RESOURCES += planets.qrc
+
+ios {
+    ios_icon.files = $$files($$PWD/ios/AppIcon*.png)
+    QMAKE_BUNDLE_DATA += ios_icon
+    QMAKE_INFO_PLIST = ios/Info.plist
+}

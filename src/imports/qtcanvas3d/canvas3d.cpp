@@ -94,6 +94,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_glContextShare(0),
     m_contextWindow(0),
     m_fps(0),
+    m_frameTimeMs(0),
     m_maxSamples(0),
     m_devicePixelRatio(1.0f),
     m_isOpenGLES2(false),
@@ -110,6 +111,8 @@ Canvas::Canvas(QQuickItem *parent):
     connect(this, &Canvas::needRender, this, &Canvas::renderNext, Qt::QueuedConnection);
     connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
+    connect(this, &QQuickItem::widthChanged, this, &Canvas::widthChanged, Qt::DirectConnection);
+    connect(this, &QQuickItem::heightChanged, this, &Canvas::heightChanged, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -191,7 +194,7 @@ void Canvas::setWidth(int width)
         newWidth = maxWidth;
     }
 
-    QQuickItem::setWidth(newWidth);
+    QQuickItem::setWidth(qreal(newWidth));
 }
 
 /*!
@@ -199,7 +202,7 @@ void Canvas::setWidth(int width)
  */
 int Canvas::width()
 {
-    return QQuickItem::width();
+    return int(QQuickItem::width());
 }
 
 /*!
@@ -220,7 +223,7 @@ void Canvas::setHeight(int height)
         newHeight = maxHeight;
     }
 
-    QQuickItem::setHeight(newHeight);
+    QQuickItem::setHeight(qreal(newHeight));
 }
 
 /*!
@@ -228,7 +231,7 @@ void Canvas::setHeight(int height)
  */
 int Canvas::height()
 {
-    return QQuickItem::height();
+    return int(QQuickItem::height());
 }
 
 /*!
@@ -849,13 +852,27 @@ void Canvas::bindCurrentRenderTarget()
 }
 
 /*!
- * \qmlproperty uint Canvas3D::fps
+ * \qmlproperty int Canvas3D::fps
  * This property specifies the current frames per seconds, the value is calculated every
  * 500 ms.
+ * \sa frameTimeMs
  */
 uint Canvas::fps()
 {
     return m_fps;
+}
+
+/*!
+ * \qmlmethod int Canvas3D::frameTimeMs()
+ * This method returns the number of milliseconds the last rendered frame took to process. Before
+ * any frames have been rendered this method returns 0. This time is measured from the point
+ * the paintGL() signal was sent to the time glFinish() returns. This excludes the time it
+ * takes to present the frame on screen.
+ * \sa fps
+*/
+int Canvas::frameTimeMs()
+{
+    return m_frameTimeMs;
 }
 
 /*!
@@ -929,6 +946,9 @@ void Canvas::renderNext()
     QQmlEngine *engine = QQmlEngine::contextForObject(this)->engine();
     CanvasTextureImageFactory::factory(engine)->notifyLoadedImages();
 
+    static QElapsedTimer frameTimer;
+    frameTimer.start();
+
     // Call render in QML JavaScript side
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << " Emit paintGL() signal";
@@ -942,6 +962,8 @@ void Canvas::renderNext()
     // get unexpected results.
     glFlush();
     glFinish();
+
+    m_frameTimeMs = frameTimer.elapsed();
 
     // Update frames per second reading after glFinish()
     static QElapsedTimer timer;

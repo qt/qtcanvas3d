@@ -53,6 +53,9 @@ Item {
     property real yCameraOffset: 0
     property real zCameraOffset: 0
     property real cameraNear: 0
+    property int sliderLength: (width < height) ? width / 2 : height / 2
+    property real textSize: (sliderLength < 320) ? (sliderLength / 20) : 16
+    property real planetButtonSize: (height < 768) ? (height / 11) : 70
 
     NumberAnimation {
         id: lookAtOffsetAnimation
@@ -131,7 +134,7 @@ Item {
             temperature: "5 778 K"
             orbitalPeriod: ""
             distance: ""
-            planetImageSource: "qrc:/images/sun.png"
+            planetImageSource: "images/sun.png"
             planetNumber: 0
         }
         ListElement {
@@ -140,7 +143,7 @@ Item {
             temperature: "80-700 K"
             orbitalPeriod: "87.969 d"
             distance: "0.387 098 AU"
-            planetImageSource: "qrc:/images/mercury.png"
+            planetImageSource: "images/mercury.png"
             planetNumber: 1
         }
         ListElement {
@@ -149,7 +152,7 @@ Item {
             temperature: "737 K"
             orbitalPeriod: "224.701 d"
             distance: "0.723 327 AU"
-            planetImageSource: "qrc:/images/venus.png"
+            planetImageSource: "images/venus.png"
             planetNumber: 2
         }
         ListElement {
@@ -158,7 +161,7 @@ Item {
             temperature: "184-330 K"
             orbitalPeriod: "365.256 d"
             distance: "149598261 km (1 AU)"
-            planetImageSource: "qrc:/images/earth.png"
+            planetImageSource: "images/earth.png"
             planetNumber: 3
         }
         ListElement {
@@ -167,7 +170,7 @@ Item {
             temperature: "130-308 K"
             orbitalPeriod: "686.971 d"
             distance: "1.523679 AU"
-            planetImageSource: "qrc:/images/mars.png"
+            planetImageSource: "images/mars.png"
             planetNumber: 4
         }
         ListElement {
@@ -176,7 +179,7 @@ Item {
             temperature: "112-165 K"
             orbitalPeriod: "4332.59 d"
             distance: "5.204267 AU"
-            planetImageSource: "qrc:/images/jupiter.png"
+            planetImageSource: "images/jupiter.png"
             planetNumber: 5
         }
         ListElement {
@@ -185,7 +188,7 @@ Item {
             temperature: "84-134 K"
             orbitalPeriod: "10759.22 d"
             distance: "9.5820172 AU"
-            planetImageSource: "qrc:/images/saturn.png"
+            planetImageSource: "images/saturn.png"
             planetNumber: 6
         }
         ListElement {
@@ -194,7 +197,7 @@ Item {
             temperature: "49-76 K"
             orbitalPeriod: "30687.15 d"
             distance: "19.189253 AU"
-            planetImageSource: "qrc:/images/uranus.png"
+            planetImageSource: "images/uranus.png"
             planetNumber: 7
         }
         ListElement {
@@ -203,7 +206,7 @@ Item {
             temperature: "55-72 K"
             orbitalPeriod: "60190.03 d"
             distance: "30.070900 AU"
-            planetImageSource: "qrc:/images/neptune.png"
+            planetImageSource: "images/neptune.png"
             planetNumber: 8
         }
         ListElement {
@@ -220,6 +223,8 @@ Item {
             text: name
             focusPlanet: planetNumber
             planetSelector: mainview
+            buttonSize: planetButtonSize
+            fontSize: textSize
         }
     }
 
@@ -228,10 +233,10 @@ Item {
         anchors.top: parent.top
         anchors.right: parent.right
         anchors.bottom: parent.bottom
-        anchors.rightMargin: 15
-        anchors.bottomMargin: 10
-        spacing: 10
-        width: 100
+        anchors.rightMargin: planetButtonSize / 5
+        anchors.bottomMargin: planetButtonSize / 7
+        spacing: planetButtonSize / 7
+        width: planetButtonSize * 1.4
         interactive: false
         model: planetModel
         delegate: planetButtonDelegate
@@ -276,7 +281,7 @@ Item {
         anchors.top: parent.top
         anchors.topMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 400
+        width: sliderLength
         value: 0.2
         minimumValue: 0
         maximumValue: 1
@@ -287,7 +292,7 @@ Item {
         anchors.verticalCenter: speedSlider.verticalCenter
         anchors.rightMargin: 10
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Rotation Speed"
@@ -298,7 +303,7 @@ Item {
         anchors.bottom: parent.bottom
         anchors.bottomMargin: 10
         anchors.horizontalCenter: parent.horizontalCenter
-        width: 400
+        width: sliderLength
         value: 1200
         minimumValue: 1
         maximumValue: 2000
@@ -309,7 +314,7 @@ Item {
         anchors.verticalCenter: scaleSlider.verticalCenter
         anchors.rightMargin: 10
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Planet Size"
@@ -321,7 +326,7 @@ Item {
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
         orientation: Qt.Vertical
-        height: 400
+        height: sliderLength
         value: 1
         minimumValue: 1
         maximumValue: 2
@@ -331,14 +336,14 @@ Item {
     }
     Text {
         y: distanceSlider.y + distanceSlider.height + width + 10
-        x: distanceSlider.x
+        x: distanceSlider.x + 30 - textSize
         transform: Rotation {
             origin.x: 0;
             origin.y: 0;
             angle: -90
         }
         font.family: "Helvetica"
-        font.pixelSize: 16
+        font.pixelSize: textSize
         font.weight: Font.Light
         color: "white"
         text: "Viewing Distance"

@@ -57,37 +57,8 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 class ArrayUtils
 {
 public:
-    static void fillFloatArrayFromVariantList(const QVariantList  &list, float *outArray)
-    {
-        int idx = 0;
-        for (QVariantList::const_iterator it = list.begin(); it != list.end(); ++it) {
-            QVariant element = *it;
-            if (element.canConvert<float>()) {
-                outArray[idx] = element.toFloat();
-            }
-            else {
-                // Conversion failed, use 0.0 as default value
-                outArray[idx] = 0.f;
-            }
-            idx++;
-        }
-    }
-
-    static void fillIntArrayFromVariantList(const QVariantList  &list, int *outArray)
-    {
-        int idx = 0;
-        for (QVariantList::const_iterator it = list.begin(); it != list.end(); ++it) {
-            QVariant element = *it;
-            if (element.canConvert<int>()) {
-                outArray[idx] = element.toInt();
-            }
-            else {
-                // Conversion failed, use 0.0 as default value
-                outArray[idx] = 0;
-            }
-            idx++;
-        }
-    }
+    static void fillFloatArrayFromVariantList(const QVariantList  &list, float *outArray);
+    static void fillIntArrayFromVariantList(const QVariantList  &list, int *outArray);
 };
 
 QT_CANVAS3D_END_NAMESPACE

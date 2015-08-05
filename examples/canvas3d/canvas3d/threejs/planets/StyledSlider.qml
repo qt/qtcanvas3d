@@ -57,12 +57,19 @@ Slider {
             }
         }
         handle: Rectangle {
+            Rectangle {
+                anchors.centerIn: parent
+                color: "#aeadac"
+                border.color: "#1e1b18"
+                border.width: 1
+                implicitWidth: 8
+                implicitHeight: 20
+            }
             anchors.centerIn: parent
-            color: "#aeadac"
-            border.color: "#1e1b18"
-            border.width: 1
-            implicitWidth: 8
-            implicitHeight: 20
+            color: "transparent"
+            border.width: 0
+            implicitWidth: 50
+            implicitHeight: 50
         }
     }
 }
