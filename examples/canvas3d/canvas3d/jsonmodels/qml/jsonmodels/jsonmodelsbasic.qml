@@ -46,6 +46,7 @@ Window {
     visible: true
     width: 1200
     height: 900
+    color: "#e6e6e6"
 
     property int previousY: 0
     property int previousX: 0

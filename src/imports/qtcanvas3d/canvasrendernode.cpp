@@ -39,6 +39,7 @@
 #include "glcommandqueue_p.h"
 
 #include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLFramebufferObject>
 
 QT_BEGIN_NAMESPACE
@@ -47,14 +48,25 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 CanvasRenderNode::CanvasRenderNode(QQuickWindow *window) :
     QObject(),
     QSGSimpleTextureNode(),
+    m_defaultTexture(0),
     m_texture(0),
     m_window(window),
     m_textureOptions(QQuickWindow::TextureHasAlphaChannel)
 {
     qCDebug(canvas3drendering).nospace() << "CanvasRenderNode::" << __FUNCTION__;
 
-    // Our texture node must have a texture, so use the default 0 texture.
-    m_texture = m_window->createTextureFromId(0, QSize(1, 1), m_textureOptions);
+    // Our texture node must have a texture, so use a default fully transparent one pixel
+    // texture. This way we don't get a black screen for a moment at startup, but instead show
+    // whatever is behind the canvas.
+    QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+    funcs->glGenTextures(1, &m_defaultTexture);
+    funcs->glBindTexture(GL_TEXTURE_2D, m_defaultTexture);
+    uchar buf[4] = { 0, 0, 0, 0 };
+    funcs->glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, &buf);
+
+    QQuickWindow::CreateTextureOptions defaultTextureOptions = QQuickWindow::CreateTextureOptions(
+            QQuickWindow::TextureHasAlphaChannel | QQuickWindow::TextureOwnsGLTexture);
+    m_texture = m_window->createTextureFromId(m_defaultTexture, QSize(1, 1), defaultTextureOptions);
 
     setTexture(m_texture);
     setFiltering(QSGTexture::Linear);
@@ -83,6 +95,7 @@ void CanvasRenderNode::newTexture(int id, const QSize &size)
                                              << " showing new texture:" << id
                                              << " size:" << size
                                              << " targetRect:" << rect();
+
         delete m_texture;
         m_texture = m_window->createTextureFromId(id, size, m_textureOptions);
         setTexture(m_texture);

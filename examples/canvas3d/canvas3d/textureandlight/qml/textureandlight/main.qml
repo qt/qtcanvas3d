@@ -41,11 +41,12 @@ import QtCanvas3D 1.0
 import "textureandlight.js" as GLCode
 //! [4]
 
-Item {
+Rectangle {
     id: mainview
     width: 1280
     height: 768
     visible: true
+    color: "#fafafa"
 
     //! [0]
     Canvas3D {

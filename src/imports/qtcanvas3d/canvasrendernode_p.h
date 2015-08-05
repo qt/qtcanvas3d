@@ -71,6 +71,7 @@ public slots:
     void newTexture(int id, const QSize &size);
 
 private:
+    GLuint m_defaultTexture;
     QSGTexture *m_texture;
     QQuickWindow *m_window;
     QQuickWindow::CreateTextureOptions m_textureOptions;

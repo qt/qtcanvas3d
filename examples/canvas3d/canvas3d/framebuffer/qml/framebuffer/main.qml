@@ -41,11 +41,12 @@ import QtQuick.Layouts 1.0
 
 import "framebuffer.js" as GLCode
 
-Item {
+Rectangle {
     id: mainview
     width: 1280
     height: 768
     visible: true
+    color: "#f2f2f2"
 
     Canvas3D {
         id: canvas3d
