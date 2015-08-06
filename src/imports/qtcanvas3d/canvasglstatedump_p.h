@@ -49,8 +49,8 @@
 
 #include "canvas3dcommon_p.h"
 
-#include <QObject>
-#include <QtGui/QOpenGLFunctions>
+#include <QtCore/QObject>
+#include <QtGui/qopengl.h>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -58,8 +58,9 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 #define DUMP_ENUM_AS_PROPERTY(A,B,C) Q_PROPERTY(A::B C READ C ## _read); inline A::B C ## _read() { return A::C; }
 
 class EnumToStringMap;
+class CanvasContext;
 
-class CanvasGLStateDump : public QObject, protected QOpenGLFunctions
+class CanvasGLStateDump : public QObject
 {
     Q_OBJECT
 
@@ -78,17 +79,22 @@ public:
     DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT)
     DUMP_ENUM_AS_PROPERTY(QtCanvas3D::CanvasGLStateDump,stateDumpEnums,DUMP_FULL)
 
-    CanvasGLStateDump(QOpenGLContext *context, QObject *parent = 0);
+    CanvasGLStateDump(CanvasContext *canvasContext, bool isEs, QObject *parent = 0);
     ~CanvasGLStateDump();
 
     Q_INVOKABLE QString getGLStateDump(stateDumpEnums options = DUMP_BASIC_ONLY);
 
-    QString getGLArrayObjectDump(int target, int arrayObject, int type);
+    void getGLArrayObjectDump(int target, int arrayObject, int type);
+
+    void doGLStateDump();
 
 private:
     GLint m_maxVertexAttribs;
     EnumToStringMap *m_map;
     bool m_isOpenGLES2;
+    CanvasContext *m_canvasContext;
+    QString m_stateDumpStr;
+    stateDumpEnums m_options;
 };
 
 QT_CANVAS3D_END_NAMESPACE

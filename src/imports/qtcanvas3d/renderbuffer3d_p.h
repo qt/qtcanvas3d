@@ -50,23 +50,22 @@
 #include "abstractobject3d_p.h"
 
 #include <QObject>
-#include <QOpenGLFunctions>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-class CanvasRenderBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
+class CanvasRenderBuffer : public CanvasAbstractObject
 {
     Q_OBJECT
 public:
-    explicit CanvasRenderBuffer(QObject *parent = 0);
+    explicit CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *parent = 0);
     ~CanvasRenderBuffer();
     bool isAlive();
     void del();
-    GLuint id();
+    GLint id();
 
 private:
-    GLuint m_renderbufferId;
+    GLint m_renderbufferId;
 };
 
 QT_CANVAS3D_END_NAMESPACE

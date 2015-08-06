@@ -35,6 +35,7 @@
 ****************************************************************************/
 
 #include "uniformlocation_p.h"
+#include "context3d_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -52,9 +53,9 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_location(location),
+CanvasUniformLocation::CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_locationId(queue->createResourceId()),
     m_type(-1)
 {
 }
@@ -64,30 +65,39 @@ CanvasUniformLocation::CanvasUniformLocation(int location, QObject *parent) :
  */
 CanvasUniformLocation::~CanvasUniformLocation()
 {
+    if (m_locationId)
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearLocation, m_locationId);
 }
 
 /*!
  * \internal
  */
-int CanvasUniformLocation::id()
+GLint CanvasUniformLocation::id()
 {
-    return m_location;
+    return m_locationId;
 }
 
 /*!
  * \internal
  */
-int CanvasUniformLocation::type()
+GLint CanvasUniformLocation::type()
 {
     return m_type;
 }
 
 /*!
  * \internal
+ *
+ * Synchronously retrieves uniform type.
  */
-void CanvasUniformLocation::setType(int type)
+void CanvasUniformLocation::resolveType(GLint programId, CanvasContext *context)
 {
-    m_type = type;
+    if (m_type < 0) {
+        GlSyncCommand syncCommand(CanvasGlCommandQueue::internalGetUniformType, programId);
+        syncCommand.data = new QByteArray(name().toLatin1());
+        syncCommand.returnValue = &m_type;
+        context->scheduleSyncCommand(&syncCommand);
+    }
 }
 
 /*!
@@ -96,7 +106,7 @@ void CanvasUniformLocation::setType(int type)
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)
-        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_location << ")";
+        dbg.nospace() << "Canvas3DUniformLocation("<< (void *) uLoc << ", name:"<< uLoc->name() <<", location:" << uLoc->m_locationId << ")";
     else
         dbg.nospace() << "Canvas3DUniformLocation("<< (void *)(uLoc) << ")";
 

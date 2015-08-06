@@ -56,7 +56,7 @@
     \snippet canvas3d/textureandlight/qml/textureandlight/main.qml 0
     \dots
 
-    Inside it, we catch the \c initGL and \c renderGL signals to forward the
+    Inside it, we catch the \c initializeGL and \c paintGL signals to forward the
     initialization and rendering calls to the js object:
 
     \snippet canvas3d/textureandlight/qml/textureandlight/main.qml 1
@@ -67,7 +67,7 @@
 
     \snippet canvas3d/textureandlight/qml/textureandlight/main.qml 4
 
-    In the \c initGL function of the JavaScript, we initialize the OpenGL
+    In the \c initializeGL function of the JavaScript, we initialize the OpenGL
     state. We also create the TextureImage and register handlers for image
     load success and fail signals. If the load succeeds, the OpenGL texture
     is created and filled with pixel data from the loaded image.
@@ -83,9 +83,9 @@
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 0
 
-    \section2 initGL Function
+    \section2 initializeGL Function
 
-    Let's take a closer look at the \c initGL function. It is called by
+    Let's take a closer look at the \c initializeGL function. It is called by
     Canvas3D once the render node is ready.
 
     First of all, we need to get a Context3D from our Canvas3D. We want
@@ -98,7 +98,7 @@
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 2
 
     Next, let's take a look into shader initialization in the
-    \c initShaders function, which we call in \c{initGL}. First we define
+    \c initShaders function, which we call in \c{initializeGL}. First we define
     the vertex shader:
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 3
@@ -125,16 +125,16 @@
     Above, first we create the buffer, then bind it and finally insert the
     data into it. Other buffers are all handled in a similar fashion.
 
-    As the final step in \c{initGL}, we create a texture image from
+    As the final step in \c{initializeGL}, we create a texture image from
     TextureImageFactory, and register handlers for \c imageLoaded and
     \c imageLoadingFailed signals. Once the texture image is successfully
     loaded, we create the actual texture:
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 8
 
-    \section2 renderGL Function
+    \section2 paintGL Function
 
-    \c renderGL is called by Canvas3D whenever it is ready to receive a new
+    \c paintGL is called by Canvas3D whenever it is ready to receive a new
     frame. Let's go through the steps that are done in each render cycle.
 
     First we check if canvas has been resized or if pixel ratio has changed,
@@ -142,7 +142,7 @@
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 9
 
-    Then we clear the render area using the clear color set in \c{initGL}:
+    Then we clear the render area using the clear color set in \c{initializeGL}:
 
     \snippet canvas3d/textureandlight/qml/textureandlight/textureandlight.js 10
 

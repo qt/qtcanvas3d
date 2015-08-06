@@ -84,7 +84,7 @@ function paintGL(x, y, separateFbo) {
         gl.clearColor(0.0, 1.0, 0.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT);
     } else {
-        gl.clearColor(1.0, 0.0, 0, 1.0);
+        gl.clearColor(64.0 / 255.0, 80.0 / 255.0, 96.0 / 255.0, 1.0);
         gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
     }
 
@@ -168,7 +168,7 @@ function initBuffers()
     gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
     colorBuffer = gl.createBuffer();
-    setColor(0.0, 0.0, 255.0, 255.0);
+    setColor(16.0, 32.0, 48.0, 255.0);
 
     var uvBuffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, uvBuffer);

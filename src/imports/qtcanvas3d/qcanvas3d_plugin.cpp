@@ -46,6 +46,8 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
 {
     // @uri com.digia.qtcanvas3d
 
+    // QtCanvas3D 1.0
+
     // QTCANVAS3D CORE API
     qmlRegisterSingletonType<CanvasTextureImageFactory>(uri,
                                                         1, 0,
@@ -108,6 +110,17 @@ void QtCanvas3DPlugin::registerTypes(const char *uri)
                                                   1, 0,
                                                   "GLStateDumpExt",
                                                   QLatin1String("Trying to create uncreatable: GLStateDumpExt, use Context3D.getExtension(\"QTCANVAS3D_gl_state_dump\") instead."));
+
+    // QtCanvas3D 1.1
+
+    // New revisions
+    qmlRegisterType<Canvas, 1>(uri, 1, 1, "Canvas3D");
+
+    // New types
+    qmlRegisterUncreatableType<CanvasTextureProvider>(uri,
+                                                      1, 1,
+                                                      "Canvas3DTextureProvider",
+                                                      QLatin1String("Trying to create uncreatable: Canvas3DTextureProvider, use Context3D.getExtension(\"QTCANVAS3D_texture_provider\") instead."));
 }
 
 QT_CANVAS3D_END_NAMESPACE

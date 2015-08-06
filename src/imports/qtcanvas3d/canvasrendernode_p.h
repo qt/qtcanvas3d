@@ -62,22 +62,13 @@ class CanvasRenderNode : public QObject, public QSGSimpleTextureNode
     Q_OBJECT
 
 public:
-    CanvasRenderNode(Canvas *canvas, QQuickWindow *window);
+    CanvasRenderNode(QQuickWindow *window);
     ~CanvasRenderNode();
-
-signals:
-    void textureInUse();
-    void pendingNewTexture();
 
 public slots:
     void newTexture(int id, const QSize &size);
-    void prepareNode();
 
 private:
-    Canvas *m_canvas;
-    int m_id;
-    QSize m_size;
-    QMutex m_mutex;
     QSGTexture *m_texture;
     QQuickWindow *m_window;
 };

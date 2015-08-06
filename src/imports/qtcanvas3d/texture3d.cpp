@@ -35,6 +35,7 @@
 ****************************************************************************/
 
 #include "texture3d_p.h"
+#include "glcommandqueue_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -52,13 +53,20 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasTexture::CanvasTexture(QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_textureId(0),
-    m_isAlive(true)
+CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context,
+                             QQuickItem *quickItem) :
+    CanvasAbstractObject(queue, context),
+    m_textureId(queue->createResourceId()),
+    m_isAlive(true),
+    m_context(context),
+    m_quickItem(quickItem)
 {
-    initializeOpenGLFunctions();
-    glGenTextures(1, &m_textureId);
+    Q_ASSERT(m_commandQueue);
+
+    if (m_quickItem)
+        connect(m_quickItem, &QObject::destroyed, this, &CanvasTexture::handleItemDestroyed);
+    else
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
 }
 
 /*!
@@ -66,8 +74,7 @@ CanvasTexture::CanvasTexture(QObject *parent) :
  */
 CanvasTexture::~CanvasTexture()
 {
-    if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
+    del();
 }
 
 /*!
@@ -75,21 +82,29 @@ CanvasTexture::~CanvasTexture()
  */
 void CanvasTexture::bind(CanvasContext::glEnums target)
 {
-    if (!m_textureId)
-        return;
-
-    glBindTexture(GLenum(target), m_textureId);
+    if (m_textureId) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindTexture, GLint(target),
+                                     m_textureId);
+    }
 }
 
 /*!
  * \internal
  */
-GLuint CanvasTexture::textureId() const
+GLint CanvasTexture::textureId() const
 {
     if (!m_isAlive)
         return 0;
 
     return m_textureId;
+}
+
+/*!
+ * \internal
+ */
+void CanvasTexture::handleItemDestroyed()
+{
+    del();
 }
 
 /*!
@@ -105,8 +120,16 @@ bool CanvasTexture::isAlive() const
  */
 void CanvasTexture::del()
 {
-    if (m_textureId)
-        glDeleteTextures(1, &m_textureId);
+    if (m_textureId) {
+        if (m_quickItem) {
+            m_context->quickItemToTextureMap().remove(m_quickItem);
+            m_quickItem = 0;
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearQuickItemAsTexture,
+                                         m_textureId);
+        } else {
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
+        }
+    }
     m_textureId = 0;
 }
 

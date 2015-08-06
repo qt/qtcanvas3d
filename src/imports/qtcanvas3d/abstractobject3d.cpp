@@ -35,6 +35,7 @@
 ****************************************************************************/
 
 #include "abstractobject3d_p.h"
+#include "glcommandqueue_p.h"
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -42,9 +43,10 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasAbstractObject::CanvasAbstractObject(QObject *parent) :
+CanvasAbstractObject::CanvasAbstractObject(CanvasGlCommandQueue *queue, QObject *parent) :
     QObject(parent),
-    m_hasName(false)
+    m_hasName(false),
+    m_commandQueue(queue)
 {
     m_name = QString("0x%1").arg((long long) this, 0, 16);
 }
@@ -85,7 +87,6 @@ bool CanvasAbstractObject::hasSpecificName() const
 {
     return m_hasName;
 }
-
 
 QT_CANVAS3D_END_NAMESPACE
 QT_END_NAMESPACE

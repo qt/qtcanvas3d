@@ -55,7 +55,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \internal
  */
 CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
-    CanvasAbstractObject(parent)
+    CanvasAbstractObject(0, parent)
 {
 }
 

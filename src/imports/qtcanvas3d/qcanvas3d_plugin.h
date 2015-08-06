@@ -51,6 +51,7 @@
 #include "shaderprecisionformat_p.h"
 #include "activeinfo3d_p.h"
 #include "canvasglstatedump_p.h"
+#include "canvastextureprovider_p.h"
 
 #include <QQmlExtensionPlugin>
 
@@ -73,6 +74,7 @@ QML_DECLARE_TYPE(CanvasRenderBuffer)
 QML_DECLARE_TYPE(CanvasShaderPrecisionFormat)
 QML_DECLARE_TYPE(CanvasActiveInfo)
 QML_DECLARE_TYPE(CanvasGLStateDump)
+QML_DECLARE_TYPE(CanvasTextureProvider)
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE

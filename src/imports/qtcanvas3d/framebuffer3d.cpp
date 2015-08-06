@@ -52,13 +52,14 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 /*!
  * \internal
  */
-CanvasFrameBuffer::CanvasFrameBuffer(QObject *parent) :
-    CanvasAbstractObject(parent),
-    m_framebufferId(0),
+CanvasFrameBuffer::CanvasFrameBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
+    CanvasAbstractObject(queue, parent),
+    m_framebufferId(queue->createResourceId()),
     m_texture(0)
 {
-    initializeOpenGLFunctions();
-    glGenFramebuffers(1, &m_framebufferId);
+    Q_ASSERT(m_commandQueue);
+
+    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenFramebuffers, m_framebufferId);
 }
 
 /*!
@@ -74,7 +75,7 @@ CanvasFrameBuffer::~CanvasFrameBuffer()
  */
 bool CanvasFrameBuffer::isAlive()
 {
-    return (m_framebufferId);
+    return bool(m_framebufferId);
 }
 
 /*!
@@ -83,7 +84,7 @@ bool CanvasFrameBuffer::isAlive()
 void CanvasFrameBuffer::del()
 {
     if (m_framebufferId) {
-        glDeleteFramebuffers(1, &m_framebufferId);
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteFramebuffers, m_framebufferId);
         m_framebufferId = 0;
     }
 }
@@ -91,7 +92,7 @@ void CanvasFrameBuffer::del()
 /*!
  * \internal
  */
-GLuint CanvasFrameBuffer::id()
+GLint CanvasFrameBuffer::id()
 {
     return m_framebufferId;
 }

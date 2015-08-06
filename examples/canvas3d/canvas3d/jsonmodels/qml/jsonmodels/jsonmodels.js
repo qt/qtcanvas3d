@@ -253,7 +253,8 @@ function paintGL(canvas) {
         // Draw the model
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, modelOne.indexVBO);
 
-        if (stateDumpExt)
+        // Getting state dump is a synchronous operation, so only do it when logging is enabled
+        if (isLogEnabled && stateDumpExt)
             log("GL STATE DUMP:\n"+stateDumpExt.getGLStateDump(stateDumpExt.DUMP_FULL));
 
         gl.drawElements(drawMode, modelOne.count, gl.UNSIGNED_SHORT, 0);
@@ -621,7 +622,7 @@ function fillModel(modelData, model) {
                   new Float32Array(modelData.vertices),
                   gl.STATIC_DRAW);
     log("   "+model.normalsVBO.name);
-    if (stateDumpExt)
+    if (isLogEnabled && stateDumpExt)
         log("GL STATE DUMP:\n"+stateDumpExt.getGLStateDump(stateDumpExt.DUMP_VERTEX_ATTRIB_ARRAYS_BIT || stateDumpExt.DUMP_VERTEX_ATTRIB_ARRAYS_CONTENTS_BIT));
 
     gl.bindBuffer(gl.ARRAY_BUFFER, model.normalsVBO);

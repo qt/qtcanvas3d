@@ -58,7 +58,6 @@ class CanvasContextAttributes : public CanvasAbstractObject
 {
     Q_OBJECT
 
-    Q_ENUMS(RenderingMode)
     Q_PROPERTY(bool alpha READ alpha WRITE setAlpha NOTIFY alphaChanged)
     Q_PROPERTY(bool depth READ depth WRITE setDepth NOTIFY depthChanged)
     Q_PROPERTY(bool stencil READ stencil WRITE setStencil NOTIFY stencilChanged)

@@ -60,7 +60,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \internal
  */
 CanvasContextAttributes::CanvasContextAttributes(QObject *parent) :
-    CanvasAbstractObject(parent),
+    CanvasAbstractObject(0, parent),
     m_alpha(false),  // Should be true according to official WebGL spec. But ignored for now.
     m_depth(false),
     m_stencil(false),
@@ -216,7 +216,9 @@ void CanvasContextAttributes::setPremultipliedAlpha(bool value)
 
 /*!
  * \qmlproperty bool Canvas3DContextAttributes::preserveDrawingBuffer
- * Ignored. Defaults to \c{false}.
+ * Specifies whether or not the drawing buffer contents are preserved from frame to frame.
+ * Ignored when drawing to the background or the foreground of the Qt Quick scene.
+ * Defaults to \c{false}.
  */
 bool CanvasContextAttributes::preserveDrawingBuffer() const
 {

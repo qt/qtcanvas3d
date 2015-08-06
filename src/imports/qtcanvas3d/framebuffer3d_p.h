@@ -49,7 +49,6 @@
 
 #include "abstractobject3d_p.h"
 
-#include <QOpenGLFunctions>
 #include <QDebug>
 
 QT_BEGIN_NAMESPACE
@@ -57,24 +56,24 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 
 class CanvasTexture;
 
-class CanvasFrameBuffer : public CanvasAbstractObject, protected QOpenGLFunctions
+class CanvasFrameBuffer : public CanvasAbstractObject
 {
     Q_OBJECT
 
 public:
-    explicit CanvasFrameBuffer(QObject *parent = 0);
+    explicit CanvasFrameBuffer(CanvasGlCommandQueue *queue, QObject *parent);
     virtual ~CanvasFrameBuffer();
 
     bool isAlive();
     void del();
-    GLuint id();
+    GLint id();
     void setTexture(CanvasTexture *texture);
     CanvasTexture *texture();
 
     friend QDebug operator<< (QDebug d, const CanvasFrameBuffer *fb);
 
 private:
-    GLuint m_framebufferId;
+    GLint m_framebufferId;
     CanvasTexture *m_texture; // Not owned
 };
 

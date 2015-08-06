@@ -49,6 +49,8 @@ Item {
     property var activeContent: Content
     property bool initOk: false
     property bool renderOk: false
+    property var canvasWindow: null
+    property bool windowHidden: false
 
     function createCanvas() {
         canvas3d = Qt.createQmlObject("
@@ -62,6 +64,32 @@ Item {
             }
         }", top)
         canvas3d.anchors.fill = top
+    }
+
+    function createCanvasWindow() {
+        canvasWindow = Qt.createQmlObject("
+        import QtQuick 2.2
+        import QtCanvas3D 1.0
+        import QtQuick.Window 2.0
+        Window {
+            visible: true
+            width: 300
+            height: 300
+            x: top.width
+            y: top.height
+            Canvas3D {
+                id: theCanvas
+                anchors.fill: parent
+                onInitializeGL: initOk = activeContent.initializeGL(theCanvas)
+                onPaintGL: {
+                    renderOk = true
+                    activeContent.paintGL(theCanvas)
+                }
+            }
+            onVisibleChanged: {
+                windowHidden = !visible
+            }
+        }", top)
     }
 
     TestCase {
@@ -108,6 +136,37 @@ Item {
             verify(canvas3d !== null)
             tryCompare(top, "initOk", true)
             tryCompare(top, "renderOk", true)
+
+            canvas3d.destroy()
+            waitForRendering(canvas3d)
+            verify(canvas3d === null)
+        }
+
+        function test_render_4_dynamic_window_creation() {
+            initOk = false
+            renderOk = false
+            verify(canvasWindow === null)
+            createCanvasWindow()
+            verify(canvasWindow !== null)
+            tryCompare(top, "initOk", true)
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "windowHidden", false)
+        }
+
+        function test_render_5_dynamic_window_hide_and_reshow() {
+            verify(canvasWindow !== null)
+            verify(windowHidden === false)
+            canvasWindow.hide()
+            tryCompare(top, "windowHidden", true)
+            renderOk = false
+            canvasWindow.show()
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "windowHidden", false)
+        }
+        function test_render_6_dynamic_window_destroy() {
+            verify(canvasWindow !== null)
+            canvasWindow.destroy()
+            tryCompare(top, "canvasWindow", null)
         }
     }
 }

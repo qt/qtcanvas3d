@@ -54,23 +54,25 @@
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
+class CanvasContext;
+
 class CanvasUniformLocation : public CanvasAbstractObject
 {
     Q_OBJECT
 
 public:
-    explicit CanvasUniformLocation(int location, QObject *parent = 0);
+    explicit CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent = 0);
     virtual ~CanvasUniformLocation();
 
-    int id();
-    int type();
-    void setType(int type);
+    GLint id();
+    GLint type();
+    void resolveType(GLint programId, CanvasContext *context);
 
     friend QDebug operator<< (QDebug d, const CanvasUniformLocation *uLoc);
 
 private:
-    int m_location;
-    int m_type;
+    GLint m_locationId;
+    GLint m_type;
 };
 
 QT_CANVAS3D_END_NAMESPACE
