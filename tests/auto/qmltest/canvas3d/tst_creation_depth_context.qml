@@ -46,8 +46,11 @@ Item {
     Canvas3D {
         id: depth_context
         anchors.fill: parent
-        function initializeGL() {}
-        function paintGL() {}
+        property int initStatus: 0
+        onInitializeGL: {
+            getContext("depth", {depth:true})
+            initStatus = 1
+        }
     }
 
     TestCase {
@@ -56,7 +59,7 @@ Item {
 
         function test_depth_context() {
             waitForRendering(depth_context)
-            depth_context.getContext("depth", {depth:true})
+            tryCompare(depth_context, "initStatus", 1)
             compare(depth_context.context.canvas, depth_context)
         }
     }

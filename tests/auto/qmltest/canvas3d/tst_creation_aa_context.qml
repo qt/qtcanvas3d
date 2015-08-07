@@ -46,8 +46,11 @@ Item {
     Canvas3D {
         id: aa_context
         anchors.fill: parent
-        function initializeGL() {}
-        function paintGL() {}
+        property int initStatus: 0
+        onInitializeGL: {
+            getContext("antialias", {antialias:true})
+            initStatus = 1
+        }
     }
 
     TestCase {
@@ -56,7 +59,7 @@ Item {
 
         function test_aa_context() {
             waitForRendering(aa_context)
-            aa_context.getContext("antialias", {antialias:true})
+            tryCompare(aa_context, "initStatus", 1)
             compare(aa_context.context.canvas, aa_context)
         }
     }
