@@ -53,6 +53,7 @@
 #include <QtQuick/QQuickItem>
 #include <QtQuick/QQuickWindow>
 #include <QtGui/QOpenGLFramebufferObject>
+#include <QtCore/QElapsedTimer>
 
 QT_BEGIN_NAMESPACE
 
@@ -116,6 +117,7 @@ public:
 
     uint fps();
     Q_INVOKABLE int frameTimeMs();
+    Q_REVISION(1) Q_INVOKABLE int frameSetupTimeMs();
 
     Q_INVOKABLE QJSValue getContext(const QString &name);
     Q_INVOKABLE QJSValue getContext(const QString &name, const QVariantMap &options);
@@ -165,6 +167,8 @@ private:
     QSize m_maxSize;
 
     uint m_frameTimeMs;
+    uint m_frameSetupTimeMs;
+    QElapsedTimer m_frameTimer;
     int m_maxSamples;
     float m_devicePixelRatio;
 

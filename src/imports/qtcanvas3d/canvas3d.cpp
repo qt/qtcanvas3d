@@ -90,6 +90,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_fboSize(0, 0),
     m_maxSize(0, 0),
     m_frameTimeMs(0),
+    m_frameSetupTimeMs(0),
     m_maxSamples(0),
     m_devicePixelRatio(1.0f),
     m_isOpenGLES2(false),
@@ -757,19 +758,38 @@ uint Canvas::fps()
 }
 
 /*!
- * \qmlmethod int Canvas3D::frameTimeMs()
- * This method returns the number of milliseconds the last rendered frame took to process. Before
- * any frames have been rendered this method returns 0. This time is measured from the point
- * GL commands are transferred to render thread to the time glFinish() returns, so it doesn't include
- * the time spent parsing JavaScript, nor the time the scene graph takes to present the frame to
- * the screen.
- * This value is updated for the previous frame when the next frame GL command transfer is done.
- *
- * \sa fps
+   \qmlmethod int Canvas3D::frameTimeMs()
+
+   This method returns the number of milliseconds the renderer took to process the OpenGL portion
+   of the rendering for the previous frame.
+   Before any frames have been rendered this method returns 0.
+   This time is measured from the point OpenGL commands are transferred to render thread to the time
+   glFinish() returns, so it doesn't include the time spent parsing JavaScript, nor the time
+   the scene graph takes to present the frame to the screen.
+   This value is updated for the previous frame when the next frame OpenGL command transfer is done.
+
+   \sa fps, frameSetupTimeMs
 */
 int Canvas::frameTimeMs()
 {
     return int(m_frameTimeMs);
+}
+
+/*!
+   \qmlmethod int Canvas3D::frameSetupTimeMs()
+   \since QtCanvas3D 1.1
+
+   This method returns the number of milliseconds Canvas3D took to process the PaintGL signal
+   for the previous frame. Before any frames have been rendered this method returns 0.
+   This time doesn't include time spent on actual OpenGL rendering of the frame, nor the time
+   the scene graph takes to present the frame to the screen.
+   This value is updated after PaintGL signal handler returns.
+
+   \sa fps, frameTimeMs
+*/
+int Canvas::frameSetupTimeMs()
+{
+    return int(m_frameSetupTimeMs);
 }
 
 /*!
@@ -832,7 +852,9 @@ void Canvas::queueNextRender()
     if (m_renderTarget != RenderTargetOffscreenBuffer)
         m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalBeginPaint);
 
+    m_frameTimer.start();
     emit paintGL();
+    m_frameSetupTimeMs = m_frameTimer.elapsed();
 
     // Indicate texture completion point by queueing internalTextureComplete command
     m_renderer->commandQueue()->queueCommand(CanvasGlCommandQueue::internalTextureComplete);
