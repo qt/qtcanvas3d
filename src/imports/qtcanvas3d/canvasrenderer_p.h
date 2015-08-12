@@ -94,7 +94,6 @@ public:
     uint fps() const { return m_fps; }
     CanvasGlCommandQueue *commandQueue() { return &m_commandQueue; }
 
-    void logGlErrors(const char *funcName);
     void transferCommands();
     void makeCanvasContextCurrent();
     void executeCommandQueue();
@@ -125,6 +124,8 @@ signals:
     void textureIdResolved(QQuickItem *item);
 
 private:
+    bool updateGlError(const char *funcName);
+
     QSize m_fboSize;
     QSize m_initializedSize;
 

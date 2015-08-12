@@ -391,27 +391,34 @@ class GlSyncCommand : public GlCommand
 public:
     GlSyncCommand()
         : GlCommand(CanvasGlCommandQueue::internalNoCommand),
-          returnValue(0)
+          returnValue(0),
+          glError(false)
     {}
     GlSyncCommand(CanvasGlCommandQueue::GlCommandId command)
         : GlCommand(command),
-          returnValue(0)
+          returnValue(0),
+          glError(false)
     {}
     GlSyncCommand(CanvasGlCommandQueue::GlCommandId command,
               GLint p1, GLint p2 = 0, GLint p3 = 0, GLint p4 = 0, GLint p5 = 0, GLint p6 = 0,
               GLint p7 = 0, GLint p8 = 0)
         : GlCommand(command, p1, p2, p3, p4, p5, p6, p7, p8),
-          returnValue(0)
+          returnValue(0),
+          glError(false)
     {}
     GlSyncCommand(CanvasGlCommandQueue::GlCommandId command,
               GLfloat p1, GLfloat p2 = 0.0f, GLfloat p3 = 0.0f, GLfloat p4 = 0.0f)
         : GlCommand(command, p1, p2, p3, p4),
-          returnValue(0)
+          returnValue(0),
+          glError(false)
     {}
     ~GlSyncCommand() {}
 
     // Optional return value for synchronous commands. Not owned.
     void *returnValue;
+
+    // Indicates if an OpenGL error occurred during command execution.
+    bool glError;
 };
 
 QT_CANVAS3D_END_NAMESPACE

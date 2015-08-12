@@ -2765,9 +2765,13 @@ QJSValue CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         // Intentional flow through
     case VALIDATE_STATUS: {
         scheduleSyncCommand(&syncCommand);
-        const bool boolValue = (value == GL_TRUE);
-        qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << boolValue;
-        return QJSValue(boolValue);
+        if (syncCommand.glError) {
+            return QJSValue(QJSValue::NullValue);
+        } else {
+            const bool boolValue = (value == GL_TRUE);
+            qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << boolValue;
+            return QJSValue(boolValue);
+        }
     }
     case ATTACHED_SHADERS:
         // Intentional flow through
@@ -2775,8 +2779,12 @@ QJSValue CanvasContext::getProgramParameter(QJSValue program3D, glEnums paramNam
         // Intentional flow through
     case ACTIVE_UNIFORMS: {
         scheduleSyncCommand(&syncCommand);
-        qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
-        return QJSValue(value);
+        if (syncCommand.glError) {
+            return QJSValue(QJSValue::NullValue);
+        } else {
+            qCDebug(canvas3drendering).nospace() << "    getProgramParameter returns " << value;
+            return QJSValue(value);
+        }
     }
     default: {
         m_error |= CANVAS_INVALID_ENUM;
@@ -2808,7 +2816,7 @@ QJSValue CanvasContext::createShader(glEnums type)
                                                << ":INVALID_ENUM:unknown shader type:"
                                                << glEnumToString(type);
         m_error |= CANVAS_INVALID_ENUM;
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
 }
 
@@ -2939,7 +2947,7 @@ QJSValue CanvasContext::getShaderSource(QJSValue shader3D)
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ":INVALID_OPERATION:"
                                                << "Invalid shader handle:" << shader3D.toString();
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(shader, __FUNCTION__))
         return false;
@@ -3970,15 +3978,23 @@ QJSValue CanvasContext::getShaderParameter(QJSValue shader3D, glEnums pname)
     switch (pname) {
     case SHADER_TYPE: {
         scheduleSyncCommand(&syncCommand);
-        qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << value;
-        return QJSValue(glEnums(value));
+        if (syncCommand.glError) {
+            return QJSValue(QJSValue::NullValue);
+        } else {
+            qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << value;
+            return QJSValue(glEnums(value));
+        }
     }
     case DELETE_STATUS:
         // Intentional fall-through
     case COMPILE_STATUS: {
         scheduleSyncCommand(&syncCommand);
-        qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << bool(value);
-        return QJSValue(bool(value));
+        if (syncCommand.glError) {
+            return QJSValue(QJSValue::NullValue);
+        } else {
+            qCDebug(canvas3drendering).nospace() << "    getShaderParameter returns " << bool(value);
+            return QJSValue(bool(value));
+        }
     }
     default: {
         qCWarning(canvas3drendering).nospace() << "getShaderParameter():UNSUPPORTED parameter name "
@@ -4028,10 +4044,10 @@ QJSValue CanvasContext::getUniformLocation(QJSValue program3D, const QString &na
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << " WARNING:Invalid Canvas3DProgram reference " << program;
         m_error |= CANVAS_INVALID_OPERATION;
-        return 0;
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(program, __FUNCTION__))
-        return 0;
+        return QJSValue(QJSValue::NullValue);
 
     CanvasUniformLocation *location3D = new CanvasUniformLocation(m_commandQueue, this);
     location3D->setName(name);
@@ -4078,12 +4094,15 @@ int CanvasContext::getAttribLocation(QJSValue program3D, const QString &name)
         syncCommand.returnValue = &attribLoc;
 
         scheduleSyncCommand(&syncCommand);
-
-        qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                             << "(program3D:" << program3D.toString()
-                                             << ", name:" << name
-                                             << "):" << attribLoc;
-        return int(attribLoc);
+        if (syncCommand.glError) {
+            return -1;
+        } else {
+            qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                 << "(program3D:" << program3D.toString()
+                                                 << ", name:" << name
+                                                 << "):" << attribLoc;
+            return int(attribLoc);
+        }
     }
 }
 
@@ -4489,7 +4508,10 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
                                   GLint(target), GLint(pname));
         syncCommand.returnValue = &value;
         scheduleSyncCommand(&syncCommand);
-        return QJSValue(value);
+        if (syncCommand.glError)
+            return QJSValue(QJSValue::NullValue);
+        else
+            return QJSValue(value);
     }
     default:
         break;
@@ -4961,18 +4983,20 @@ QJSValue CanvasContext::getShaderInfoLog(QJSValue shader3D)
                                                << " WARNING: invalid shader handle:"
                                                << shader3D.toString();
         m_error |= CANVAS_INVALID_OPERATION;
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(shader, __FUNCTION__))
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
 
     QString log;
 
     GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetShaderInfoLog, shader->id());
     syncCommand.returnValue = &log;
     scheduleSyncCommand(&syncCommand);
-
-    return QJSValue(log);
+    if (syncCommand.glError)
+        return QJSValue(QJSValue::NullValue);
+    else
+        return QJSValue(log);
 }
 
 /*!
@@ -4995,18 +5019,20 @@ QJSValue CanvasContext::getProgramInfoLog(QJSValue program3D)
                                                << " WARNING: invalid program handle:"
                                                << program3D.toString();
         m_error |= CANVAS_INVALID_OPERATION;
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
     }
     if (!checkParent(program, __FUNCTION__))
-        return m_engine->newObject();
+        return QJSValue(QJSValue::NullValue);
 
     QString log;
 
     GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetProgramInfoLog, program->id());
     syncCommand.returnValue = &log;
     scheduleSyncCommand(&syncCommand);
-
-    return QJSValue(log);
+    if (syncCommand.glError)
+        return QJSValue(QJSValue::NullValue);
+    else
+        return QJSValue(log);
 }
 
 /*!
@@ -5521,9 +5547,12 @@ CanvasActiveInfo *CanvasContext::getActiveAttrib(QJSValue program3D, uint index)
     syncCommand.returnValue = retval;
 
     scheduleSyncCommand(&syncCommand);
-
-    QString strName(reinterpret_cast<char *>(&retval[3]));
-    return new CanvasActiveInfo(retval[1], CanvasContext::glEnums(retval[2]), strName);
+    if (syncCommand.glError) {
+        return 0;
+    } else {
+        QString strName(reinterpret_cast<char *>(&retval[3]));
+        return new CanvasActiveInfo(retval[1], CanvasContext::glEnums(retval[2]), strName);
+    }
 }
 
 /*!
@@ -5556,9 +5585,12 @@ CanvasActiveInfo *CanvasContext::getActiveUniform(QJSValue program3D, uint index
     syncCommand.returnValue = retval;
 
     scheduleSyncCommand(&syncCommand);
-
-    QString strName(reinterpret_cast<char *>(&retval[3]));
-    return new CanvasActiveInfo(retval[1], CanvasContext::glEnums(retval[2]), strName);
+    if (syncCommand.glError) {
+        return 0;
+    } else {
+        QString strName(reinterpret_cast<char *>(&retval[3]));
+        return new CanvasActiveInfo(retval[1], CanvasContext::glEnums(retval[2]), strName);
+    }
 }
 
 /*!
@@ -5869,29 +5901,37 @@ QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnum
     syncCommand.returnValue = &parameter;
     scheduleSyncCommand(&syncCommand);
 
-    switch (pname) {
-    case FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
-        return QJSValue(glEnums(parameter));
-    case FRAMEBUFFER_ATTACHMENT_OBJECT_NAME: {
-        QJSValue retval;
-        // Check FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, and choose the type based on it
-        syncCommand.i3 = GLint(FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
-        scheduleSyncCommand(&syncCommand);
-        if (parameter == TEXTURE)
-            retval = m_engine->newQObject(m_currentFramebuffer->texture());
-        else
-            retval = m_engine->newQObject(m_currentRenderbuffer);
-        return retval;
-    }
-    case FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
-    case FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
-        return QJSValue(parameter);
-    default:
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:invalid pname "
-                                               << glEnumToString(pname);
-        m_error |= CANVAS_INVALID_ENUM;
+    if (syncCommand.glError) {
         return QJSValue(QJSValue::NullValue);
+    } else {
+        switch (pname) {
+        case FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE:
+            return QJSValue(glEnums(parameter));
+        case FRAMEBUFFER_ATTACHMENT_OBJECT_NAME: {
+            QJSValue retval;
+            // Check FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE, and choose the type based on it
+            syncCommand.i3 = GLint(FRAMEBUFFER_ATTACHMENT_OBJECT_TYPE);
+            scheduleSyncCommand(&syncCommand);
+            if (syncCommand.glError) {
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                if (parameter == TEXTURE)
+                    retval = m_engine->newQObject(m_currentFramebuffer->texture());
+                else
+                    retval = m_engine->newQObject(m_currentRenderbuffer);
+                return retval;
+            }
+        }
+        case FRAMEBUFFER_ATTACHMENT_TEXTURE_LEVEL:
+        case FRAMEBUFFER_ATTACHMENT_TEXTURE_CUBE_MAP_FACE:
+            return QJSValue(parameter);
+        default:
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_ENUM:invalid pname "
+                                                   << glEnumToString(pname);
+            m_error |= CANVAS_INVALID_ENUM;
+            return QJSValue(QJSValue::NullValue);
+        }
     }
 }
 
@@ -5917,24 +5957,28 @@ QJSValue CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
     syncCommand.returnValue = &parameter;
     scheduleSyncCommand(&syncCommand);
 
-    switch (pname) {
-    case RENDERBUFFER_INTERNAL_FORMAT:
-        return QJSValue(glEnums(parameter));
-    case RENDERBUFFER_WIDTH:
-    case RENDERBUFFER_HEIGHT:
-    case RENDERBUFFER_RED_SIZE:
-    case RENDERBUFFER_GREEN_SIZE:
-    case RENDERBUFFER_BLUE_SIZE:
-    case RENDERBUFFER_ALPHA_SIZE:
-    case RENDERBUFFER_DEPTH_SIZE:
-    case RENDERBUFFER_STENCIL_SIZE:
-        return QJSValue(parameter);
-    default:
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:invalid pname "
-                                               << glEnumToString(pname);
-        m_error |= CANVAS_INVALID_ENUM;
+    if (syncCommand.glError) {
         return QJSValue(QJSValue::NullValue);
+    } else {
+        switch (pname) {
+        case RENDERBUFFER_INTERNAL_FORMAT:
+            return QJSValue(glEnums(parameter));
+        case RENDERBUFFER_WIDTH:
+        case RENDERBUFFER_HEIGHT:
+        case RENDERBUFFER_RED_SIZE:
+        case RENDERBUFFER_GREEN_SIZE:
+        case RENDERBUFFER_BLUE_SIZE:
+        case RENDERBUFFER_ALPHA_SIZE:
+        case RENDERBUFFER_DEPTH_SIZE:
+        case RENDERBUFFER_STENCIL_SIZE:
+            return QJSValue(parameter);
+        default:
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_ENUM:invalid pname "
+                                                   << glEnumToString(pname);
+            m_error |= CANVAS_INVALID_ENUM;
+            return QJSValue(QJSValue::NullValue);
+        }
     }
 }
 
@@ -5971,7 +6015,11 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                       GLint(target), GLint(pname));
             syncCommand.returnValue = &parameter;
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(parameter);
+
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(parameter);
         }
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -6091,7 +6139,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         switch (pname) {
         case VERTEX_ATTRIB_ARRAY_BUFFER_BINDING: {
             scheduleSyncCommand(&syncCommand);
-            if (value == 0 || !m_idToCanvasBufferMap.contains(value))
+            if (syncCommand.glError || value == 0 || !m_idToCanvasBufferMap.contains(value))
                 return QJSValue(QJSValue::NullValue);
 
             return m_engine->newQObject(m_idToCanvasBufferMap.value(value));
@@ -6100,14 +6148,20 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             // Intentional flow through
         case VERTEX_ATTRIB_ARRAY_NORMALIZED: {
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(bool(value));
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(bool(value));
         }
         case VERTEX_ATTRIB_ARRAY_SIZE:
             // Intentional flow through
         case VERTEX_ATTRIB_ARRAY_STRIDE:
         case VERTEX_ATTRIB_ARRAY_TYPE: {
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(value);
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(value);
         }
         case CURRENT_VERTEX_ATTRIB: {
             QV4::Scope scope(m_v4engine);
@@ -6119,13 +6173,16 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
             syncCommand.id = CanvasGlCommandQueue::glGetVertexAttribfv;
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
-
-            QV4::ScopedFunctionObject constructor(scope,
-                                                  m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Float32Array]);
-            QV4::ScopedCallData callData(scope, 1);
-            callData->args[0] = buffer;
-            return QJSValue(m_v4engine, constructor->construct(callData));
+            if (syncCommand.glError) {
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                QV4::ScopedFunctionObject constructor(scope,
+                                                      m_v4engine->typedArrayCtors[
+                                                      QV4::Heap::TypedArray::Float32Array]);
+                QV4::ScopedCallData callData(scope, 1);
+                callData->args[0] = buffer;
+                return QJSValue(m_v4engine, constructor->construct(callData));
+            }
         }
         default:
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
@@ -6285,20 +6342,29 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             GLint value = 0;
             syncCommand.returnValue = &value;
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(value);
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(value);
         }
         case FLOAT: {
             GLfloat value = 0;
             syncCommand.id = CanvasGlCommandQueue::glGetUniformfv;
             syncCommand.returnValue = &value;
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(value);
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(value);
         }
         case BOOL: {
             GLint value = 0;
             syncCommand.returnValue = &value;
             scheduleSyncCommand(&syncCommand);
-            return QJSValue(bool(value));
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(bool(value));
         }
         case INT_VEC2:
             numValues--;
@@ -6315,13 +6381,16 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
-
-            QV4::ScopedFunctionObject constructor(scope,
-                                                  m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Int32Array]);
-            QV4::ScopedCallData callData(scope, 1);
-            callData->args[0] = buffer;
-            return QJSValue(m_v4engine, constructor->construct(callData));
+            if (syncCommand.glError) {
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                QV4::ScopedFunctionObject constructor(scope,
+                                                      m_v4engine->typedArrayCtors[
+                                                      QV4::Heap::TypedArray::Int32Array]);
+                QV4::ScopedCallData callData(scope, 1);
+                callData->args[0] = buffer;
+                return QJSValue(m_v4engine, constructor->construct(callData));
+            }
         }
         case FLOAT_VEC2:
             numValues--;
@@ -6339,13 +6408,16 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             syncCommand.id = CanvasGlCommandQueue::glGetUniformfv;
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
-
-            QV4::ScopedFunctionObject constructor(scope,
-                                                  m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Float32Array]);
-            QV4::ScopedCallData callData(scope, 1);
-            callData->args[0] = buffer;
-            return QJSValue(m_v4engine, constructor->construct(callData));
+            if (syncCommand.glError) {
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                QV4::ScopedFunctionObject constructor(scope,
+                                                      m_v4engine->typedArrayCtors[
+                                                      QV4::Heap::TypedArray::Float32Array]);
+                QV4::ScopedCallData callData(scope, 1);
+                callData->args[0] = buffer;
+                return QJSValue(m_v4engine, constructor->construct(callData));
+            }
         }
         case BOOL_VEC2:
             numValues--;
@@ -6359,12 +6431,15 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
 
             syncCommand.returnValue = value;
             scheduleSyncCommand(&syncCommand);
-
-            for (int i = 0; i < numValues; i++)
-                array.setProperty(i, bool(value[i]));
-
-            delete[] value;
-            return array;
+            if (syncCommand.glError) {
+                delete[] value;
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                for (int i = 0; i < numValues; i++)
+                    array.setProperty(i, bool(value[i]));
+                delete[] value;
+                return array;
+            }
         }
         case FLOAT_MAT2:
             numValues--;
@@ -6383,13 +6458,16 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             syncCommand.id = CanvasGlCommandQueue::glGetUniformfv;
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
-
-            QV4::ScopedFunctionObject constructor(scope,
-                                                  m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::Float32Array]);
-            QV4::ScopedCallData callData(scope, 1);
-            callData->args[0] = buffer;
-            return QJSValue(m_v4engine, constructor->construct(callData));
+            if (syncCommand.glError) {
+                return QJSValue(QJSValue::NullValue);
+            } else {
+                QV4::ScopedFunctionObject constructor(scope,
+                                                      m_v4engine->typedArrayCtors[
+                                                      QV4::Heap::TypedArray::Float32Array]);
+                QV4::ScopedCallData callData(scope, 1);
+                callData->args[0] = buffer;
+                return QJSValue(m_v4engine, constructor->construct(callData));
+            }
         }
         default:
             break;

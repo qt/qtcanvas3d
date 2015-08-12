@@ -209,7 +209,7 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer)
         m_stateStore = new GLStateStore(m_glContext, maxVertexAttribs, m_commandQueue);
 
-    logGlErrors(__FUNCTION__);
+    updateGlError(__FUNCTION__);
 }
 
 /*!
@@ -564,6 +564,60 @@ void CanvasRenderer::clearBackground()
 /*!
  * \internal
  *
+ * Fetches the GL errors and updates m_glError.
+ * If onlyWhenLogging is true, errors are only updated when GL error logging is enabled
+ * Called from the render thread. Context must be valid.
+ * Returns true, if there are new errors.
+ */
+bool CanvasRenderer::updateGlError(const char *funcName)
+{
+    bool newErrors = false;
+    GLenum err;
+    while ((err = glGetError()) != GL_NO_ERROR) {
+        newErrors = true;
+        // Merge any GL errors with internal errors so that we don't lose them
+        switch (err) {
+        case GL_INVALID_ENUM:
+            m_glError |= CanvasContext::CANVAS_INVALID_ENUM;
+            break;
+        case GL_INVALID_VALUE:
+            m_glError |= CanvasContext::CANVAS_INVALID_VALUE;
+            break;
+        case GL_INVALID_OPERATION:
+            m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            break;
+        case GL_OUT_OF_MEMORY:
+            m_glError |= CanvasContext::CANVAS_OUT_OF_MEMORY;
+            break;
+        case GL_INVALID_FRAMEBUFFER_OPERATION:
+            m_glError |= CanvasContext::CANVAS_INVALID_FRAMEBUFFER_OPERATION;
+            break;
+#if defined(GL_STACK_OVERFLOW)
+        case GL_STACK_OVERFLOW:
+            qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << __FUNCTION__
+                                                  << ":GL_STACK_OVERFLOW error ignored";
+            break;
+#endif
+#if defined(GL_STACK_UNDERFLOW)
+        case GL_STACK_UNDERFLOW:
+            qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << __FUNCTION__
+                                                  << ": GL_CANVAS_STACK_UNDERFLOW error ignored";
+            break;
+#endif
+        default:
+            break;
+        }
+        qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << funcName
+                                              << ": OpenGL ERROR: "
+                                              << err;
+    }
+
+    return newErrors;
+}
+
+/*!
+ * \internal
+ *
  * Sets framebuffer size.
  * Called from the GUI thread.
  */
@@ -693,44 +747,8 @@ void CanvasRenderer::createFBOs()
     // Get rid of the dummy FBO, it has served its purpose
     delete dummyFbo;
 
-    logGlErrors(__FUNCTION__);
-}
-
-/*!
- * \internal
- *
- * This method is called from the render thread and in the correct context.
- */
-void CanvasRenderer::logGlErrors(const char *funcName)
-{
-    if (canvas3dglerrors().isDebugEnabled()) {
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR) {
-            // Merge any GL errors with internal errors so that we don't lose them
-            switch (err) {
-            case GL_INVALID_ENUM:
-                m_glError |= CanvasContext::CANVAS_INVALID_ENUM;
-                break;
-            case GL_INVALID_VALUE:
-                m_glError |= CanvasContext::CANVAS_INVALID_VALUE;
-                break;
-            case GL_INVALID_OPERATION:
-                m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
-                break;
-            case GL_OUT_OF_MEMORY:
-                m_glError |= CanvasContext::CANVAS_OUT_OF_MEMORY;
-                break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-                m_glError |= CanvasContext::CANVAS_INVALID_FRAMEBUFFER_OPERATION;
-                break;
-            default:
-                break;
-            }
-            qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << funcName
-                                                  << ": OpenGL ERROR: "
-                                                  << err;
-        }
-    }
+    if (canvas3dglerrors().isDebugEnabled())
+        updateGlError(__FUNCTION__);
 }
 
 /*!
@@ -795,7 +813,8 @@ void CanvasRenderer::bindCurrentRenderTarget()
                                              << m_currentFramebufferId;
         glBindFramebuffer(GL_FRAMEBUFFER, m_currentFramebufferId);
     }
-    logGlErrors(__FUNCTION__);
+    if (canvas3dglerrors().isDebugEnabled())
+        updateGlError(__FUNCTION__);
 }
 
 /*!
@@ -848,6 +867,8 @@ void CanvasRenderer::executeCommandQueue()
     GLuint u1(0); // A generic variable used in the following switch statement
 
     const int executeEndIndex = m_executeEndIndex ? m_executeEndIndex : m_executeQueueCount;
+
+    bool logGlErrors = canvas3dglerrors().isDebugEnabled();
 
     // Execute the execution queue
     for (int i = m_executeStartIndex; i < executeEndIndex; i++) {
@@ -1435,10 +1456,11 @@ void CanvasRenderer::executeCommandQueue()
         }
         }
 
+        if (logGlErrors)
+            updateGlError(__FUNCTION__);
+
         if (m_stateStore)
             m_stateStore->storeStateCommand(command);
-
-        logGlErrors(__FUNCTION__);
     }
 
     // Rebind default FBO
@@ -1466,6 +1488,9 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
     // Bind the correct render target FBO
     bindCurrentRenderTarget();
 
+    // Store pending OpenGL errors
+    updateGlError(__FUNCTION__);
+
     switch (command.id) {
     case CanvasGlCommandQueue::glGetActiveAttrib: {
         QOpenGLShaderProgram *program = m_commandQueue.getProgram(command.i1);
@@ -1478,6 +1503,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
                               reinterpret_cast<char *>(&retVal[3]));
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1492,6 +1518,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
                                reinterpret_cast<char *>(&retVal[3]));
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1502,6 +1529,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             *retVal = program->attributeLocation(*command.data);
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1526,41 +1554,6 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
     }
     case CanvasGlCommandQueue::glGetError: {
         int *retVal = reinterpret_cast<int *>(command.returnValue);
-        GLenum err;
-        while ((err = glGetError()) != GL_NO_ERROR) {
-            // Merge any GL errors with internal errors so that we don't lose them
-            switch (err) {
-            case GL_INVALID_ENUM:
-                m_glError |= CanvasContext::CANVAS_INVALID_ENUM;
-                break;
-            case GL_INVALID_VALUE:
-                m_glError |= CanvasContext::CANVAS_INVALID_VALUE;
-                break;
-            case GL_INVALID_OPERATION:
-                m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
-                break;
-            case GL_OUT_OF_MEMORY:
-                m_glError |= CanvasContext::CANVAS_OUT_OF_MEMORY;
-                break;
-            case GL_INVALID_FRAMEBUFFER_OPERATION:
-                m_glError |= CanvasContext::CANVAS_INVALID_FRAMEBUFFER_OPERATION;
-                break;
-#if defined(GL_STACK_OVERFLOW)
-            case GL_STACK_OVERFLOW:
-                qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                                      << ":GL_STACK_OVERFLOW error ignored";
-                break;
-#endif
-#if defined(GL_STACK_UNDERFLOW)
-            case GL_STACK_UNDERFLOW:
-                qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                                      << ": GL_CANVAS_STACK_UNDERFLOW error ignored";
-                break;
-#endif
-            default:
-                break;
-            }
-        }
         *retVal |= m_glError;
         m_glError = CanvasContext::CANVAS_NO_ERRORS;
         break;
@@ -1588,6 +1581,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             *logStr = program->log();
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1598,6 +1592,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             glGetProgramiv(program->programId(), GLenum(command.i2), retVal);
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1613,6 +1608,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             *logStr = shader->log();
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1623,6 +1619,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             glGetShaderiv(shader->shaderId(), GLenum(command.i2), retVal);
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1645,6 +1642,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             glGetUniformfv(programId, location, retVal);
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1657,6 +1655,7 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
             glGetUniformiv(programId, location, retVal);
         } else {
             m_glError |= CanvasContext::CANVAS_INVALID_OPERATION;
+            command.glError = true;
         }
         break;
     }
@@ -1797,10 +1796,10 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
     }
     }
 
+    command.glError = updateGlError(__FUNCTION__);
+
     // Rebind default FBO
     QOpenGLFramebufferObject::bindDefault();
-
-    logGlErrors(__FUNCTION__);
 }
 
 /*!

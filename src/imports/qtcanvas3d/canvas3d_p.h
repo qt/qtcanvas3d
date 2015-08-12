@@ -64,15 +64,16 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 class CanvasGlCommandQueue;
 class CanvasRenderer;
 
-// Logs on high level information about the OpenGL driver and context.
+// Debug: Logs on high level information about the OpenGL driver and context.
 Q_DECLARE_LOGGING_CATEGORY(canvas3dinfo)
 
-// Debug: logs all the calls made in to Canvas3D and Context3D
-// Warning: debugs all warnings on failures in verifications
+// Debug: Logs all the calls made in to Canvas3D and Context3D.
+// Warning: Only logs warnings on failures in verifications.
 Q_DECLARE_LOGGING_CATEGORY(canvas3drendering)
 
-// Debug: Logs all the OpenGL errors, this means calling glGetError()
-// after each OpenGL call and this will cause a negative performance hit.
+// Debug: Aggressive error checking. This means calling glGetError() after each OpenGL call.
+// Since checking for errors is a synchronous call, this will cause a negative performance hit.
+// Warning: All detected GL errors are logged as warnings on this category.
 Q_DECLARE_LOGGING_CATEGORY(canvas3dglerrors)
 
 class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
