@@ -76,7 +76,6 @@ Item {
                 green = pixels[1]
                 blue = pixels[2]
                 alpha = pixels[3]
-                delete pixels
                 checkDone = true
             }
         }

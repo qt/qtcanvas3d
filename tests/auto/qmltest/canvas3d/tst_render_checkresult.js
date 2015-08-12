@@ -127,12 +127,8 @@ function setTexture(canvas, image) {
         });
     } else {
         gl.uniform1i(colorFlagUniform, 1);
-        // TODO: Take into use once QTBUG-44834 is fixed
-//        if (texture)
-//            gl.deleteTexture(texture);
-        // TODO: Remove once QTBUG-44834 is fixed
         if (texture)
-            delete texture;
+            gl.deleteTexture(texture);
         texture = null;
         gl.bindTexture(gl.TEXTURE_2D, 0);
     }
