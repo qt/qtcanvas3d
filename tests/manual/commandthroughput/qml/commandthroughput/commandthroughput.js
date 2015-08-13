@@ -46,7 +46,6 @@ var gl;
 var cubeTexture = 0;
 
 var vertexPositionAttribute;
-var textureCoordAttribute;
 var vertexNormalAttribute;
 var vertexColorAttribute;
 var mvMatrix = mat4.create();
@@ -269,8 +268,6 @@ function initBuffers()
             ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
                   gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     var cubeVerticesNormalBuffer = gl.createBuffer();
     cubeVerticesNormalBuffer.name = "cubeVerticesNormalBuffer";
@@ -329,13 +326,11 @@ function initShaders()
                                   uniform mat4 uPMatrix;                \
 
                                   varying mediump vec4 vColor;          \
-                                  varying highp vec2 vTextureCoord;     \
                                   varying highp vec3 vLighting;         \
 
                                   void main(void) {                     \
                                       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                      \
                                       vColor = aVertexColor;                                                                \
-                                      vTextureCoord = aTextureCoord;                                                        \
                                       highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);                                        \
                                       highp vec3 directionalLightColor = vec3(0.15, 0.15, 0.15);                             \
                                       highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);                                 \
@@ -345,7 +340,6 @@ function initShaders()
                                   }", gl.VERTEX_SHADER);
     var fragmentShader = getShader(gl,
                                    "varying mediump vec4 vColor;        \
-                                    varying highp vec2 vTextureCoord;   \
                                     varying highp vec3 vLighting;       \
 
                                     void main(void) {                   \
@@ -369,8 +363,6 @@ function initShaders()
     gl.enableVertexAttribArray(vertexPositionAttribute);
     vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
     gl.enableVertexAttribArray(vertexColorAttribute);
-    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(textureCoordAttribute);
     vertexNormalAttribute =gl.getAttribLocation(shaderProgram, "aVertexNormal");
     gl.enableVertexAttribArray(vertexNormalAttribute);
 

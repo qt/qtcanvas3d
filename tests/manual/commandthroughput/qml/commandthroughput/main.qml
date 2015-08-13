@@ -61,6 +61,8 @@ Item {
         property bool isRunning: true
         property int itemCount: 0
         property int maxCount: 5000
+        property int frameTime: 0
+        property int frameSetupTime: 0
 
         // Emitted when one time initializations should happen
         onInitializeGL: {
@@ -100,6 +102,16 @@ Item {
         }
     }
 
+    Timer {
+        interval: 500
+        repeat: true
+        onTriggered: {
+            canvas3d.frameTime = canvas3d.frameTimeMs();
+            canvas3d.frameSetupTime = canvas3d.frameSetupTimeMs();
+        }
+        Component.onCompleted: start();
+    }
+
     RowLayout {
         id: controlLayout
         spacing: 5
@@ -113,8 +125,8 @@ Item {
             id: fpsLabel
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: false
-            Layout.preferredWidth : 100
-            text: "Fps: " + canvas3d.fps
+            Layout.preferredWidth : 180
+            text: "Fps: " + canvas3d.fps + " GL:" + canvas3d.frameTime + " onPaintGL:" + canvas3d.frameSetupTime
             color: "#FFFFFF"
         }
 
