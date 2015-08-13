@@ -510,12 +510,16 @@ float *CanvasContext::transposeMatrix(int dim, int count, float *src)
 void CanvasContext::uniformMatrixNfv(int dim, const QJSValue &location3D, bool transpose,
                                      const QJSValue &array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(dim:" << dim
-                                         << ", uniformLocation:" << location3D.toString()
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array.toString()
-                                         <<")";
+    if (canvas3drendering().isDebugEnabled()) {
+        QString command(QStringLiteral("uniformMatrix"));
+        command.append(QString::number(dim));
+        command.append(QStringLiteral("fv"));
+        qCDebug(canvas3drendering).nospace().noquote() << "Context3D::" << command
+                                                       << ", uniformLocation:" << location3D.toString()
+                                                       << ", transpose:" << transpose
+                                                       << ", array:" << array.toString()
+                                                       << ")";
+    }
 
     if (!isOfType(location3D, "QtCanvas3D::CanvasUniformLocation")) {
         m_error |= CANVAS_INVALID_OPERATION;
@@ -583,12 +587,7 @@ void CanvasContext::uniformMatrixNfv(int dim, const QJSValue &location3D, bool t
 void CanvasContext::uniformMatrixNfva(int dim, CanvasUniformLocation *uniformLocation,
                                      bool transpose, const QVariantList &array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(dim:" << dim
-                                         << ", location3D:" << uniformLocation
-                                         << ", transpose:" << transpose
-                                         << ", array:" << array
-                                         << ")";
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__;
 
     if (!m_currentProgram || !uniformLocation)
         return;
@@ -675,7 +674,7 @@ bool CanvasContext::isTexture(QJSValue anyObject)
     }
 }
 
-CanvasTexture *CanvasContext::getAsTexture3D(QJSValue anyObject)
+CanvasTexture *CanvasContext::getAsTexture3D(const QJSValue &anyObject)
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasTexture"))
         return 0;
@@ -1377,7 +1376,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
     texImageCommand.data = dataArray;
 }
 
-CanvasTextureImage* CanvasContext::getAsTextureImage(QJSValue anyObject)
+CanvasTextureImage* CanvasContext::getAsTextureImage(const QJSValue &anyObject)
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasTextureImage"))
         return 0;
@@ -1813,7 +1812,7 @@ bool CanvasContext::isFramebuffer(QJSValue anyObject)
     }
 }
 
-CanvasFrameBuffer *CanvasContext::getAsFramebuffer(QJSValue anyObject)
+CanvasFrameBuffer *CanvasContext::getAsFramebuffer(const QJSValue &anyObject)
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasFrameBuffer"))
         return 0;
@@ -1951,7 +1950,7 @@ bool CanvasContext::isRenderbuffer(QJSValue anyObject)
     }
 }
 
-CanvasRenderBuffer *CanvasContext::getAsRenderbuffer3D(QJSValue anyObject) const
+CanvasRenderBuffer *CanvasContext::getAsRenderbuffer3D(const QJSValue &anyObject) const
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasRenderBuffer"))
         return 0;
@@ -2044,7 +2043,7 @@ bool CanvasContext::isProgram(QJSValue anyObject)
     }
 }
 
-CanvasProgram *CanvasContext::getAsProgram3D(QJSValue anyObject, bool deadOrAlive) const
+CanvasProgram *CanvasContext::getAsProgram3D(const QJSValue &anyObject, bool deadOrAlive) const
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasProgram"))
         return 0;
@@ -2617,7 +2616,7 @@ bool CanvasContext::isShader(QJSValue anyObject)
     }
 }
 
-CanvasShader *CanvasContext::getAsShader3D(QJSValue shader3D, bool deadOrAlive) const
+CanvasShader *CanvasContext::getAsShader3D(const QJSValue &shader3D, bool deadOrAlive) const
 {
     if (!isOfType(shader3D, "QtCanvas3D::CanvasShader"))
         return 0;
@@ -2736,7 +2735,7 @@ void CanvasContext::compileShader(QJSValue shader3D)
     shader->compileShader();
 }
 
-CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(QJSValue anyObject) const
+CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(const QJSValue &anyObject) const
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasUniformLocation"))
         return 0;
@@ -2755,19 +2754,7 @@ CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(QJSValue anyObject)
  */
 void CanvasContext::uniform1i(QJSValue location3D, int x)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ")";
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1i,
-                                 locationObj->id(), GLint(x));
+    uniformNi(1, location3D, x);
 }
 
 /*!
@@ -2776,40 +2763,7 @@ void CanvasContext::uniform1i(QJSValue location3D, int x)
  */
 void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform1iva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Int32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= 4; // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1iv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(1, false, location3D, array);
 }
 
 /*!
@@ -2818,18 +2772,7 @@ void CanvasContext::uniform1iv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform1f(QJSValue location3D, float x)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1f, locationObj->id(), GLfloat(x));
+    uniformNf(1, location3D, x);
 }
 
 /*!
@@ -2839,39 +2782,7 @@ void CanvasContext::uniform1f(QJSValue location3D, float x)
  */
 void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform1fva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= 4; // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1fv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(1, true, location3D, array);
 }
 
 /*!
@@ -2880,21 +2791,7 @@ void CanvasContext::uniform1fv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform2f(QJSValue location3D, float x, float y)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2f,
-                                 locationObj->id(), GLfloat(x), GLfloat(y));
+    uniformNf(2, location3D, x, y);
 }
 
 /*!
@@ -2903,39 +2800,7 @@ void CanvasContext::uniform2f(QJSValue location3D, float x, float y)
  */
 void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform2fva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= (4 * 2); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2fv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(2, true, location3D, array);
 }
 
 /*!
@@ -2944,21 +2809,7 @@ void CanvasContext::uniform2fv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform2i(QJSValue location3D, int x, int y)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2i,
-                                 locationObj->id(), GLint(x), GLint(y));
+    uniformNi(2, location3D, x, y);
 }
 
 /*!
@@ -2967,39 +2818,7 @@ void CanvasContext::uniform2i(QJSValue location3D, int x, int y)
  */
 void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform2iva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Int32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= (4 * 2); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2iv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(2, false, location3D, array);
 }
 
 /*!
@@ -3008,21 +2827,7 @@ void CanvasContext::uniform2iv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform3f(QJSValue location3D, float x, float y, float z)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ", z:" << z
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3f,
-                                 locationObj->id(), GLfloat(x), GLfloat(y), GLfloat(z));
+    uniformNf(3, location3D, x, y, z);
 }
 
 /*!
@@ -3031,39 +2836,7 @@ void CanvasContext::uniform3f(QJSValue location3D, float x, float y, float z)
  */
 void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform3fva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= (4 * 3); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3fv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(3, true, location3D, array);
 }
 
 /*!
@@ -3072,20 +2845,7 @@ void CanvasContext::uniform3fv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform3i(QJSValue location3D, int x, int y, int z)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ", z:" << z
-                                         << ")";
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3i,
-                                 locationObj->id(), GLint(x), GLint(y), GLint(z));
+    uniformNi(3, location3D, x, y, z);
 }
 
 /*!
@@ -3094,39 +2854,7 @@ void CanvasContext::uniform3i(QJSValue location3D, int x, int y, int z)
  */
 void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform3iva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Int32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= (4 * 3); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3iv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(3, false, location3D, array);
 }
 
 /*!
@@ -3135,22 +2863,7 @@ void CanvasContext::uniform3iv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform4f(QJSValue location3D, float x, float y, float z, float w)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ", z:" << z
-                                         << ", w:" << w
-                                         << ")";
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4f,
-                                 locationObj->id(),
-                                 GLfloat(x), GLfloat(y), GLfloat(z), GLfloat(w));
+    uniformNf(4, location3D, x, y, z, w);
 }
 
 /*!
@@ -3159,39 +2872,7 @@ void CanvasContext::uniform4f(QJSValue location3D, float x, float y, float z, fl
  */
 void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        uniform4fva(locationObj, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Float32Array);
-
-    if (!uniformData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
-
-    arrayLen /= (4 * 4); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4fv,
-                                                             locationObj->id(),
-                                                             GLint(arrayLen));
-    uniformCommand.data = dataArray;
+    uniformNxv(4, true, location3D, array);
 }
 
 /*!
@@ -3201,21 +2882,7 @@ void CanvasContext::uniform4fv(QJSValue location3D, QJSValue array)
  */
 void CanvasContext::uniform4i(QJSValue location3D, int x, int y, int z, int w)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", x:" << x
-                                         << ", y:" << y
-                                         << ", z:" << z
-                                         << ", w:" << w
-                                         << ")";
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
-    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4i,
-                                 locationObj->id(), GLint(x), GLint(y), GLint(z), GLint(w));
+    uniformNi(4, location3D, x, y, z, w);
 }
 
 /*!
@@ -3224,25 +2891,235 @@ void CanvasContext::uniform4i(QJSValue location3D, int x, int y, int z, int w)
  */
 void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D.toString()
-                                         << ", array:" << array.toString()
-                                         << ")";
-    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location3D);
+    uniformNxv(4, false, location3D, array);
+}
+
+void CanvasContext::vertexAttribNfv(int dim, unsigned int indx, const QJSValue &array)
+{
+    if (canvas3drendering().isDebugEnabled()) {
+        QString command(QStringLiteral("vertexAttrib"));
+        command.append(QString::number(dim));
+        command.append(QStringLiteral("fv"));
+        qCDebug(canvas3drendering).nospace().noquote() << "Context3D::" << command
+                                                       << ", indx:" << indx
+                                                       << ", array:" << array.toString()
+                                                       << ")";
+    }
+
+    CanvasGlCommandQueue::GlCommandId id(CanvasGlCommandQueue::internalNoCommand);
+    switch (dim) {
+    case 1:
+        id = CanvasGlCommandQueue::glVertexAttrib1fv;
+        break;
+    case 2:
+        id = CanvasGlCommandQueue::glVertexAttrib2fv;
+        break;
+    case 3:
+        id = CanvasGlCommandQueue::glVertexAttrib3fv;
+        break;
+    case 4:
+        id = CanvasGlCommandQueue::glVertexAttrib4fv;
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
+    // Check if we have a JavaScript array
+    if (array.isArray()) {
+        vertexAttribNfva(id, indx, array.toVariant().toList());
+        return;
+    }
+
+    int arrayLen = 0;
+    uchar *attribData = getTypedArrayAsRawDataPtr(array, arrayLen,
+                                                  QV4::Heap::TypedArray::Float32Array);
+
+    if (!attribData) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(attribData), arrayLen);
+
+    GlCommand &command = m_commandQueue->queueCommand(id, GLint(indx));
+    command.data = dataArray;
+}
+
+void CanvasContext::vertexAttribNfva(CanvasGlCommandQueue::GlCommandId id, unsigned int indx,
+                                     const QVariantList &values)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__;
+
+    QByteArray *dataArray = new QByteArray(values.count() * sizeof(float), Qt::Uninitialized);
+
+    ArrayUtils::fillFloatArrayFromVariantList(values, reinterpret_cast<float *>(dataArray->data()));
+
+    GlCommand &command = m_commandQueue->queueCommand(id, GLint(indx));
+    command.data = dataArray;
+}
+
+void CanvasContext::uniformNf(int dim, const QJSValue &location, float x, float y, float z, float w)
+{
+    if (canvas3drendering().isDebugEnabled()) {
+        QString command(QStringLiteral("uniform"));
+        command.append(QString::number(dim));
+        command.append(QStringLiteral("f"));
+        qCDebug(canvas3drendering).nospace().noquote() << "Context3D::" << command
+                                                       << "(location3D:" << location.toString()
+                                                       << ", x:" << x
+                                                       << ", y:" << y
+                                                       << ", z:" << z
+                                                       << ", w:" << w
+                                                       << ")";
+    }
+
+    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location);
+
     if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
         m_error |= CANVAS_INVALID_OPERATION;
         return;
     }
 
+    switch (dim) {
+    case 1:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1f,
+                                     locationObj->id(),
+                                     GLfloat(x));
+        break;
+    case 2:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2f,
+                                     locationObj->id(),
+                                     GLfloat(x), GLfloat(y));
+        break;
+    case 3:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3f,
+                                     locationObj->id(),
+                                     GLfloat(x), GLfloat(y), GLfloat(z));
+        break;
+    case 4:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4f,
+                                     locationObj->id(),
+                                     GLfloat(x), GLfloat(y), GLfloat(z), GLfloat(w));
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+}
+
+void CanvasContext::uniformNi(int dim, const QJSValue &location, int x, int y, int z, int w)
+{
+    if (canvas3drendering().isDebugEnabled()) {
+        QString command(QStringLiteral("uniform"));
+        command.append(QString::number(dim));
+        command.append(QStringLiteral("i"));
+        qCDebug(canvas3drendering).nospace().noquote() << "Context3D::" << command
+                                                       << "(location3D:" << location.toString()
+                                                       << ", x:" << x
+                                                       << ", y:" << y
+                                                       << ", z:" << z
+                                                       << ", w:" << w
+                                                       << ")";
+    }
+
+    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location);
+
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    switch (dim) {
+    case 1:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1i,
+                                     locationObj->id(), GLint(x));
+        break;
+    case 2:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2i,
+                                     locationObj->id(), GLint(x), GLint(y));
+        break;
+    case 3:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3i,
+                                     locationObj->id(), GLint(x), GLint(y), GLint(z));
+        break;
+    case 4:
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4i,
+                                     locationObj->id(), GLint(x), GLint(y), GLint(z), GLint(w));
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+}
+
+void CanvasContext::uniformNxva(int dim, bool typeFloat, CanvasGlCommandQueue::GlCommandId id,
+                                CanvasUniformLocation *location, const QVariantList &array)
+{
+    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__;
+    QByteArray *dataArray = new QByteArray(array.length() * 4, Qt::Uninitialized);
+
+    if (typeFloat)
+        ArrayUtils::fillFloatArrayFromVariantList(array, reinterpret_cast<float *>(dataArray->data()));
+    else
+        ArrayUtils::fillIntArrayFromVariantList(array, reinterpret_cast<int *>(dataArray->data()));
+
+    GlCommand &uniformCommand = m_commandQueue->queueCommand(id, location->id(),
+                                                             GLint(array.length() / dim));
+    uniformCommand.data = dataArray;
+}
+
+void CanvasContext::uniformNxv(int dim, bool typeFloat, const QJSValue &location, const QJSValue &array)
+{
+    if (canvas3drendering().isDebugEnabled()) {
+        QString command(QStringLiteral("uniform"));
+        command.append(QString::number(dim));
+        if (typeFloat)
+            command.append(QStringLiteral("f"));
+        else
+            command.append(QStringLiteral("i"));
+        command.append(QStringLiteral("v"));
+        qCDebug(canvas3drendering).nospace().noquote() << "Context3D::" << command
+                                                       << "(location3D:" << location.toString()
+                                                       << ", array:" << array.toString()
+                                                       << ")";
+    }
+
+    CanvasUniformLocation *locationObj = getAsUniformLocation3D(location);
+    if (!locationObj || !checkParent(locationObj, __FUNCTION__)) {
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    CanvasGlCommandQueue::GlCommandId id(CanvasGlCommandQueue::internalNoCommand);
+    switch (dim) {
+    case 1:
+        id = typeFloat ? CanvasGlCommandQueue::glUniform1fv : CanvasGlCommandQueue::glUniform1iv;
+        break;
+    case 2:
+        id = typeFloat ? CanvasGlCommandQueue::glUniform2fv : CanvasGlCommandQueue::glUniform2iv;
+        break;
+    case 3:
+        id = typeFloat ? CanvasGlCommandQueue::glUniform3fv : CanvasGlCommandQueue::glUniform3iv;
+        break;
+    case 4:
+        id = typeFloat ? CanvasGlCommandQueue::glUniform4fv : CanvasGlCommandQueue::glUniform4iv;
+        break;
+    default:
+        qWarning() << "Warning: Unsupported dim specified in" << __FUNCTION__;
+        break;
+    }
+
     // Check if we have a JavaScript array
     if (array.isArray()) {
-        uniform4iva(locationObj, array.toVariant().toList());
+        uniformNxva(dim, typeFloat, id, locationObj, array.toVariant().toList());
         return;
     }
 
     int arrayLen = 0;
     uchar *uniformData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                   QV4::Heap::TypedArray::Int32Array);
+                                                   typeFloat ? QV4::Heap::TypedArray::Float32Array
+                                                             : QV4::Heap::TypedArray::Int32Array);
 
     if (!uniformData) {
         m_error |= CANVAS_INVALID_OPERATION;
@@ -3251,146 +3128,9 @@ void CanvasContext::uniform4iv(QJSValue location3D, QJSValue array)
 
     QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(uniformData), arrayLen);
 
-    arrayLen /= (4 * 4); // get value count
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4iv,
-                                                             locationObj->id(),
+    arrayLen /= (4 * dim); // get value count
+    GlCommand &uniformCommand = m_commandQueue->queueCommand(id, locationObj->id(),
                                                              GLint(arrayLen));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform1fva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1fv,
-                                                             location3D->id(),
-                                                             GLint(array.length()));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform2fva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2fv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 2));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform3fva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3fv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 3));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform4fva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(array, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4fv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 4));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform1iva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(int), Qt::Uninitialized);
-
-    ArrayUtils::fillIntArrayFromVariantList(array, reinterpret_cast<int *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform1iv,
-                                                             location3D->id(),
-                                                             GLint(array.length()));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform2iva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(int), Qt::Uninitialized);
-
-    ArrayUtils::fillIntArrayFromVariantList(array, reinterpret_cast<int *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform2iv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 2));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform3iva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(int), Qt::Uninitialized);
-
-    ArrayUtils::fillIntArrayFromVariantList(array, reinterpret_cast<int *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform3iv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 3));
-    uniformCommand.data = dataArray;
-}
-
-void CanvasContext::uniform4iva(CanvasUniformLocation *location3D, QVariantList array)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(location3D:" << location3D
-                                         << ", array:" << array
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(array.length() * sizeof(int), Qt::Uninitialized);
-
-    ArrayUtils::fillIntArrayFromVariantList(array, reinterpret_cast<int *>(dataArray->data()));
-
-    GlCommand &uniformCommand = m_commandQueue->queueCommand(CanvasGlCommandQueue::glUniform4iv,
-                                                             location3D->id(),
-                                                             GLint(array.length() / 4));
     uniformCommand.data = dataArray;
 }
 
@@ -3416,31 +3156,7 @@ void CanvasContext::vertexAttrib1f(unsigned int indx, float x)
  */
 void CanvasContext::vertexAttrib1fv(unsigned int indx, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx:" << indx
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        vertexAttrib1fva(indx, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *attribData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                  QV4::Heap::TypedArray::Float32Array);
-
-    if (!attribData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(attribData), arrayLen);
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib1fv,
-                                                      GLint(indx));
-    command.data = dataArray;
+    vertexAttribNfv(1, indx, array);
 }
 
 /*!
@@ -3467,31 +3183,7 @@ void CanvasContext::vertexAttrib2f(unsigned int indx, float x, float y)
  */
 void CanvasContext::vertexAttrib2fv(unsigned int indx, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx:" << indx
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        vertexAttrib2fva(indx, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *attribData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                  QV4::Heap::TypedArray::Float32Array);
-
-    if (!attribData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(attribData), arrayLen);
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib2fv,
-                                                      GLint(indx));
-    command.data = dataArray;
+    vertexAttribNfv(2, indx, array);
 }
 
 /*!
@@ -3519,31 +3211,7 @@ void CanvasContext::vertexAttrib3f(unsigned int indx, float x, float y, float z)
  */
 void CanvasContext::vertexAttrib3fv(unsigned int indx, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx:" << indx
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        vertexAttrib3fva(indx, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *attribData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                  QV4::Heap::TypedArray::Float32Array);
-
-    if (!attribData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(attribData), arrayLen);
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib3fv,
-                                                      GLint(indx));
-    command.data = dataArray;
+    vertexAttribNfv(3, indx, array);
 }
 
 /*!
@@ -3572,31 +3240,7 @@ void CanvasContext::vertexAttrib4f(unsigned int indx, float x, float y, float z,
  */
 void CanvasContext::vertexAttrib4fv(unsigned int indx, QJSValue array)
 {
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx:" << indx
-                                         << ", array:" << array.toString()
-                                         << ")";
-
-    // Check if we have a JavaScript array
-    if (array.isArray()) {
-        vertexAttrib4fva(indx, array.toVariant().toList());
-        return;
-    }
-
-    int arrayLen = 0;
-    uchar *attribData = getTypedArrayAsRawDataPtr(array, arrayLen,
-                                                  QV4::Heap::TypedArray::Float32Array);
-
-    if (!attribData) {
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
-    }
-
-    QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(attribData), arrayLen);
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib4fv,
-                                                      GLint(indx));
-    command.data = dataArray;
+    vertexAttribNfv(4, indx, array);
 }
 
 /*!
@@ -4157,7 +3801,7 @@ bool CanvasContext::isBuffer(QJSValue anyObject)
     }
 }
 
-CanvasBuffer *CanvasContext::getAsBuffer3D(QJSValue anyObject) const
+CanvasBuffer *CanvasContext::getAsBuffer3D(const QJSValue &anyObject) const
 {
     if (!isOfType(anyObject, "QtCanvas3D::CanvasBuffer"))
         return 0;
@@ -5292,93 +4936,6 @@ void CanvasContext::stencilOpSeparate(glEnums face, glEnums fail, glEnums zfail,
 
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glStencilOpSeparate,
                                  GLint(face), GLint(fail), GLint(zfail), GLint(zpass));
-}
-
-
-/*!
- * \qmlmethod void Context3D::vertexAttrib1fva(int indx, list<variant> values)
- * Sets the array of float values given in \a values to the generic vertex attribute index
- * specified by \a indx.
- */
-void CanvasContext::vertexAttrib1fva(uint indx, QVariantList values)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx" << indx
-                                         << ", values:" << values
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(values.count() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(values, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib1fv,
-                                                      GLint(indx));
-    command.data = dataArray;
-}
-
-/*!
- * \qmlmethod void Context3D::vertexAttrib2fva(int indx, list<variant> values)
- * Sets the array of float values given in \a values to the generic vertex attribute index
- * specified by \a indx.
- */
-void CanvasContext::vertexAttrib2fva(uint indx, QVariantList values)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx" << indx
-                                         << ", values:" << values
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(values.count() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(values, reinterpret_cast<float *>(dataArray->data()));
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib2fv,
-                                                      GLint(indx));
-    command.data = dataArray;
-}
-
-/*!
- * \qmlmethod void Context3D::vertexAttrib3fva(int indx, list<variant> values)
- * Sets the array of float values given in \a values to the generic vertex attribute index
- * specified by \a indx.
- */
-void CanvasContext::vertexAttrib3fva(uint indx, QVariantList values)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx" << indx
-                                         << ", values:" << values
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(values.count() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(values, reinterpret_cast<float *>(dataArray->data()));
-
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib3fv,
-                                                      GLint(indx));
-    command.data = dataArray;
-}
-
-/*!
- * \qmlmethod void Context3D::vertexAttrib4fva(int indx, list<variant> values)
- * Sets the array of float values given in \a values to the generic vertex attribute index
- * specified by \a indx.
- */
-void CanvasContext::vertexAttrib4fva(uint indx, QVariantList values)
-{
-    qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                         << "(indx" << indx
-                                         << ", values:" << values
-                                         << ")";
-
-    QByteArray *dataArray = new QByteArray(values.count() * sizeof(float), Qt::Uninitialized);
-
-    ArrayUtils::fillFloatArrayFromVariantList(values, reinterpret_cast<float *>(dataArray->data()));
-
-
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glVertexAttrib4fv,
-                                                      GLint(indx));
-    command.data = dataArray;
 }
 
 /*!
