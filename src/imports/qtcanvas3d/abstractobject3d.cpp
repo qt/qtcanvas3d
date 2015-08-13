@@ -40,9 +40,6 @@
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-/*!
- * \internal
- */
 CanvasAbstractObject::CanvasAbstractObject(CanvasGlCommandQueue *queue, QObject *parent) :
     QObject(parent),
     m_hasName(false),
@@ -51,16 +48,10 @@ CanvasAbstractObject::CanvasAbstractObject(CanvasGlCommandQueue *queue, QObject 
     m_name = QString("0x%1").arg((long long) this, 0, 16);
 }
 
-/*!
- * \internal
- */
 CanvasAbstractObject::~CanvasAbstractObject()
 {
 }
 
-/*!
- * \internal
- */
 void CanvasAbstractObject::setName(const QString &name)
 {
     if (m_name == name)
@@ -72,17 +63,11 @@ void CanvasAbstractObject::setName(const QString &name)
     emit nameChanged(m_name);
 }
 
-/*!
- * \internal
- */
 const QString &CanvasAbstractObject::name() const
 {
     return m_name;
 }
 
-/*!
- * \internal
- */
 bool CanvasAbstractObject::hasSpecificName() const
 {
     return m_hasName;

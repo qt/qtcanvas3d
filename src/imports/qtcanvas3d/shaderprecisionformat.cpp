@@ -51,9 +51,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \sa Context3D
  */
 
-/*!
- * \internal
- */
 CanvasShaderPrecisionFormat::CanvasShaderPrecisionFormat(QObject *parent) :
     CanvasAbstractObject(0, parent)
 {

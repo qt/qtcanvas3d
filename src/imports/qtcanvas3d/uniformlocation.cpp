@@ -50,9 +50,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::getUniformLocation()}{Context3D.getUniformLocation()} method.
  */
 
-/*!
- * \internal
- */
 CanvasUniformLocation::CanvasUniformLocation(CanvasGlCommandQueue *queue, QObject *parent) :
     CanvasAbstractObject(queue, parent),
     m_locationId(queue->createResourceId()),
@@ -60,34 +57,23 @@ CanvasUniformLocation::CanvasUniformLocation(CanvasGlCommandQueue *queue, QObjec
 {
 }
 
-/*!
- * \internal
- */
 CanvasUniformLocation::~CanvasUniformLocation()
 {
     if (m_locationId)
         m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearLocation, m_locationId);
 }
 
-/*!
- * \internal
- */
 GLint CanvasUniformLocation::id()
 {
     return m_locationId;
 }
 
-/*!
- * \internal
- */
 GLint CanvasUniformLocation::type()
 {
     return m_type;
 }
 
 /*!
- * \internal
- *
  * Synchronously retrieves uniform type.
  */
 void CanvasUniformLocation::resolveType(GLint programId, CanvasContext *context)
@@ -100,9 +86,6 @@ void CanvasUniformLocation::resolveType(GLint programId, CanvasContext *context)
     }
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasUniformLocation *uLoc)
 {
     if (uLoc)

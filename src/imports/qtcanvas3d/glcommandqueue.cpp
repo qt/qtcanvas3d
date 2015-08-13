@@ -44,8 +44,6 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \internal
- *
  * The CanvasGlCommandQueue is used to store OpenGL commands until we can execute them under
  * correct context in the renderer thread.
  *
@@ -77,8 +75,6 @@ CanvasGlCommandQueue::~CanvasGlCommandQueue()
 }
 
 /*!
- * \internal
- *
  * Queues a new command \a id to the next available slot and returns a reference to that command,
  * so the caller can give it additional parameters. If the queue is full, we simply reallocate some
  * more space up to the max size.
@@ -173,8 +169,6 @@ GlCommand &CanvasGlCommandQueue::queueCommand(CanvasGlCommandQueue::GlCommandId 
 }
 
 /*!
- * \internal
- *
  * Copies command data to execute queue. GUI thread must be locked when this
  * method is called.
  */
@@ -213,8 +207,6 @@ void CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
 }
 
 /*!
- * \internal
- *
  * Resets the queue.
  */
 void CanvasGlCommandQueue::resetQueue(int size)
@@ -242,8 +234,6 @@ void CanvasGlCommandQueue::resetQueue(int size)
 }
 
 /*!
- * \internal
- *
  * Deletes any extra data untransfered commands might have.
  */
 void CanvasGlCommandQueue::deleteUntransferedCommandData()
@@ -253,8 +243,6 @@ void CanvasGlCommandQueue::deleteUntransferedCommandData()
 }
 
 /*!
- * \internal
- *
  * Creates a new resource identifier for mapping an OpenGL resource identifier.
  */
 GLint CanvasGlCommandQueue::createResourceId()
@@ -388,7 +376,6 @@ void CanvasGlCommandQueue::handleGenerateCommand(const GlCommand &command, GLuin
 }
 
 /*!
- * \internal
  * Adds a quick item to list of items that need to be converted to texture IDs on the
  * next command transfer.
  */

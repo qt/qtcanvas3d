@@ -51,9 +51,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 const int initialQueueSize = 256;
 const int maxQueueSize = 1000000;
 
-/*!
- * \internal
- */
 CanvasRenderer::CanvasRenderer(QObject *parent):
     QObject(parent),
     m_fboSize(0, 0),
@@ -107,8 +104,6 @@ void CanvasRenderer::resolveQtContext(QQuickWindow *window, const QSize &initial
 }
 
 /*!
- * \internal
- *
  * Creates the shared context for Canvas. On some platforms shared context must be created
  * when the 'parent' context is not active, so we set no context as current temporarily.
  * Called from the render thread.
@@ -213,8 +208,6 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
 }
 
 /*!
- * \internal
- *
  * Cleans up the OpenGL resources.
  * Called from the render thread.
  */
@@ -341,10 +334,8 @@ void CanvasRenderer::shutDown()
 }
 
 /*!
- *  \internal
- *
- *  Create the context and offscreen surface using current context attributes.
- *  Called from the GUI thread.
+ * Create the context and offscreen surface using current context attributes.
+ * Called from the GUI thread.
 */
 bool CanvasRenderer::createContext(QQuickWindow *window,
                                    const CanvasContextAttributes &contextAttributes,
@@ -449,8 +440,6 @@ bool CanvasRenderer::createContext(QQuickWindow *window,
 }
 
 /*!
- * \internal
- *
  * Renders the command queue in the correct context.
  * Called from the render thread.
  */
@@ -540,8 +529,6 @@ void CanvasRenderer::render()
 }
 
 /*!
- * \internal
- *
  * Clears the render buffer to default values.
  * Called from the render thread and only when not rendering to offscreen buffer.
  */
@@ -562,8 +549,6 @@ void CanvasRenderer::clearBackground()
 }
 
 /*!
- * \internal
- *
  * Fetches the GL errors and updates m_glError.
  * If onlyWhenLogging is true, errors are only updated when GL error logging is enabled
  * Called from the render thread. Context must be valid.
@@ -616,8 +601,6 @@ bool CanvasRenderer::updateGlError(const char *funcName)
 }
 
 /*!
- * \internal
- *
  * Sets framebuffer size.
  * Called from the GUI thread.
  */
@@ -638,8 +621,6 @@ void CanvasRenderer::setFboSize(const QSize &fboSize)
 }
 
 /*!
- * \internal
- *
  * Creates framebuffers.
  * This method is called from the render thread and in the correct context.
  */
@@ -752,8 +733,6 @@ void CanvasRenderer::createFBOs()
 }
 
 /*!
- * \internal
- *
  * Moves commands from command queue to execution queue.
  * Called from the render thread when the GUI thread is blocked.
  */
@@ -781,8 +760,6 @@ void CanvasRenderer::transferCommands()
 }
 
 /*!
- * \internal
- *
  * Bind the correct target framebuffer for rendering.
  * This method is called from the render thread and in the correct context.
  */
@@ -818,8 +795,6 @@ void CanvasRenderer::bindCurrentRenderTarget()
 }
 
 /*!
- * \internal
- *
  * Makes the canvas context current, if it exists.
  * Called from the render thread.
  */
@@ -835,8 +810,6 @@ void CanvasRenderer::makeCanvasContextCurrent()
 }
 
 /*!
- * \internal
- *
  * Executes the command queue.
  * This method is called from the render thread and in the correct context.
  */
@@ -1475,8 +1448,6 @@ void CanvasRenderer::executeCommandQueue()
 }
 
 /*!
- * \internal
- *
  * Executes a single GlSyncCommand.
  * This method is called from the render thread and in the correct context.
  */
@@ -1803,8 +1774,6 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
 }
 
 /*!
- * \internal
- *
  * This method is called once the all rendering for the frame is done to offscreen FBO.
  * It does the final blitting and swaps the buffers.
  * This method is called from the render thread and in the correct context.
@@ -1864,8 +1833,6 @@ void CanvasRenderer::resetQtOpenGLState()
 }
 
 /*!
- * \internal
- *
  * Blits the antialias fbo into the final render fbo.
  * Returns the final render fbo handle.
  * This method is called from the render thread and in the correct context.

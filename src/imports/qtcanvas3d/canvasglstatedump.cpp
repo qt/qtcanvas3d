@@ -58,7 +58,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
    An uncreatable QML type that provides an extension API that can be used to dump current OpenGL
    driver state as a string that can be then, for example, be printed on the console log.
    You can get it by calling \l{Context3D::getExtension}{Context3D.getExtension} with
-   "QTCANVAS3D_gl_state_dump" as parameter.
+   \c{"QTCANVAS3D_gl_state_dump"} as parameter.
 
    Typical usage could be something like this:
    \code
@@ -88,18 +88,12 @@ CanvasGLStateDump::CanvasGLStateDump(CanvasContext *canvasContext, bool isEs, QO
 {
 }
 
-/*!
- * \internal
- */
 CanvasGLStateDump::~CanvasGLStateDump()
 {
     EnumToStringMap::deleteInstance();
     m_map = 0;
 }
 
-/*!
- * \internal
- */
 void CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int type)
 {
     if (!arrayObject)
@@ -129,8 +123,6 @@ void CanvasGLStateDump::getGLArrayObjectDump(int target, int arrayObject, int ty
 }
 
 /*!
- * \internal
- *
  * This function does the actual state dump. It must be called from renderer thread and
  * inside a valid context.
  */
@@ -436,8 +428,8 @@ void CanvasGLStateDump::doGLStateDump()
  * from all currently active vertex attribute arrays (including the currently bound element array)
  * to verify that there are actual values in the array.
  * \li \c{GLStateDumpExt.DUMP_FULL} Includes everything.
- * This command is handled synchronously.
  * \endlist
+ * This command is handled synchronously.
  */
 QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums options)
 {

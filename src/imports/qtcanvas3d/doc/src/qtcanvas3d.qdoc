@@ -187,10 +187,15 @@
              that happen before a OpenGL method call is made to the actual
              graphics driver.
     \row \li \c qt.canvas3d.glerrors.debug
-         \li Logs all the OpenGL driver level errors. This entails calling
-             \c{glGetError()} after each OpenGL driver call and this will
-             cause a negative performance hit. Please use only when necessary
-             to find root causes of rendering errors.
+         \li Enables logging OpenGL driver level errors after each OpenGL command issued by the
+             application. This entails calling synchronous \c{glGetError()} after each OpenGL
+             call, which will cause a negative performance hit. Please use only when necessary
+             to find root causes of rendering errors. Also note that the detected OpenGL errors
+             are actually logged as warning messages instead of debug messages.
+    \row \li \c qt.canvas3d.glerrors.warning
+         \li Logs OpenGL driver level errors when executing synchronous OpenGL commands issued by
+             the application. If \c qt.canvas3d.glerrors.debug is also enabled, logs OpenGL errors
+             after all OpenGL calls issued by the application.
     \endtable
 */
 

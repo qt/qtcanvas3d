@@ -50,9 +50,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::createTexture()}{Context3D.createTexture()} method.
  */
 
-/*!
- * \internal
- */
 CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context,
                              QQuickItem *quickItem) :
     CanvasAbstractObject(queue, context),
@@ -69,17 +66,11 @@ CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context
         m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
 }
 
-/*!
- * \internal
- */
 CanvasTexture::~CanvasTexture()
 {
     del();
 }
 
-/*!
- * \internal
- */
 void CanvasTexture::bind(CanvasContext::glEnums target)
 {
     if (m_textureId) {
@@ -88,9 +79,6 @@ void CanvasTexture::bind(CanvasContext::glEnums target)
     }
 }
 
-/*!
- * \internal
- */
 GLint CanvasTexture::textureId() const
 {
     if (!m_isAlive)
@@ -99,25 +87,16 @@ GLint CanvasTexture::textureId() const
     return m_textureId;
 }
 
-/*!
- * \internal
- */
 void CanvasTexture::handleItemDestroyed()
 {
     del();
 }
 
-/*!
- * \internal
- */
 bool CanvasTexture::isAlive() const
 {
     return bool(m_textureId);
 }
 
-/*!
- * \internal
- */
 void CanvasTexture::del()
 {
     if (m_textureId) {
@@ -133,9 +112,6 @@ void CanvasTexture::del()
     m_textureId = 0;
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasTexture *texture)
 {
     if (texture)

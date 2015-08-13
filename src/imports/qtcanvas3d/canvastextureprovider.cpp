@@ -68,7 +68,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
     var myTexture;
     .
     .
-    // Get the extension after the context has been created
+    // Get the extension after the context has been created in onInitializeGL().
     textureProvider = gl.getExtension("QTCANVAS3D_texture_provider");
     .
     .
@@ -77,8 +77,9 @@ QT_CANVAS3D_BEGIN_NAMESPACE
         myTexture = textureProvider.createTextureFromSource(textureSource);
     .
     .
-    // Normally the above is enough. However, in cases where you utilize synchronous OpenGL
-    // commands or dynamically enable the source item layer, it is not guaranteed that the texture
+    // If you just need to access the texture in onPaingGL(), the above is usually enough.
+    // However, in cases where you utilize synchronous OpenGL commands or dynamically enable
+    // the source item layer after canvas initialization, it is not guaranteed that the texture
     // is valid immediately after calling createTextureFromSource().
     // To ensure you don't use the texture before it is ready, connect the textureReady() signal
     // to a handler function that will use the texture.
@@ -128,6 +129,13 @@ CanvasTextureProvider::~CanvasTextureProvider()
  * If this function is called twice for same \a source, it doesn't create a new Canvas3DTexture
  * instance, but instead returns a reference to a previously created one, as long as the previous
  * instance is still alive.
+ *
+ * The generated texture is owned and managed by Qt Quick's scene graph, so attempting to
+ * modify its parameters is not guaranteed to work.
+ *
+ * \note Qt Quick uses texture coordinates where the origin is at top left corner, which is
+ * different from OpenGL default coordinate system, where the origin is at bottom left corner.
+ * You need to account for this when specifying the UV mapping for the texture.
  */
 QJSValue CanvasTextureProvider::createTextureFromSource(QQuickItem *source)
 {

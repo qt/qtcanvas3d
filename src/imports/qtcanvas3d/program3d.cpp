@@ -49,9 +49,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::createProgram()}{Context3D.createProgram()} method.
  */
 
-/*!
- * \internal
- */
 CanvasProgram::CanvasProgram(CanvasGlCommandQueue *queue, QObject *parent) :
     CanvasAbstractObject(queue, parent),
     m_programId(queue->createResourceId()),
@@ -62,25 +59,16 @@ CanvasProgram::CanvasProgram(CanvasGlCommandQueue *queue, QObject *parent) :
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateProgram, m_programId);
 }
 
-/*!
- * \internal
- */
 CanvasProgram::~CanvasProgram()
 {
     del();
 }
 
-/*!
- * \internal
- */
 bool CanvasProgram::isAlive()
 {
     return bool(m_programId);
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::attach(CanvasShader *shader)
 {
     if (m_programId) {
@@ -92,9 +80,6 @@ void CanvasProgram::attach(CanvasShader *shader)
     }
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::detach(CanvasShader *shader)
 {
     if (m_programId) {
@@ -106,17 +91,11 @@ void CanvasProgram::detach(CanvasShader *shader)
     }
 }
 
-/*!
- * \internal
- */
 const QList<CanvasShader *> &CanvasProgram::attachedShaders() const
 {
     return m_attachedShaders;
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::link()
 {
     if (m_programId) {
@@ -125,9 +104,6 @@ void CanvasProgram::link()
     }
 }
 
-/*!
- * \internal
- */
 bool CanvasProgram::isLinked()
 {
     // This method reports true if linking has been attempted for this program.
@@ -135,9 +111,6 @@ bool CanvasProgram::isLinked()
     return m_linked;
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::useProgram()
 {
     if (m_programId) {
@@ -145,9 +118,6 @@ void CanvasProgram::useProgram()
     }
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::bindAttributeLocation(int index, const QString &name)
 {
     if (m_programId) {
@@ -157,9 +127,6 @@ void CanvasProgram::bindAttributeLocation(int index, const QString &name)
     }
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::del()
 {
     if (m_programId) {
@@ -169,26 +136,17 @@ void CanvasProgram::del()
     m_attachedShaders.clear();
 }
 
-/*!
- * \internal
- */
 void CanvasProgram::validateProgram()
 {
     if (m_programId)
         m_commandQueue->queueCommand(CanvasGlCommandQueue::glValidateProgram, m_programId);
 }
 
-/*!
- * \internal
- */
 GLint CanvasProgram::id()
 {
     return m_programId;
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasProgram *program)
 {
     if (program)

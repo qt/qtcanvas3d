@@ -44,8 +44,6 @@ QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
 
 /*!
- * \internal
- *
  * The CanvasRenderJob class is for synchronous render jobs used by QtCanvas3D.
  * It takes care of synchronization.
  */

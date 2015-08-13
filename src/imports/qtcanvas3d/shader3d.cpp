@@ -49,9 +49,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::createShader()}{Context3D.createShader()} method.
  */
 
-/*!
- * \internal
- */
 CanvasShader::CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *parent) :
     CanvasAbstractObject(queue, parent),
     m_shaderId(queue->createResourceId()),
@@ -62,33 +59,21 @@ CanvasShader::CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *pa
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateShader, GLint(type), m_shaderId);
 }
 
-/*!
- * \internal
- */
 CanvasShader::~CanvasShader()
 {
     del();
 }
 
-/*!
- * \internal
- */
 GLint CanvasShader::id()
 {
     return m_shaderId;
 }
 
-/*!
- * \internal
- */
 bool CanvasShader::isAlive()
 {
     return bool(m_shaderId);
 }
 
-/*!
- * \internal
- */
 void CanvasShader::del()
 {
     if (m_shaderId) {
@@ -97,17 +82,11 @@ void CanvasShader::del()
     }
 }
 
-/*!
- * \internal
- */
 QString CanvasShader::sourceCode()
 {
     return m_sourceCode;
 }
 
-/*!
- * \internal
- */
 void CanvasShader::setSourceCode(const QString &source)
 {
     m_sourceCode = source;

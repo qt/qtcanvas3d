@@ -49,9 +49,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \l{Context3D::createFramebuffer()}{Context3D.createFramebuffer()} method.
  */
 
-/*!
- * \internal
- */
 CanvasFrameBuffer::CanvasFrameBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
     CanvasAbstractObject(queue, parent),
     m_framebufferId(queue->createResourceId()),
@@ -62,25 +59,16 @@ CanvasFrameBuffer::CanvasFrameBuffer(CanvasGlCommandQueue *queue, QObject *paren
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenFramebuffers, m_framebufferId);
 }
 
-/*!
- * \internal
- */
 CanvasFrameBuffer::~CanvasFrameBuffer()
 {
     del();
 }
 
-/*!
- * \internal
- */
 bool CanvasFrameBuffer::isAlive()
 {
     return bool(m_framebufferId);
 }
 
-/*!
- * \internal
- */
 void CanvasFrameBuffer::del()
 {
     if (m_framebufferId) {
@@ -89,33 +77,21 @@ void CanvasFrameBuffer::del()
     }
 }
 
-/*!
- * \internal
- */
 GLint CanvasFrameBuffer::id()
 {
     return m_framebufferId;
 }
 
-/*!
- * \internal
- */
 void CanvasFrameBuffer::setTexture(CanvasTexture *texture)
 {
     m_texture = texture;
 }
 
-/*!
- * \internal
- */
 CanvasTexture *CanvasFrameBuffer::texture()
 {
     return m_texture;
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasFrameBuffer *buffer)
 {
     if (buffer)

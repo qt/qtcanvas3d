@@ -49,9 +49,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
  */
 
-/*!
- * \internal
- */
 CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
     CanvasAbstractObject(queue, parent),
     m_renderbufferId(queue->createResourceId())
@@ -62,25 +59,16 @@ CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *par
 }
 
 
-/*!
- * \internal
- */
 CanvasRenderBuffer::~CanvasRenderBuffer()
 {
     del();
 }
 
-/*!
- * \internal
- */
 bool CanvasRenderBuffer::isAlive()
 {
     return bool(m_renderbufferId);
 }
 
-/*!
- * \internal
- */
 void CanvasRenderBuffer::del()
 {
     if (m_renderbufferId) {
@@ -89,9 +77,6 @@ void CanvasRenderBuffer::del()
     }
 }
 
-/*!
- * \internal
- */
 GLint CanvasRenderBuffer::id()
 {
     return m_renderbufferId;

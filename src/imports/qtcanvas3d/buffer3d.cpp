@@ -52,9 +52,6 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \l{Context3D::createBuffer()}{Context3D.createBuffer()} method.
  */
 
-/*!
- * \internal
- */
 CanvasBuffer::CanvasBuffer() :
     CanvasAbstractObject(0, 0),
     m_bufferId(0),
@@ -73,9 +70,6 @@ CanvasBuffer::CanvasBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenBuffers, m_bufferId);
 }
 
-/*!
- * \internal
- */
 CanvasBuffer::CanvasBuffer(const CanvasBuffer& other) :
     CanvasAbstractObject(other.m_commandQueue, 0), // Copying a QObject, leave it parentless..
     m_bufferId(other.m_bufferId),
@@ -83,19 +77,12 @@ CanvasBuffer::CanvasBuffer(const CanvasBuffer& other) :
 {
 }
 
-
-/*!
- * \internal
- */
 CanvasBuffer::~CanvasBuffer()
 {
     // Crashes on exit as V4VM does it's final cleanup without checking of ownerships
     del();
 }
 
-/*!
- * \internal
- */
 void CanvasBuffer::del()
 {
     if (m_bufferId) {
@@ -104,25 +91,16 @@ void CanvasBuffer::del()
     m_bufferId = 0;
 }
 
-/*!
- * \internal
- */
 bool CanvasBuffer::isAlive()
 {
     return bool(m_bufferId);
 }
 
-/*!
- * \internal
- */
 CanvasBuffer::bindTarget CanvasBuffer::target()
 {
     return m_bindTarget;
 }
 
-/*!
- * \internal
- */
 void CanvasBuffer::setTarget(bindTarget bindPoint)
 {
     //Q_ASSERT(m_bindTarget == CanvasBuffer::UNINITIALIZED);
@@ -130,17 +108,11 @@ void CanvasBuffer::setTarget(bindTarget bindPoint)
     m_bindTarget = bindPoint;
 }
 
-/*!
- * \internal
- */
 GLint CanvasBuffer::id()
 {
     return m_bufferId;
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasBuffer *buffer)
 {
     if (buffer)

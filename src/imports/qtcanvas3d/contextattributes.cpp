@@ -50,15 +50,13 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  *
  * Canvas3DContextAttributes is an attribute set that can be given as parameter on first call to
  * Canvas3D object's \l{Canvas3D::getContext}{getContext(string type, Canvas3DContextAttributes options)}
- * method call. It can also be requested from the Context3D later on to verify what exact
- * attributes are in fact enabled/disabled in the created context.
+ * method call.
+ * It can also be requested from the Context3D using Context3D::getContextAttributes() later on
+ * to verify what exact attributes are in fact enabled/disabled in the created context.
  *
  * \sa Context3D, Canvas3D
  */
 
-/*!
- * \internal
- */
 CanvasContextAttributes::CanvasContextAttributes(QObject *parent) :
     CanvasAbstractObject(0, parent),
     m_alpha(true),
@@ -72,16 +70,10 @@ CanvasContextAttributes::CanvasContextAttributes(QObject *parent) :
 {
 }
 
-/*!
- * \internal
- */
 CanvasContextAttributes::~CanvasContextAttributes()
 {
 }
 
-/*!
- * \internal
- */
 void CanvasContextAttributes::setFrom(const QVariantMap &options)
 {
     for (QVariantMap::const_iterator iter = options.begin(); iter != options.end(); ++iter) {
@@ -104,9 +96,6 @@ void CanvasContextAttributes::setFrom(const QVariantMap &options)
     }
 }
 
-/*!
- * \internal
- */
 void CanvasContextAttributes::setFrom(const CanvasContextAttributes &source)
 {
     m_alpha = source.alpha();
@@ -274,9 +263,6 @@ void CanvasContextAttributes::setFailIfMajorPerformanceCaveat(bool value)
     emit failIfMajorPerformanceCaveatChanged(value);
 }
 
-/*!
- * \internal
- */
 QDebug operator<<(QDebug dbg, const CanvasContextAttributes &attribs)
 {
     dbg.nospace() << "Canvas3DContextAttributes(\n    alpha:"<< attribs.m_alpha  <<

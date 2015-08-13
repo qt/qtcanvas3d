@@ -66,7 +66,7 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  *
  * The Canvas3D is a QML element that, when placed in your Qt Quick 2 scene, allows you to
  * get a 3D rendering context and call 3D rendering API calls through that context object.
- * Use of the rendering API requires knowledge of OpenGL like rendering APIs.
+ * Use of the rendering API requires knowledge of OpenGL-like rendering APIs.
  *
  * There are two functions that are called by the Canvas3D implementation:
  * \list
@@ -79,9 +79,6 @@ Q_LOGGING_CATEGORY(canvas3dglerrors, "qt.canvas3d.glerrors")
  * \sa Context3D
  */
 
-/*!
- * \internal
- */
 Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_isNeedRenderQueued(false),
@@ -135,9 +132,6 @@ Canvas::Canvas(QQuickItem *parent):
  * Driven by the Qt Quick scenegraph loop.
  */
 
-/*!
- * \internal
- */
 Canvas::~Canvas()
 {
     // Ensure that all JS objects have been destroyed before we destroy the command queue.
@@ -152,8 +146,6 @@ Canvas::~Canvas()
 }
 
 /*!
- * \internal
- *
  * Override QQuickItem's setWidth to be able to limit the maximum canvas size to maximum viewport
  * dimensions.
  */
@@ -172,17 +164,12 @@ void Canvas::setWidth(int width)
     QQuickItem::setWidth(qreal(newWidth));
 }
 
-/*!
- * \internal
- */
 int Canvas::width()
 {
     return int(QQuickItem::width());
 }
 
 /*!
- * \internal
- *
  * Override QQuickItem's setHeight to be able to limit the maximum canvas size to maximum viewport
  * dimensions.
  */
@@ -201,9 +188,6 @@ void Canvas::setHeight(int height)
     QQuickItem::setHeight(qreal(newHeight));
 }
 
-/*!
- * \internal
- */
 int Canvas::height()
 {
     return int(QQuickItem::height());
@@ -353,9 +337,6 @@ float Canvas::devicePixelRatio()
  * Returns the 3D rendering context that allows 3D rendering calls to be made.
  * The \a type parameter is ignored for now, but a string is expected to be given.
  */
-/*!
- * \internal
- */
 QJSValue Canvas::getContext(const QString &type)
 {
     QVariantMap map;
@@ -377,9 +358,6 @@ QJSValue Canvas::getContext(const QString &type)
  * default configuration.
  *
  * \sa Canvas3DContextAttributes, Context3D, renderTarget
- */
-/*!
- * \internal
  */
 QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
 {
@@ -467,17 +445,11 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
  * Specifies the size of the render target surface in physical on-screen pixels used by
  * the 3D rendering.
  */
-/*!
- * \internal
- */
 QSize Canvas::pixelSize()
 {
     return m_fboSize;
 }
 
-/*!
- * \internal
- */
 void Canvas::setPixelSize(QSize pixelSize)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -511,9 +483,6 @@ void Canvas::setPixelSize(QSize pixelSize)
     emit pixelSizeChanged(pixelSize);
 }
 
-/*!
- * \internal
- */
 void Canvas::handleWindowChanged(QQuickWindow *window)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "(" << window << ")";
@@ -529,9 +498,6 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
     emitNeedRender();
 }
 
-/*!
- * \internal
- */
 void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometry)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -543,9 +509,6 @@ void Canvas::geometryChanged(const QRectF &newGeometry, const QRectF &oldGeometr
     emitNeedRender();
 }
 
-/*!
- * \internal
- */
 void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -557,7 +520,10 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
 }
 
 /*!
- * \internal
+ * \qmlproperty Context3D Canvas3D::context
+ * This property can be used to access the context created with getContext() method.
+ *
+ * \sa getContext()
  */
 CanvasContext *Canvas::context()
 {
@@ -565,9 +531,6 @@ CanvasContext *Canvas::context()
     return m_context3D;
 }
 
-/*!
- * \internal
- */
 void Canvas::updateWindowParameters()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
@@ -653,17 +616,11 @@ bool Canvas::firstSync()
     return false;
 }
 
-/*!
- * \internal
- */
 CanvasRenderer *Canvas::renderer()
 {
     return m_renderer;
 }
 
-/*!
- * \internal
- */
 QSGNode *Canvas::updatePaintNode(QSGNode *oldNode, UpdatePaintNodeData *data)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -792,9 +749,6 @@ int Canvas::frameSetupTimeMs()
     return int(m_frameSetupTimeMs);
 }
 
-/*!
- * \internal
- */
 void Canvas::queueNextRender()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
@@ -866,9 +820,6 @@ void Canvas::queueNextRender()
     window()->update();
 }
 
-/*!
- * \internal
- */
 void Canvas::queueResizeGL()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
@@ -888,9 +839,6 @@ void Canvas::requestRender()
         emitNeedRender();
 }
 
-/*!
- * \internal
- */
 void Canvas::emitNeedRender()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
