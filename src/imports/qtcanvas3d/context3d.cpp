@@ -1362,8 +1362,13 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
         return;
     }
 
-    if (!m_currentTexture2D->hasSpecificName())
-        m_currentTexture2D->setName("ImageTexture_"+image->name());
+    if (target == TEXTURE_2D) {
+        if (m_currentTexture2D && !m_currentTexture2D->hasSpecificName())
+            m_currentTexture2D->setName("ImageTexture_"+image->name());
+    } else {
+        if (m_currentTextureCubeMap && !m_currentTextureCubeMap->hasSpecificName())
+            m_currentTextureCubeMap->setName("ImageTexture_"+image->name());
+    }
 
     int totalBytes = image->width() * image->height() * bytesPerPixel;
     QByteArray *dataArray = new QByteArray(reinterpret_cast<char *>(pixels), totalBytes);
