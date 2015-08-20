@@ -1242,6 +1242,8 @@ private:
                      CanvasUniformLocation *location, const QVariantList &array);
     void uniformNxv(int dim, bool typeFloat, const QJSValue &location, const QJSValue &array);
 
+    bool isCapabilityValid(glEnums cap);
+
     typedef enum {
         CANVAS_NO_ERRORS = 0,
         CANVAS_INVALID_ENUM = 1 << 0,

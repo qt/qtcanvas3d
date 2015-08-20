@@ -2317,7 +2317,8 @@ void CanvasContext::enable(glEnums cap)
                                          << "(cap:" << glEnumToString(cap)
                                          << ")";
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glEnable, GLint(cap));
+    if (isCapabilityValid(cap))
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glEnable, GLint(cap));
 }
 
 /*!
@@ -2331,10 +2332,12 @@ bool CanvasContext::isEnabled(glEnums cap)
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(cap:" << glEnumToString(cap)
                                          << ")";
-    GLboolean boolValue;
-    GlSyncCommand syncCommand(CanvasGlCommandQueue::glIsEnabled, GLint(cap));
-    syncCommand.returnValue = &boolValue;
-    scheduleSyncCommand(&syncCommand);
+    GLboolean boolValue = false;
+    if (isCapabilityValid(cap)) {
+        GlSyncCommand syncCommand(CanvasGlCommandQueue::glIsEnabled, GLint(cap));
+        syncCommand.returnValue = &boolValue;
+        scheduleSyncCommand(&syncCommand);
+    }
     return boolValue;
 }
 
@@ -2349,7 +2352,8 @@ void CanvasContext::disable(glEnums cap)
                                          << "(cap:" << glEnumToString(cap)
                                          << ")";
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glDisable, GLint(cap));
+    if (isCapabilityValid(cap))
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDisable, GLint(cap));
 }
 
 /*!
@@ -3137,6 +3141,35 @@ void CanvasContext::uniformNxv(int dim, bool typeFloat, const QJSValue &location
     GlCommand &uniformCommand = m_commandQueue->queueCommand(id, locationObj->id(),
                                                              GLint(arrayLen));
     uniformCommand.data = dataArray;
+}
+
+/*!
+ * Checks if capability passed to enable, isEnabled, or disable function is valid.
+ */
+bool CanvasContext::isCapabilityValid(CanvasContext::glEnums cap)
+{
+    bool capValid = false;
+    switch (GLint(cap)) {
+    case CULL_FACE:
+    case BLEND:
+    case DITHER:
+    case STENCIL_TEST:
+    case DEPTH_TEST:
+    case SCISSOR_TEST:
+    case POLYGON_OFFSET_FILL:
+    case SAMPLE_ALPHA_TO_COVERAGE:
+    case SAMPLE_COVERAGE:
+        capValid = true;
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Tried to enable, disable, or query an invalid capability:"
+                                               << glEnumToString(cap);
+        m_error |= CANVAS_INVALID_ENUM;
+        break;
+    }
+    return capValid;
 }
 
 /*!
