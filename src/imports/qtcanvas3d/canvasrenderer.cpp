@@ -663,14 +663,13 @@ void CanvasRenderer::createFBOs()
     if (!m_displayFbo)
         glScissor(0, 0, m_fboSize.width(), m_fboSize.height());
 
-    QOpenGLFramebufferObject *dummyFbo = 0;
-    if (!m_renderFbo) {
-        // Create a dummy FBO to work around a weird GPU driver bug on some platforms that
-        // causes the first FBO created to get corrupted in some cases.
-        dummyFbo = new QOpenGLFramebufferObject(m_fboSize.width(),
-                                                m_fboSize.height(),
-                                                m_fboFormat);
-    }
+    // Create a couple of dummy FBOs to ensure our real framebuffers don't get too low ID numbers.
+    // This works around a weird GPU driver issue on some platforms that causes FBOs to get
+    // corrupted in some cases, but only if their IDs are low.
+    const int dummyCount = 3;
+    QOpenGLFramebufferObject *dummyFbos[dummyCount];
+    for (int i = 0; i < dummyCount; i++)
+        dummyFbos[i] = new QOpenGLFramebufferObject(2, 2, m_fboFormat);
 
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
@@ -725,8 +724,9 @@ void CanvasRenderer::createFBOs()
     if (m_currentFramebufferId)
         bindCurrentRenderTarget();
 
-    // Get rid of the dummy FBO, it has served its purpose
-    delete dummyFbo;
+    // Delete the dummy FBOs, they have served their purpose
+    for (int i = 0; i < dummyCount; i++)
+        delete dummyFbos[i];
 
     if (canvas3dglerrors().isDebugEnabled())
         updateGlError(__FUNCTION__);
