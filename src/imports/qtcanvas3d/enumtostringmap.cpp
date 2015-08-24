@@ -66,7 +66,6 @@ void EnumToStringMap::deleteInstance()
 EnumToStringMap::EnumToStringMap() :
     m_unknown("<unknown>")
 {
-    m_map[CanvasContext::ZERO] = "ZERO/null";
 
     m_map[CanvasContext::DEPTH_BUFFER_BIT] = "DEPTH_BUFFER_BIT";
     m_map[CanvasContext::STENCIL_BUFFER_BIT] = "STENCIL_BUFFER_BIT";
@@ -77,8 +76,6 @@ EnumToStringMap::EnumToStringMap() :
     m_map[CanvasContext::STENCIL_BUFFER_BIT] = "STENCIL_BUFFER_BIT";
     m_map[CanvasContext::COLOR_BUFFER_BIT] = "COLOR_BUFFER_BIT";
 
-    m_map[CanvasContext::POINTS] = "POINTS";
-    m_map[CanvasContext::LINES] = "LINES";
     m_map[CanvasContext::LINE_LOOP] = "LINE_LOOP";
     m_map[CanvasContext::LINE_STRIP] = "LINE_STRIP";
     m_map[CanvasContext::TRIANGLES] = "TRIANGLES";
@@ -142,7 +139,6 @@ EnumToStringMap::EnumToStringMap() :
     m_map[CanvasContext::SAMPLE_ALPHA_TO_COVERAGE] = "SAMPLE_ALPHA_TO_COVERAGE";
     m_map[CanvasContext::SAMPLE_COVERAGE] = "SAMPLE_COVERAGE";
 
-    m_map[CanvasContext::NO_ERROR] = "NO_ERROR";
     m_map[CanvasContext::INVALID_ENUM] = "INVALID_ENUM";
     m_map[CanvasContext::INVALID_VALUE] = "INVALID_VALUE";
     m_map[CanvasContext::INVALID_OPERATION] = "INVALID_OPERATION";
@@ -412,6 +408,10 @@ EnumToStringMap::EnumToStringMap() :
     m_map[CanvasContext::CONTEXT_LOST_WEBGL] = "CONTEXT_LOST_WEBGL";
     m_map[CanvasContext::UNPACK_COLORSPACE_CONVERSION_WEBGL] = "UNPACK_COLORSPACE_CONVERSION_WEBGL";
     m_map[CanvasContext::BROWSER_DEFAULT_WEBGL] = "BROWSER_DEFAULT_WEBGL";
+
+    // cases where single value can map to multiple strings
+    m_map[CanvasContext::ZERO] = "ZERO/NO_ERROR/POINTS";
+    m_map[CanvasContext::ONE] = "ONE/LINES";
 }
 
 QString EnumToStringMap::lookUp(const CanvasContext::glEnums value) const
