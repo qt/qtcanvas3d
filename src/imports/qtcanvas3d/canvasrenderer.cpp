@@ -70,6 +70,7 @@ CanvasRenderer::CanvasRenderer(QObject *parent):
     m_renderFbo(0),
     m_displayFbo(0),
     m_recreateFbos(false),
+    m_verifyFboBinds(false),
     m_offscreenSurface(0),
     m_commandQueue(0, maxQueueSize), // command queue size will be reset when context is created.
     m_executeQueue(0),
@@ -195,6 +196,16 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
                                     << "EXTENSIONS: " << extensions;
 #endif
 
+#if defined(Q_OS_WIN)
+    // Check driver vendor. We need to do some additional checking with Intel GPUs in Windows,
+    // as our FBOs can get corrupted when some unrelated Qt Quick items are
+    // dynamically constructed or modified. Since this doesn't happen on any other
+    // vendor's GPUs, it is likely caused by a bug in Intel drivers.
+    const GLubyte *vendor = m_glContext->functions()->glGetString(GL_VENDOR);
+    QByteArray vendorArray(reinterpret_cast<const char *>(vendor));
+    if (vendorArray.toLower().contains("intel"))
+        m_verifyFboBinds = true;
+#endif
     m_glContext->functions()->glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
 
     contextVersion = m_glContext->format().majorVersion();
@@ -663,14 +674,6 @@ void CanvasRenderer::createFBOs()
     if (!m_displayFbo)
         glScissor(0, 0, m_fboSize.width(), m_fboSize.height());
 
-    // Create a couple of dummy FBOs to ensure our real framebuffers don't get too low ID numbers.
-    // This works around a weird GPU driver issue on some platforms that causes FBOs to get
-    // corrupted in some cases, but only if their IDs are low.
-    const int dummyCount = 3;
-    QOpenGLFramebufferObject *dummyFbos[dummyCount];
-    for (int i = 0; i < dummyCount; i++)
-        dummyFbos[i] = new QOpenGLFramebufferObject(2, 2, m_fboFormat);
-
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
                                          << " Creating front and back FBO's with"
@@ -724,10 +727,6 @@ void CanvasRenderer::createFBOs()
     if (m_currentFramebufferId)
         bindCurrentRenderTarget();
 
-    // Delete the dummy FBOs, they have served their purpose
-    for (int i = 0; i < dummyCount; i++)
-        delete dummyFbos[i];
-
     if (canvas3dglerrors().isDebugEnabled())
         updateGlError(__FUNCTION__);
 }
@@ -771,6 +770,9 @@ void CanvasRenderer::bindCurrentRenderTarget()
         if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
             QOpenGLFramebufferObject::bindDefault();
         } else {
+            if (m_verifyFboBinds)
+                updateGlError(__FUNCTION__);
+
             // Bind default framebuffer
             if (m_antialiasFbo) {
                 qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
@@ -782,6 +784,21 @@ void CanvasRenderer::bindCurrentRenderTarget()
                                                      << " Binding current FBO to render FBO:"
                                                      << m_renderFbo->handle();
                 m_renderFbo->bind();
+            }
+
+            if (m_verifyFboBinds) {
+                // Silently ignore sudden binding errors with our default framebuffers, as they
+                // are likely result of a GPU driver bug.
+                GLenum err;
+                while ((err = glGetError()) != GL_NO_ERROR)
+                    m_recreateFbos = true;
+                if (m_recreateFbos) {
+                    m_verifyFboBinds = false; // To avoid infinite loops
+                    createFBOs();
+                    m_recreateFbos = false;
+                    bindCurrentRenderTarget();
+                    m_verifyFboBinds = true;
+                }
             }
         }
     } else {

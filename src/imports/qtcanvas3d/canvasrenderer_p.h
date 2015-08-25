@@ -149,6 +149,7 @@ private:
     QOpenGLFramebufferObjectFormat m_fboFormat;
     QOpenGLFramebufferObjectFormat m_antialiasFboFormat;
     bool m_recreateFbos;
+    bool m_verifyFboBinds;
 
     QOffscreenSurface *m_offscreenSurface;
 
