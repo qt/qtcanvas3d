@@ -421,10 +421,17 @@ void CanvasContext::bindTexture(glEnums target, QJSValue texture3D)
                                          << ")";
 
     CanvasTexture *texture = getAsTexture3D(texture3D);
-    if (target == TEXTURE_2D)
+    if (target == TEXTURE_2D) {
         m_currentTexture2D = texture;
-    else if (target == TEXTURE_CUBE_MAP)
+    } else if (target == TEXTURE_CUBE_MAP) {
         m_currentTextureCubeMap = texture;
+    } else {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Only TEXTURE_2D and TEXTURE_CUBE_MAP targets are supported.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return;
+    }
 
     if (texture && checkParent(texture, __FUNCTION__)) {
         if (target == TEXTURE_2D)
@@ -438,7 +445,8 @@ void CanvasContext::bindTexture(glEnums target, QJSValue texture3D)
 
 bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName)
 {
-    if (target == TEXTURE_2D) {
+    switch (target) {
+    case TEXTURE_2D:
         if (!m_currentTexture2D) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << funcName
                                                    << ":INVALID_OPERATION:"
@@ -452,7 +460,14 @@ bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName)
             m_error |= CANVAS_INVALID_OPERATION;
             return false;
         }
-    } else if (target == TEXTURE_CUBE_MAP) {
+        break;
+    case TEXTURE_CUBE_MAP:
+    case TEXTURE_CUBE_MAP_POSITIVE_X:
+    case TEXTURE_CUBE_MAP_NEGATIVE_X:
+    case TEXTURE_CUBE_MAP_POSITIVE_Y:
+    case TEXTURE_CUBE_MAP_NEGATIVE_Y:
+    case TEXTURE_CUBE_MAP_POSITIVE_Z:
+    case TEXTURE_CUBE_MAP_NEGATIVE_Z:
         if (!m_currentTextureCubeMap) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << funcName
                                                    << ":INVALID_OPERATION:"
@@ -466,6 +481,13 @@ bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName)
             m_error |= CANVAS_INVALID_OPERATION;
             return false;
         }
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << funcName
+                                               << ":INVALID_ENUM:"
+                                               << "Only TEXTURE_2D and TEXTURE_CUBE_MAP targets supported.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return false;
     }
 
     return true;
@@ -1543,8 +1565,25 @@ void CanvasContext::texParameteri(glEnums target, glEnums pname, int param)
     if (!isValidTextureBound(target, __FUNCTION__))
         return;
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glTexParameteri,
-                                 GLint(target), GLint(pname), GLint(param));
+    switch (pname) {
+    case TEXTURE_MAG_FILTER:
+    case TEXTURE_MIN_FILTER:
+    case TEXTURE_WRAP_S:
+    case TEXTURE_WRAP_T: {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glTexParameteri,
+                                     GLint(target), GLint(pname), GLint(param));
+        break;
+    }
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:invalid pname "
+                                               << glEnumToString(pname)
+                                               << " must be one of: TEXTURE_MAG_FILTER, "
+                                               << "TEXTURE_MIN_FILTER, TEXTURE_WRAP_S"
+                                               << " or TEXTURE_WRAP_T";
+        m_error |= CANVAS_INVALID_ENUM;
+        break;
+    }
 }
 
 int CanvasContext::getSufficientSize(glEnums internalFormat, int width, int height)
@@ -2280,9 +2319,16 @@ void CanvasContext::pixelStorei(glEnums pname, int param)
     case UNPACK_COLORSPACE_CONVERSION_WEBGL:
         // Intentionally ignored
         break;
-    default:
+    case PACK_ALIGNMENT: // Intentional fall-through
+    case UNPACK_ALIGNMENT:
         m_commandQueue->queueCommand(CanvasGlCommandQueue::glPixelStorei,
                                      GLint(pname), GLint(param));
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Invalid pname.";
+        m_error |= CANVAS_INVALID_ENUM;
         break;
     }
 }
@@ -2298,7 +2344,37 @@ void CanvasContext::hint(glEnums target, glEnums mode)
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(target:" << glEnumToString(target)
                                          << ",mode:" << glEnumToString(mode) << ")";
-    if (target == FRAGMENT_SHADER_DERIVATIVE_HINT_OES && !m_standardDerivatives) {
+
+    switch (target) {
+    case FRAGMENT_SHADER_DERIVATIVE_HINT_OES:
+        if (!m_standardDerivatives) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_ENUM:"
+                                                   << "OES_standard_derivatives extension needed for "
+                                                   << "FRAGMENT_SHADER_DERIVATIVE_HINT_OES";
+            m_error |= CANVAS_INVALID_ENUM;
+            return;
+        }
+        break;
+    case GENERATE_MIPMAP_HINT:
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Invalid target.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return;
+    }
+
+    switch (mode) {
+    case FASTEST:
+    case NICEST:
+    case DONT_CARE:
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Invalid mode.";
         m_error |= CANVAS_INVALID_ENUM;
         return;
     }
@@ -2375,6 +2451,23 @@ void CanvasContext::blendColor(float red, float green, float blue, float alpha)
                                  GLfloat(blue), GLfloat(alpha));
 }
 
+bool CanvasContext::checkBlendMode(glEnums mode)
+{
+    switch (mode) {
+    case FUNC_ADD:
+    case FUNC_SUBTRACT:
+    case FUNC_REVERSE_SUBTRACT:
+        return true;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Mode must be one of following: FUNC_ADD, "
+                                               << "FUNC_SUBTRACT, or FUNC_REVERSE_SUBTRACT.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return false;
+    }
+}
+
 /*!
  * \qmlmethod void Context3D::blendEquation(glEnums mode)
  * Sets the equation used for both the RGB blend equation and the alpha blend equation.
@@ -2387,7 +2480,8 @@ void CanvasContext::blendEquation(glEnums mode)
                                          << "(mode:" << glEnumToString(mode)
                                          << ")";
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glBlendEquation, GLint(mode));
+    if (checkBlendMode(mode))
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBlendEquation, GLint(mode));
 }
 
 /*!
@@ -2407,8 +2501,10 @@ void CanvasContext::blendEquationSeparate(glEnums modeRGB, glEnums modeAlpha)
                                          << ", modeAlpha:" << glEnumToString(modeAlpha)
                                          << ")";
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glBlendEquationSeparate,
-                                 GLint(modeRGB), GLint(modeAlpha));
+    if (checkBlendMode(modeRGB) && checkBlendMode(modeAlpha)) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBlendEquationSeparate,
+                                     GLint(modeRGB), GLint(modeAlpha));
+    }
 }
 
 /*!
@@ -3625,6 +3721,53 @@ void CanvasContext::vertexAttribPointer(int indx, int size, glEnums type,
                                  GLint(stride), GLint(offset));
 }
 
+bool CanvasContext::checkBufferTarget(glEnums target) {
+    switch (target) {
+    case ARRAY_BUFFER:
+        if (!m_currentArrayBuffer) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_OPERATION:"
+                                                   << "called with no ARRAY_BUFFER bound";
+            m_error |= CANVAS_INVALID_OPERATION;
+            return false;
+        }
+        break;
+    case ELEMENT_ARRAY_BUFFER:
+        if (!m_currentElementArrayBuffer) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_OPERATION:"
+                                                   << "called with no ELEMENT_ARRAY_BUFFER bound";
+            m_error |= CANVAS_INVALID_OPERATION;
+            return false;
+        }
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Target must be either ARRAY_BUFFER or ELEMENT_ARRAY_BUFFER.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return false;
+    }
+    return true;
+}
+
+bool CanvasContext::checkBufferUsage(CanvasContext::glEnums usage)
+{
+    switch (usage) {
+    case STREAM_DRAW:
+    case STATIC_DRAW:
+    case DYNAMIC_DRAW:
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Usage must be one of STREAM_DRAW, STATIC_DRAW, "
+                                               << "or DYNAMIC_DRAW.";
+        m_error |= CANVAS_INVALID_ENUM;
+        return false;
+    }
+    return true;
+}
 
 /*!
  * \qmlmethod void Context3D::bufferData(glEnums target, long size, glEnums usage)
@@ -3641,34 +3784,10 @@ void CanvasContext::bufferData(glEnums target, long size, glEnums usage)
                                          << ", usage:" << glEnumToString(usage)
                                          << ")";
 
-    switch (target) {
-    case ARRAY_BUFFER:
-        if (!m_currentArrayBuffer) {
-            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION:"
-                                                   << "called with no ARRAY_BUFFER bound";
-            m_error |= CANVAS_INVALID_OPERATION;
-            return;
-        }
-        break;
-    case ELEMENT_ARRAY_BUFFER:
-        if (!m_currentElementArrayBuffer) {
-            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                                   << ":INVALID_OPERATION:"
-                                                   << "called with no ELEMENT_ARRAY_BUFFER bound";
-            m_error |= CANVAS_INVALID_OPERATION;
-            return;
-        }
-        break;
-    default:
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:Unknown target";
-        m_error |= CANVAS_INVALID_ENUM;
-        return;
+    if (checkBufferTarget(target) && checkBufferUsage(usage)) {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferData,
+                                     GLint(target), GLint(size), GLint(usage));
     }
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferData,
-                                 GLint(target), GLint(size), GLint(usage));
 }
 
 /*!
@@ -3693,33 +3812,26 @@ void CanvasContext::bufferData(glEnums target, QJSValue data, glEnums usage)
         return;
     }
 
-    if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
-                                               << " or ELEMENT_ARRAY_BUFFER.";
-        m_error |= CANVAS_INVALID_ENUM;
-        return;
+    if (checkBufferTarget(target) && checkBufferUsage(usage)) {
+        int arrayLen = 0;
+        uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
+
+        if (!srcData)
+            srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
+
+        if (!srcData) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_VALUE:data must be either"
+                                                   << " TypedArray or ArrayBuffer";
+            m_error |= CANVAS_INVALID_VALUE;
+            return;
+        }
+
+        QByteArray *commandData = new QByteArray(reinterpret_cast<const char *>(srcData), arrayLen);
+        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferData,
+                                                          GLint(target), GLint(commandData->size()), GLint(usage));
+        command.data = commandData;
     }
-
-
-    int arrayLen = 0;
-    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
-
-    if (!srcData)
-        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
-
-    if (!srcData) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:data must be either"
-                                               << " TypedArray or ArrayBuffer";
-        m_error |= CANVAS_INVALID_VALUE;
-        return;
-    }
-
-    QByteArray *commandData = new QByteArray(reinterpret_cast<const char *>(srcData), arrayLen);
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferData,
-                                                      GLint(target), GLint(commandData->size()), GLint(usage));
-    command.data = commandData;
 }
 
 /*!
@@ -3736,14 +3848,6 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
                                          << ", data:" << data.toString()
                                          << ")";
 
-    if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:Target must be either ARRAY_BUFFER"
-                                               << " or ELEMENT_ARRAY_BUFFER.";
-        m_error |= CANVAS_INVALID_ENUM;
-        return;
-    }
-
     if (data.isNull()) {
         qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                << ": INVALID_VALUE:Called with null data";
@@ -3751,24 +3855,26 @@ void CanvasContext::bufferSubData(glEnums target, int offset, QJSValue data)
         return;
     }
 
-    int arrayLen = 0;
-    uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
+    if (checkBufferTarget(target)) {
+        int arrayLen = 0;
+        uchar *srcData = getTypedArrayAsRawDataPtr(data, arrayLen);
 
-    if (!srcData)
-        srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
+        if (!srcData)
+            srcData = getArrayBufferAsRawDataPtr(data, arrayLen);
 
-    if (!srcData) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_VALUE:data must be either"
-                                               << " TypedArray or ArrayBuffer";
-        m_error |= CANVAS_INVALID_VALUE;
-        return;
+        if (!srcData) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_VALUE:data must be either"
+                                                   << " TypedArray or ArrayBuffer";
+            m_error |= CANVAS_INVALID_VALUE;
+            return;
+        }
+
+        QByteArray *commandData = new QByteArray(reinterpret_cast<const char *>(srcData), arrayLen);
+        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferSubData,
+                                                          GLint(target), GLint(offset));
+        command.data = commandData;
     }
-
-    QByteArray *commandData = new QByteArray(reinterpret_cast<const char *>(srcData), arrayLen);
-    GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBufferSubData,
-                                                      GLint(target), GLint(offset));
-    command.data = commandData;
 }
 
 /*!
@@ -3785,33 +3891,28 @@ QJSValue CanvasContext::getBufferParameter(glEnums target, glEnums pname)
                                          << ", pname" << glEnumToString(pname)
                                          << ")";
 
-    if (target != ARRAY_BUFFER && target != ELEMENT_ARRAY_BUFFER) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << ":INVALID_ENUM:target must be either ARRAY_BUFFER"
-                                               << " or ELEMENT_ARRAY_BUFFER.";
-        m_error |= CANVAS_INVALID_ENUM;
-        return QJSValue(QJSValue::NullValue);
+    if (checkBufferTarget(target)) {
+        switch (pname) {
+        case BUFFER_SIZE: // Intentional flow through
+        case BUFFER_USAGE: {
+            GLint value(0);
+            GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetBufferParameteriv,
+                                      GLint(target), GLint(pname));
+            syncCommand.returnValue = &value;
+            scheduleSyncCommand(&syncCommand);
+            if (syncCommand.glError)
+                return QJSValue(QJSValue::NullValue);
+            else
+                return QJSValue(value);
+        }
+        default:
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << ":INVALID_ENUM:"
+                                                   << "Pname must be either BUFFER_SIZE or BUFFER_USAGE.";
+            m_error |= CANVAS_INVALID_ENUM;
+            break;
+        }
     }
-
-    switch (pname) {
-    case BUFFER_SIZE: // Intentional flow through
-    case BUFFER_USAGE: {
-        GLint value(0);
-        GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetBufferParameteriv,
-                                  GLint(target), GLint(pname));
-        syncCommand.returnValue = &value;
-        scheduleSyncCommand(&syncCommand);
-        if (syncCommand.glError)
-            return QJSValue(QJSValue::NullValue);
-        else
-            return QJSValue(value);
-    }
-    default:
-        break;
-    }
-
-    qCWarning(canvas3drendering).nospace() << "getBufferParameter():INVALID_ENUM:Unknown pname";
-    m_error |= CANVAS_INVALID_ENUM;
     return QJSValue(QJSValue::NullValue);
 }
 

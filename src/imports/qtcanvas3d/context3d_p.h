@@ -1243,6 +1243,9 @@ private:
     void uniformNxv(int dim, bool typeFloat, const QJSValue &location, const QJSValue &array);
 
     bool isCapabilityValid(glEnums cap);
+    bool checkBlendMode(glEnums mode);
+    bool checkBufferTarget(glEnums target);
+    bool checkBufferUsage(glEnums usage);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
