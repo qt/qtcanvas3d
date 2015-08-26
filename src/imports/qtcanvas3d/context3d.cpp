@@ -443,7 +443,7 @@ void CanvasContext::bindTexture(glEnums target, QJSValue texture3D)
     }
 }
 
-bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName)
+bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName, bool singleLayer)
 {
     switch (target) {
     case TEXTURE_2D:
@@ -468,6 +468,16 @@ bool CanvasContext::isValidTextureBound(glEnums target, const QString &funcName)
     case TEXTURE_CUBE_MAP_NEGATIVE_Y:
     case TEXTURE_CUBE_MAP_POSITIVE_Z:
     case TEXTURE_CUBE_MAP_NEGATIVE_Z:
+        // Some functions only operate on single layer while some on the whole cube texture.
+        // Both types have different set of acceptable TEXTURE_CUBE_MAP targets.
+        if ((target == TEXTURE_CUBE_MAP) == singleLayer) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << funcName
+                                                   << ":INVALID_ENUM:"
+                                                   << "Invalid texture target;"
+                                                   << glEnumToString(target);
+            m_error |= CANVAS_INVALID_ENUM;
+            return false;
+        }
         if (!m_currentTextureCubeMap) {
             qCWarning(canvas3drendering).nospace() << "Context3D::" << funcName
                                                    << ":INVALID_OPERATION:"
@@ -666,7 +676,7 @@ void CanvasContext::generateMipmap(glEnums target)
                                          << "(target:" << glEnumToString(target)
                                          << ")";
 
-    if (!isValidTextureBound(target, __FUNCTION__))
+    if (!isValidTextureBound(target, __FUNCTION__, false))
         return;
 
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenerateMipmap, GLint(target));
@@ -1566,7 +1576,7 @@ void CanvasContext::texParameterf(glEnums target, glEnums pname, float param)
                                          << ", param:" << param
                                          << ")";
 
-    if (!isValidTextureBound(target, __FUNCTION__))
+    if (!isValidTextureBound(target, __FUNCTION__, false))
         return;
 
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glTexParameterf,
@@ -1591,7 +1601,7 @@ void CanvasContext::texParameteri(glEnums target, glEnums pname, int param)
                                          << ", param:" << glEnumToString(glEnums(param))
                                          << ")";
 
-    if (!isValidTextureBound(target, __FUNCTION__))
+    if (!isValidTextureBound(target, __FUNCTION__, false))
         return;
 
     switch (pname) {
@@ -5120,6 +5130,28 @@ QJSValue CanvasContext::getFramebufferAttachmentParameter(glEnums target, glEnum
                                          << ", attachment:" << glEnumToString(attachment)
                                          << ", pname:" << glEnumToString(pname)
                                          << ")";
+    if (target != FRAMEBUFFER) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Target parameter must be FRAMEBUFFER";
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);;
+    }
+
+    switch (attachment) {
+    case COLOR_ATTACHMENT0:
+    case DEPTH_ATTACHMENT:
+    case STENCIL_ATTACHMENT:
+    case DEPTH_STENCIL_ATTACHMENT:
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "attachment parameter is invalid";
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);;
+    }
+
     GLint parameter;
     GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetFramebufferAttachmentParameteriv,
                               GLint(target), GLint(attachment), GLint(pname));
@@ -5173,6 +5205,14 @@ QJSValue CanvasContext::getRenderbufferParameter(glEnums target, glEnums pname)
                                          << ", pname:" << glEnumToString(pname)
                                          << ")";
 
+    if (target != RENDERBUFFER) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ":INVALID_ENUM:"
+                                               << "Target parameter must be RENDERBUFFER";
+        m_error |= CANVAS_INVALID_ENUM;
+        return QJSValue(QJSValue::NullValue);;
+    }
+
     GLint parameter;
     GlSyncCommand syncCommand(CanvasGlCommandQueue::glGetRenderbufferParameteriv,
                               GLint(target), GLint(pname));
@@ -5224,7 +5264,7 @@ QJSValue CanvasContext::getTexParameter(glEnums target, glEnums pname)
                                          << ")";
 
     GLint parameter = 0;
-    if (isValidTextureBound(target, __FUNCTION__)) {
+    if (isValidTextureBound(target, __FUNCTION__, false)) {
         switch (pname) {
         case TEXTURE_MAG_FILTER:
         case TEXTURE_MIN_FILTER:

@@ -1223,7 +1223,7 @@ private:
 
     bool isOfType(const QJSValue &value, const char *classname) const;
 
-    bool isValidTextureBound(glEnums target, const QString &funcName);
+    bool isValidTextureBound(glEnums target, const QString &funcName, bool singleLayer = true);
     bool checkParent(QObject *jsObj, const char *function);
 
     float *transposeMatrix(int dim, int count, float *src);
@@ -1247,6 +1247,7 @@ private:
     bool checkBufferTarget(glEnums target);
     bool checkBufferUsage(glEnums usage);
     bool checkTextureFormats(glEnums internalFormat, glEnums format);
+    bool checkTextureTarget(glEnums target);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
