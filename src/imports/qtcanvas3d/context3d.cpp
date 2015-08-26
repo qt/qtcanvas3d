@@ -918,6 +918,35 @@ void CanvasContext::copyTexSubImage2D(glEnums target, int level,
                                  GLint(width), GLint(height));
 }
 
+bool CanvasContext::checkTextureFormats(glEnums internalFormat, glEnums format)
+{
+    // Internal format and format must match and be valid
+    switch (format) {
+    case ALPHA:
+    case RGB:
+    case RGBA:
+    case LUMINANCE:
+    case LUMINANCE_ALPHA:
+        break;
+    default:
+        qCWarning(canvas3drendering).nospace() << "Context3D::texImage2D()"
+                                               << ":INVALID_ENUM:"
+                                               << "format parameter is invalid";
+        m_error |= CANVAS_INVALID_ENUM;
+        return false;
+    }
+
+    if (format != internalFormat) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::texImage2D()"
+                                               << ":INVALID_OPERATION:"
+                                               << "internalFormat  doesn't match format";
+        m_error |= CANVAS_INVALID_OPERATION;
+        return false;
+    }
+
+    return true;
+}
+
 /*!
  * \qmlmethod void Context3D::texImage2D(glEnums target, int level, glEnums internalformat, int width, int height, int border, glEnums format, glEnums type, TypedArray pixels)
  * Specify a 2D texture image.
@@ -961,7 +990,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
                                          << ", type:" << glEnumToString(type)
                                          << ", pixels:" << pixels.toString()
                                          << ")";
-    if (!isValidTextureBound(target, __FUNCTION__))
+    if (!isValidTextureBound(target, __FUNCTION__) || !checkTextureFormats(internalformat, format))
         return;
 
     int bytesPerPixel = 0;
@@ -1326,7 +1355,7 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
                                          << ", texImage:" << texImage.toString()
                                          << ")";
 
-    if (!isValidTextureBound(target, __FUNCTION__))
+    if (!isValidTextureBound(target, __FUNCTION__) || !checkTextureFormats(internalformat, format))
         return;
 
     CanvasTextureImage *image = getAsTextureImage(texImage);

@@ -1246,6 +1246,7 @@ private:
     bool checkBlendMode(glEnums mode);
     bool checkBufferTarget(glEnums target);
     bool checkBufferUsage(glEnums usage);
+    bool checkTextureFormats(glEnums internalFormat, glEnums format);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
