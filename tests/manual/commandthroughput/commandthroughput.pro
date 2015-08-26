@@ -1,6 +1,6 @@
-!include( ../manualtests.pri ) {
-    error( "Couldn't find the manualtests.pri file!" )
-}
+TEMPLATE = app
+
+QT += qml quick
 
 SOURCES += main.cpp
 
