@@ -39,7 +39,7 @@
     \page qtcanvas3d-index.html
     \brief Provides functionality for 3D drawing inside Qt Quick 2.
 
-    Qt Canvas 3D module provides a way to make OpenGL-like 3D drawing calls
+    Qt Canvas 3D module provides a way to make WebGL-like 3D drawing calls
     from Qt Quick JavaScript.
 
     \section1 Features
@@ -47,6 +47,9 @@
     \list
         \li Uses OpenGL or OpenGL ES 2 for rendering.
         \li Qt Quick 2 support.
+        \li Use Qt Quick items as texture sources.
+        \li Render content via offscreen framebuffer, or directly into Qt Quick scene
+            background or foreground.
     \endlist
 
     \section1 Getting Started
