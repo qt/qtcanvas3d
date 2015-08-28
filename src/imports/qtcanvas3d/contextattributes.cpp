@@ -190,7 +190,8 @@ void CanvasContextAttributes::setAntialias(bool value)
 /*!
  * \qmlproperty bool Canvas3DContextAttributes::premultipliedAlpha
  * Qt Quick always expects premultiplied alpha values when blending Qt Quick items together,
- * so this property is ignored.
+ * so keeping this property \c{true} is recommended. Setting it to \c{false} can cause
+ * a minor performance impact, as an additional render pass is needed.
  * Defaults to \c{true}.
  */
 bool CanvasContextAttributes::premultipliedAlpha() const
