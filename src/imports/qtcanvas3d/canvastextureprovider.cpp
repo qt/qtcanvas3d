@@ -135,7 +135,9 @@ CanvasTextureProvider::~CanvasTextureProvider()
  *
  * \note Qt Quick uses texture coordinates where the origin is at top left corner, which is
  * different from OpenGL default coordinate system, where the origin is at bottom left corner.
- * You need to account for this when specifying the UV mapping for the texture.
+ * You need to account for this when specifying the UV mapping for the texture. Alternatively,
+ * you can specify a suitable \l{ShaderEffectSource::textureMirroring}{textureMirroring}
+ * value for your layer or ShaderEffectSource item.
  */
 QJSValue CanvasTextureProvider::createTextureFromSource(QQuickItem *source)
 {

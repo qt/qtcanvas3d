@@ -1204,28 +1204,14 @@ private:
     uchar *getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength);
     uchar *getArrayBufferAsRawDataPtr(const QJSValue &jsValue, int &byteLength);
 
-    CanvasTexture *getAsTexture3D(QJSValue anyObject);
-    CanvasTextureImage* getAsTextureImage(QJSValue image);
-    CanvasFrameBuffer *getAsFramebuffer(QJSValue anyObject);
-    CanvasRenderBuffer *getAsRenderbuffer3D(QJSValue anyObject) const;
-    CanvasShader *getAsShader3D(QJSValue shader3D, bool deadOrAlive = false) const;
-    CanvasUniformLocation *getAsUniformLocation3D(QJSValue anyObject) const;
-    CanvasProgram *getAsProgram3D(QJSValue anyObject, bool deadOrAlive = false) const;
-    CanvasBuffer *getAsBuffer3D(QJSValue value) const;
-
-    void uniform1fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform2fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform3fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform4fva(CanvasUniformLocation *location, QVariantList array);
-    void uniform1iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform2iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform3iva(CanvasUniformLocation *location, QVariantList array);
-    void uniform4iva(CanvasUniformLocation *location, QVariantList array);
-
-    void vertexAttrib1fva(uint indx, QVariantList values);
-    void vertexAttrib2fva(uint indx, QVariantList values);
-    void vertexAttrib3fva(uint indx, QVariantList values);
-    void vertexAttrib4fva(uint indx, QVariantList values);
+    CanvasTexture *getAsTexture3D(const QJSValue &anyObject);
+    CanvasTextureImage* getAsTextureImage(const QJSValue &image);
+    CanvasFrameBuffer *getAsFramebuffer(const QJSValue &anyObject);
+    CanvasRenderBuffer *getAsRenderbuffer3D(const QJSValue &anyObject) const;
+    CanvasShader *getAsShader3D(const QJSValue &shader3D, bool deadOrAlive = false) const;
+    CanvasUniformLocation *getAsUniformLocation3D(const QJSValue &anyObject) const;
+    CanvasProgram *getAsProgram3D(const QJSValue &anyObject, bool deadOrAlive = false) const;
+    CanvasBuffer *getAsBuffer3D(const QJSValue &value) const;
 
     QString glEnumToString(glEnums value) const;
     float devicePixelRatio();
@@ -1237,7 +1223,7 @@ private:
 
     bool isOfType(const QJSValue &value, const char *classname) const;
 
-    bool isValidTextureBound(glEnums target, const QString &funcName);
+    bool isValidTextureBound(glEnums target, const QString &funcName, bool singleLayer = true);
     bool checkParent(QObject *jsObj, const char *function);
 
     float *transposeMatrix(int dim, int count, float *src);
@@ -1245,6 +1231,23 @@ private:
                           const QJSValue &array);
     void uniformMatrixNfva(int dim, CanvasUniformLocation *uniformLocation, bool transpose,
                            const QVariantList &array);
+    void vertexAttribNfv(int dim, unsigned int indx, const QJSValue &array);
+    void vertexAttribNfva(CanvasGlCommandQueue::GlCommandId id, unsigned int indx,
+                          const QVariantList &values);
+
+    void uniformNf(int dim, const QJSValue &location,
+                   float x, float y = 0.0f, float z = 0.0f, float w = 0.0f);
+    void uniformNi(int dim, const QJSValue &location, int x, int y = 0, int z = 0, int w = 0);
+    void uniformNxva(int dim, bool typeFloat, CanvasGlCommandQueue::GlCommandId id,
+                     CanvasUniformLocation *location, const QVariantList &array);
+    void uniformNxv(int dim, bool typeFloat, const QJSValue &location, const QJSValue &array);
+
+    bool isCapabilityValid(glEnums cap);
+    bool checkBlendMode(glEnums mode);
+    bool checkBufferTarget(glEnums target);
+    bool checkBufferUsage(glEnums usage);
+    bool checkTextureFormats(glEnums internalFormat, glEnums format);
+    bool checkTextureTarget(glEnums target);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,

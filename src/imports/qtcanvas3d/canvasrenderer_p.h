@@ -63,6 +63,8 @@ QT_BEGIN_NAMESPACE
 
 class QOffscreenSurface;
 class QQuickWindow;
+class QOpenGLShaderProgram;
+class QOpenGLShader;
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
@@ -108,7 +110,7 @@ public:
     bool qtContextResolved() const { return (m_glContextQt != 0); }
     bool usingQtContext() const { return m_renderTarget != Canvas::RenderTargetOffscreenBuffer; }
 
-    GLuint resolveMSAAFbo();
+    void resolveMSAAFbo();
     void deleteCommandData();
 
     qint64 previousFrameTime();
@@ -125,6 +127,7 @@ signals:
 
 private:
     bool updateGlError(const char *funcName);
+    void multiplyAlpha();
 
     QSize m_fboSize;
     QSize m_initializedSize;
@@ -142,13 +145,24 @@ private:
     bool m_isOpenGLES2;
     bool m_antialias;
     bool m_preserveDrawingBuffer;
+    bool m_multiplyAlpha;
+
+    QOpenGLShaderProgram *m_alphaMultiplierProgram;
+    QOpenGLShader *m_alphaMultiplierVertexShader;
+    QOpenGLShader *m_alphaMultiplierFragmentShader;
+    GLuint m_alphaMultiplierVertexBuffer;
+    GLuint m_alphaMultiplierUVBuffer;
+    GLint m_alphaMultiplierVertexAttribute;
+    GLint m_alphaMultiplierUVAttribute;
 
     QOpenGLFramebufferObject *m_antialiasFbo;
     QOpenGLFramebufferObject *m_renderFbo;
     QOpenGLFramebufferObject *m_displayFbo;
+    QOpenGLFramebufferObject *m_alphaMultiplierFbo;
     QOpenGLFramebufferObjectFormat m_fboFormat;
     QOpenGLFramebufferObjectFormat m_antialiasFboFormat;
     bool m_recreateFbos;
+    bool m_verifyFboBinds;
 
     QOffscreenSurface *m_offscreenSurface;
 

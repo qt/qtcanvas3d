@@ -90,7 +90,7 @@ function initializeGL(canvas) {
             if (activeInfo1.size !== 1 || activeInfo2.size !== 1)
                 return 3;
 
-            if (activeInfo1.type === Context3D.FLOAT) {
+            if (activeInfo1.type === Context3D.FLOAT_VEC3) {
                 if (activeInfo1.name !== "testAttrib")
                     return 4;
                 if (activeInfo2.name !== "a_position")
@@ -104,15 +104,26 @@ function initializeGL(canvas) {
                     return 8;
                 if (activeInfo2.name !== "testAttrib")
                     return 9;
-                if (activeInfo2.type !== Context3D.FLOAT)
+                if (activeInfo2.type !== Context3D.FLOAT_VEC3)
                     return 10;
+            }
+
+            // Test generic attribute setting. Attribute zero is special in that it cannot have
+            // generic setting, so just skip the test if zero index got assigned to testAttrib.
+            if (testAttribLocation !== 0) {
+                var colorArray = [0, 1, 1];
+                gl.vertexAttrib3fv(testAttribLocation, colorArray);
+
+                var testArray = gl.getVertexAttrib(testAttribLocation, gl.CURRENT_VERTEX_ATTRIB);
+                if (testArray[0] !== 0 || testArray[1] !== 1 || testArray[2] !== 1)
+                    return 11;
             }
         }
     } catch(e) {
         console.log("initializeGL(): FAILURE!");
         console.log(""+e);
         console.log(""+e.message);
-        initStatus = 3;
+        initStatus = 99;
     }
     return initStatus;
 }
@@ -128,12 +139,15 @@ function initShaders()
 {
     vertexShader = compileShader("attribute vec2 a_position; \
                                   attribute float inactiveAttrib; \
-                                  attribute float testAttrib; \
+                                  attribute vec3 testAttrib; \
+                                  varying lowp vec3 color; \
                                   void main() { \
-                                      gl_Position = vec4(a_position, testAttrib, 1.0); \
+                                      gl_Position = vec4(a_position, 1.0, 1.0); \
+                                      color = testAttrib;
                                  }", gl.VERTEX_SHADER);
-    fragmentShader = compileShader("void main() { \
-                                        gl_FragColor = vec4(0.0, 0.0, 1.0, 1.0); \
+    fragmentShader = compileShader("varying lowp vec3 color; \
+                                    void main() { \
+                                        gl_FragColor = vec4(color, 1.0); \
                                    }", gl.FRAGMENT_SHADER);
 
     shaderProgram = gl.createProgram();

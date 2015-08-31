@@ -41,6 +41,8 @@
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOffscreenSurface>
 #include <QtGui/QOpenGLContext>
+#include <QtGui/QOpenGLShader>
+#include <QtGui/QOpenGLShaderProgram>
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
 #include <QtQuick/QQuickWindow>
@@ -66,10 +68,20 @@ CanvasRenderer::CanvasRenderer(QObject *parent):
     m_isOpenGLES2(false),
     m_antialias(false),
     m_preserveDrawingBuffer(false),
+    m_multiplyAlpha(false),
+    m_alphaMultiplierProgram(0),
+    m_alphaMultiplierVertexShader(0),
+    m_alphaMultiplierFragmentShader(0),
+    m_alphaMultiplierVertexBuffer(0),
+    m_alphaMultiplierUVBuffer(0),
+    m_alphaMultiplierVertexAttribute(0),
+    m_alphaMultiplierUVAttribute(0),
     m_antialiasFbo(0),
     m_renderFbo(0),
     m_displayFbo(0),
+    m_alphaMultiplierFbo(0),
     m_recreateFbos(false),
+    m_verifyFboBinds(false),
     m_offscreenSurface(0),
     m_commandQueue(0, maxQueueSize), // command queue size will be reset when context is created.
     m_executeQueue(0),
@@ -140,6 +152,7 @@ void CanvasRenderer::getQtContextAttributes(CanvasContextAttributes &contextAttr
     contextAttributes.setStencil(surfaceFormat.stencilBufferSize() != 0);
     contextAttributes.setAntialias(surfaceFormat.samples() != 0);
     contextAttributes.setPreserveDrawingBuffer(false);
+    contextAttributes.setPremultipliedAlpha(true);
 }
 
 void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
@@ -148,6 +161,7 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
 {
     m_antialias = contextAttributes.antialias();
     m_preserveDrawingBuffer = contextAttributes.preserveDrawingBuffer();
+    m_multiplyAlpha = !contextAttributes.premultipliedAlpha() && contextAttributes.alpha();
 
     m_currentFramebufferId = 0;
     m_forceViewportRect = QRect();
@@ -195,13 +209,83 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
                                     << "EXTENSIONS: " << extensions;
 #endif
 
+#if defined(Q_OS_WIN)
+    // Check driver vendor. We need to do some additional checking with Intel GPUs in Windows,
+    // as our FBOs can get corrupted when some unrelated Qt Quick items are
+    // dynamically constructed or modified. Since this doesn't happen on any other
+    // vendor's GPUs, it is likely caused by a bug in Intel drivers.
+    const GLubyte *vendor = m_glContext->functions()->glGetString(GL_VENDOR);
+    QByteArray vendorArray(reinterpret_cast<const char *>(vendor));
+    if (vendorArray.toLower().contains("intel"))
+        m_verifyFboBinds = true;
+#endif
     m_glContext->functions()->glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
 
     contextVersion = m_glContext->format().majorVersion();
 
     extensions = m_glContext->extensions();
 
-    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer)
+    if (!m_alphaMultiplierProgram) {
+        m_alphaMultiplierProgram = new QOpenGLShaderProgram();
+        m_alphaMultiplierVertexShader = new QOpenGLShader(QOpenGLShader::Vertex);
+        m_alphaMultiplierFragmentShader = new QOpenGLShader(QOpenGLShader::Fragment);
+        m_alphaMultiplierVertexShader->compileSourceCode(
+                    "attribute highp vec2 aPos;"
+                    "attribute highp vec2 aUV;"
+                    "varying highp vec2 vUV;"
+                    "void main(void) {"
+                    "gl_Position = vec4(aPos, 0.0, 1.0);"
+                    "vUV = aUV;"
+                    "}");
+        m_alphaMultiplierFragmentShader->compileSourceCode(
+                    "varying highp vec2 vUV;"
+                    "uniform sampler2D uSampler;"
+                    "void main(void) {"
+                    "lowp vec4 oc = texture2D(uSampler, vUV);"
+                    "gl_FragColor = vec4(oc.rgb * oc.a, oc.a);"
+                    "}");
+        m_alphaMultiplierProgram->addShader(m_alphaMultiplierVertexShader);
+        m_alphaMultiplierProgram->addShader(m_alphaMultiplierFragmentShader);
+
+        if (m_alphaMultiplierProgram->bind()) {
+            m_alphaMultiplierVertexAttribute =
+                    GLint(m_alphaMultiplierProgram->attributeLocation("aPos"));
+            m_alphaMultiplierUVAttribute =
+                    GLint(m_alphaMultiplierProgram->attributeLocation("aUV"));
+            m_alphaMultiplierProgram->setUniformValue("uSampler", 0);
+
+            glGenBuffers(1, &m_alphaMultiplierVertexBuffer);
+            glGenBuffers(1, &m_alphaMultiplierUVBuffer);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_alphaMultiplierVertexBuffer);
+            GLfloat vertexBuffer[] = {-1.0f, 1.0f,
+                                      -1.0f, -1.0f,
+                                      1.0f, 1.0f,
+                                      1.0f, -1.0f};
+            glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), vertexBuffer, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, m_alphaMultiplierUVBuffer);
+            GLfloat uvBuffer[] = {0.0f, 1.0f,
+                                  0.0f, 0.0f,
+                                  1.0f, 1.0f,
+                                  1.0f, 0.0f};
+            glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(GLfloat), uvBuffer, GL_STATIC_DRAW);
+
+            glBindBuffer(GL_ARRAY_BUFFER, 0);
+        } else {
+            delete m_alphaMultiplierProgram;
+            delete m_alphaMultiplierVertexShader;
+            delete m_alphaMultiplierFragmentShader;
+            m_alphaMultiplierProgram = 0;
+            m_alphaMultiplierVertexShader = 0;
+            m_alphaMultiplierFragmentShader = 0;
+            m_multiplyAlpha = false;
+            qCWarning(canvas3dglerrors).nospace() << "CanvasRenderer::" << __FUNCTION__
+                                                  << ":Unable to initialize premultiplier shaders";
+        }
+    }
+
+    if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer || m_multiplyAlpha)
         m_stateStore = new GLStateStore(m_glContext, maxVertexAttribs, m_commandQueue);
 
     updateGlError(__FUNCTION__);
@@ -306,6 +390,19 @@ void CanvasRenderer::shutDown()
     delete m_antialiasFbo;
 
     if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
+        delete m_alphaMultiplierFbo;
+        m_alphaMultiplierFbo = 0;
+        glDeleteBuffers(1, &m_alphaMultiplierUVBuffer);
+        glDeleteBuffers(1, &m_alphaMultiplierVertexBuffer);
+        m_alphaMultiplierUVBuffer = 0;
+        m_alphaMultiplierVertexBuffer = 0;
+        delete m_alphaMultiplierProgram;
+        delete m_alphaMultiplierVertexShader;
+        delete m_alphaMultiplierFragmentShader;
+        m_alphaMultiplierProgram = 0;
+        m_alphaMultiplierVertexShader = 0;
+        m_alphaMultiplierFragmentShader = 0;
+
         m_glContext->doneCurrent();
         delete m_glContext;
     }
@@ -601,6 +698,46 @@ bool CanvasRenderer::updateGlError(const char *funcName)
 }
 
 /*!
+ * Applies alpha value to other color components to produce a permultiplied alpha output
+ * into m_alphaMultiplierFbo.
+ */
+void CanvasRenderer::multiplyAlpha()
+{
+    GLuint texId = m_renderFbo->texture();
+    m_alphaMultiplierFbo->bind();
+    m_alphaMultiplierProgram->bind();
+
+    glActiveTexture(GL_TEXTURE0);
+
+    glEnableVertexAttribArray(m_alphaMultiplierVertexAttribute);
+    glBindBuffer(GL_ARRAY_BUFFER, m_alphaMultiplierVertexBuffer);
+    glVertexAttribPointer(m_alphaMultiplierVertexAttribute, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glEnableVertexAttribArray(m_alphaMultiplierUVAttribute);
+    glBindBuffer(GL_ARRAY_BUFFER, m_alphaMultiplierUVBuffer);
+    glVertexAttribPointer(m_alphaMultiplierUVAttribute, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+
+    glDisable(GL_DEPTH_TEST);
+    glDisable(GL_STENCIL_TEST);
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_BLEND);
+
+    glColorMask(true, true, true, true);
+    glClearColor(0, 0, 0, 0);
+
+    glEnable(GL_CULL_FACE);
+    glCullFace(GL_BACK);
+
+    glViewport(m_forceViewportRect.x(), m_forceViewportRect.y(),
+               m_forceViewportRect.width(), m_forceViewportRect.height());
+    glBindTexture(GL_TEXTURE_2D, texId);
+    glClear(GL_COLOR_BUFFER_BIT);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+    restoreCanvasOpenGLState();
+}
+
+/*!
  * Sets framebuffer size.
  * Called from the GUI thread.
  */
@@ -658,19 +795,12 @@ void CanvasRenderer::createFBOs()
     QOpenGLFramebufferObject *displayFBO = m_displayFbo;
     QOpenGLFramebufferObject *renderFbo = m_renderFbo;
     QOpenGLFramebufferObject *antialiasFbo = m_antialiasFbo;
+    QOpenGLFramebufferObject *alphaFbo = m_alphaMultiplierFbo;
+
 
     // Initialize the scissor box the first time we create FBOs
     if (!m_displayFbo)
         glScissor(0, 0, m_fboSize.width(), m_fboSize.height());
-
-    QOpenGLFramebufferObject *dummyFbo = 0;
-    if (!m_renderFbo) {
-        // Create a dummy FBO to work around a weird GPU driver bug on some platforms that
-        // causes the first FBO created to get corrupted in some cases.
-        dummyFbo = new QOpenGLFramebufferObject(m_fboSize.width(),
-                                                m_fboSize.height(),
-                                                m_fboFormat);
-    }
 
     // Create FBOs
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
@@ -683,6 +813,11 @@ void CanvasRenderer::createFBOs()
     m_renderFbo  = new QOpenGLFramebufferObject(m_fboSize.width(),
                                                 m_fboSize.height(),
                                                 m_fboFormat);
+    if (m_multiplyAlpha) {
+        m_alphaMultiplierFbo  = new QOpenGLFramebufferObject(m_fboSize.width(),
+                                                             m_fboSize.height(),
+                                                             m_fboFormat);
+    }
 
     // Clear the FBOs to prevent random junk appearing on the screen
     // Note: Viewport may not be changed automatically
@@ -717,6 +852,7 @@ void CanvasRenderer::createFBOs()
     delete displayFBO;
     delete renderFbo;
     delete antialiasFbo;
+    delete alphaFbo;
 
     // Store the correct texture binding
     glBindTexture(GL_TEXTURE_2D, texBinding2D);
@@ -724,9 +860,6 @@ void CanvasRenderer::createFBOs()
 
     if (m_currentFramebufferId)
         bindCurrentRenderTarget();
-
-    // Get rid of the dummy FBO, it has served its purpose
-    delete dummyFbo;
 
     if (canvas3dglerrors().isDebugEnabled())
         updateGlError(__FUNCTION__);
@@ -771,6 +904,9 @@ void CanvasRenderer::bindCurrentRenderTarget()
         if (m_renderTarget != Canvas::RenderTargetOffscreenBuffer) {
             QOpenGLFramebufferObject::bindDefault();
         } else {
+            if (m_verifyFboBinds)
+                updateGlError(__FUNCTION__);
+
             // Bind default framebuffer
             if (m_antialiasFbo) {
                 qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
@@ -782,6 +918,21 @@ void CanvasRenderer::bindCurrentRenderTarget()
                                                      << " Binding current FBO to render FBO:"
                                                      << m_renderFbo->handle();
                 m_renderFbo->bind();
+            }
+
+            if (m_verifyFboBinds) {
+                // Silently ignore sudden binding errors with our default framebuffers, as they
+                // are likely result of a GPU driver bug.
+                GLenum err;
+                while ((err = glGetError()) != GL_NO_ERROR)
+                    m_recreateFbos = true;
+                if (m_recreateFbos) {
+                    m_verifyFboBinds = false; // To avoid infinite loops
+                    createFBOs();
+                    m_recreateFbos = false;
+                    bindCurrentRenderTarget();
+                    m_verifyFboBinds = true;
+                }
             }
         }
     } else {
@@ -1693,12 +1844,16 @@ void CanvasRenderer::executeSyncCommand(GlSyncCommand &command)
         break;
     }
     case CanvasGlCommandQueue::glReadPixels: {
-        // Check if the buffer is antialiased. If it is, we need to blit to the final buffer before
-        // reading the value.
-        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && m_antialias
-                && !m_currentFramebufferId) {
-            GLuint readFbo = resolveMSAAFbo();
-            glBindFramebuffer(GL_FRAMEBUFFER, readFbo);
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && !m_currentFramebufferId) {
+            // Check if the buffer is antialiased. If it is, we need to blit to the final buffer before
+            // reading the value.
+            if (m_antialias) {
+                resolveMSAAFbo();
+                m_renderFbo->bind();
+            }
+            // Similarly, we must resolve the alpha multiplications
+            if (m_multiplyAlpha)
+                multiplyAlpha();
         }
 
         GLvoid *buf = reinterpret_cast<GLvoid *>(command.returnValue);
@@ -1786,6 +1941,13 @@ void CanvasRenderer::finalizeTexture()
     if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer && m_antialias)
         resolveMSAAFbo();
 
+    // If the canvas content is not in premultipliedAlpha format, do an additional pass
+    // to premultiply the values, as Qt Quick expects premultiplied format when blending items.
+    if (m_multiplyAlpha) {
+        multiplyAlpha();
+        qSwap(m_renderFbo, m_alphaMultiplierFbo);
+    }
+
     // We need to flush the contents to the FBO before posting the texture,
     // otherwise we might get unexpected results.
     glFlush();
@@ -1834,18 +1996,15 @@ void CanvasRenderer::resetQtOpenGLState()
 
 /*!
  * Blits the antialias fbo into the final render fbo.
- * Returns the final render fbo handle.
  * This method is called from the render thread and in the correct context.
  */
-GLuint CanvasRenderer::resolveMSAAFbo()
+void CanvasRenderer::resolveMSAAFbo()
 {
     qCDebug(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
                                          << " Resolving MSAA from FBO:"
                                          << m_antialiasFbo->handle()
                                          << " to FBO:" << m_renderFbo->handle();
     QOpenGLFramebufferObject::blitFramebuffer(m_renderFbo, m_antialiasFbo);
-
-    return m_renderFbo->handle();
 }
 
 void CanvasRenderer::deleteCommandData()

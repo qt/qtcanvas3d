@@ -387,7 +387,6 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
             m_contextAttribs.setDepth(true);
 
         // Ensure ignored attributes are left to their default state
-        m_contextAttribs.setPremultipliedAlpha(false);
         m_contextAttribs.setPreferLowPowerToHighPerformance(false);
         m_contextAttribs.setFailIfMajorPerformanceCaveat(false);
     }
