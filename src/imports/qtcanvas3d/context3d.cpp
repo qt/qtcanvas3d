@@ -4099,9 +4099,6 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case MAX_TEXTURE_IMAGE_UNITS:
     case MAX_TEXTURE_SIZE:
     case MAX_CUBE_MAP_TEXTURE_SIZE:
-#if defined(QT_OPENGL_ES_2)
-    case MAX_VERTEX_UNIFORM_VECTORS:
-#endif
     {
         scheduleSyncCommand(&syncCommand);
         return QJSValue(int(value));
@@ -4125,14 +4122,15 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         m_error |= CANVAS_INVALID_ENUM;
         return QJSValue(QJSValue::NullValue);
 
-#if !defined(QT_OPENGL_ES_2)
     case MAX_VERTEX_UNIFORM_VECTORS: {
-        syncCommand.i1 = GLint(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+#if !defined(QT_OPENGL_ES_2)
+        if (!m_isOpenGLES2)
+            syncCommand.i1 = GLint(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+#endif
         scheduleSyncCommand(&syncCommand);
         qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__ << "():" << value;
         return QJSValue(value);
     }
-#endif
 
         // GLboolean values
         // Intentional flow through
