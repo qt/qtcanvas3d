@@ -226,5 +226,10 @@
  *
  *      \li The following extra methods exist for contexts: objectNameChanged, nameChanged,
  *      canvasChanged, drawingBufferWidthChanged, and drawingBufferHeightChanged.
+ *
+ *      \li Canvas3D doesn't have toDataUrl() method.
+ *
+ *      \li Canvas3D item can't be given as a parameter to
+ *      \l{Context2D::drawImage()}{Context2D.drawImage()}.
  * \endlist
  */
