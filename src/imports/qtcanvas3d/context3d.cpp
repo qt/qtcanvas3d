@@ -4299,18 +4299,22 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         scheduleSyncCommand(&syncCommand);
         return QJSValue(float(floatValue));
     }
-
         // DomString values
-        // Intentional flow through
-    case RENDERER:
-    case SHADING_LANGUAGE_VERSION:
     case VENDOR:
+        return QJSValue(QStringLiteral("The Qt Company"));
+    case RENDERER:
+        return QJSValue(QStringLiteral("Qt Canvas3D Renderer"));
+    case SHADING_LANGUAGE_VERSION: // Intentional flow through
     case VERSION: {
         syncCommand.id = CanvasGlCommandQueue::glGetString;
         scheduleSyncCommand(&syncCommand);
         const char *text = reinterpret_cast<char *>(syncCommand.returnValue);
-
         QString qtext = QString::fromLatin1(text);
+        if (pname == SHADING_LANGUAGE_VERSION)
+            qtext.prepend(QStringLiteral("WebGL GLSL ES 1.0 - Qt Canvas3D (OpenGL: "));
+        else // VERSION
+            qtext.prepend(QStringLiteral("WebGL 1.0 - Qt Canvas3D (OpenGL: "));
+        qtext.append(QStringLiteral(")"));
         qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__ << "():" << qtext;
         return QJSValue(qtext);
     }
