@@ -3,8 +3,6 @@ DEFINES += QTCANVAS3D_LIBRARY
 TARGETPATH = QtCanvas3D
 IMPORT_VERSION = $$MODULE_VERSION
 
-include($$PWD/designer/designer.pri)
-
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
 SOURCES += arrayutils.cpp \
@@ -66,8 +64,7 @@ OTHER_FILES = qmldir \
     doc/* \
     doc/src/* \
     doc/images/* \
-    doc/snippets/* \
-    designer/default/*
+    doc/snippets/*
 
 CONFIG += no_cxx_module
 
