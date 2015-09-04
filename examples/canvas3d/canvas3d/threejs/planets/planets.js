@@ -243,8 +243,7 @@ function createPlanets() {
         case EARTH:
             mesh = createPlanet(planets[i]["radius"], 0.05, 'images/earthmap1k.jpg',
                                 'images/earthbump1k.jpg', 'images/earthspec1k.jpg');
-            var cloud = createEarthCloud();
-            mesh.add(cloud);
+            createEarthCloud(mesh);
             break;
         case MARS:
             mesh = createPlanet(planets[i]["radius"], 0.05, 'images/marsmap1k.jpg',
@@ -332,18 +331,28 @@ function createPlanet(radius, scale, mapTexture, bumpTexture, specularTexture) {
 
 }
 
-function createEarthCloud() {
+function createEarthCloud(earthMesh) {
 
     var material = new THREE.MeshPhongMaterial({
                                                    map: THREE.ImageUtils.loadTexture('qrc:images/earthcloudmapcolortrans.png'),
-                                                   side: THREE.DoubleSide,
+                                                   side: THREE.BackSide,
                                                    transparent: true,
                                                    opacity: 0.8
                                                });
     var mesh = new THREE.Mesh(commonGeometry, material);
 
-    return mesh;
+    var material2 = new THREE.MeshPhongMaterial({
+                                                   map: THREE.ImageUtils.loadTexture('qrc:images/earthcloudmapcolortrans.png'),
+                                                   side: THREE.FrontSide,
+                                                   transparent: true,
+                                                   opacity: 0.8
+                                               });
+    var mesh2 = new THREE.Mesh(commonGeometry, material2);
 
+    mesh.scale.set(1.02, 1.02, 1.02);
+    earthMesh.add(mesh);
+    mesh2.scale.set(1.02, 1.02, 1.02);
+    earthMesh.add(mesh2);
 }
 
 function createRing(radius, width, height, texture) {
