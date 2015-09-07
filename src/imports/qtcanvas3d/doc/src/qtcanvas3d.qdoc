@@ -35,7 +35,7 @@
 ****************************************************************************/
 
 /*!
-    \qmlmodule QtCanvas3D 1.0
+    \qmlmodule QtCanvas3D 1.1
     \title Qt Canvas 3D QML Types
     \ingroup qmlmodules
 
