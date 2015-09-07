@@ -128,14 +128,14 @@ function initializeGL(canvas, eventSource, mainView) {
 function loadPlanetData() {
 
     // Planet Data
-    // radius - planet radius
+    // radius - planet radius in millions of meters
     // tilt - planet axis angle
-    // N1/2 - longitude of the ascending node
-    // i1/2 - inclination to the ecliptic (plane of the Earth's orbit)
-    // w1/2 - argument of perihelion
-    // a1/2 - semi-major axis, or mean distance from Sun
-    // e1/2 - eccentricity (0=circle, 0-1=ellipse, 1=parabola)
-    // M1/2 - mean anomaly (0 at perihelion; increases uniformly with time)
+    // N1 N2 - longitude of the ascending node
+    // i1 i2 - inclination to the ecliptic (plane of the Earth's orbit)
+    // w1 w2 - argument of perihelion
+    // a1 a2 - semi-major axis, or mean distance from Sun
+    // e1 e2 - eccentricity (0=circle, 0-1=ellipse, 1=parabola)
+    // M1 M2 - mean anomaly (0 at perihelion; increases uniformly with time)
     // period - sidereal rotation period
     // centerOfOrbit - the planet in the center of the orbit
     // (orbital elements based on http://www.stjarnhimlen.se/comp/ppcomp.html)
@@ -308,12 +308,12 @@ function createSun(radius) {
     return mesh;
 }
 
-function createPlanet(radius, scale, mapTexture, bumpTexture, specularTexture) {
+function createPlanet(radius, bumpMapScale, mapTexture, bumpTexture, specularTexture) {
 
     var material = new THREE.MeshPhongMaterial({
                                                    map: THREE.ImageUtils.loadTexture(mapTexture),
                                                    bumpMap: THREE.ImageUtils.loadTexture(bumpTexture),
-                                                   bumpScale: scale
+                                                   bumpScale: bumpMapScale
                                                });
 
     if (specularTexture) {
@@ -431,11 +431,11 @@ function setScale(value, focused) {
 
 }
 
-function setOldPlanet() {
+function prepareFocusedPlanetAnimation() {
 
     oldCameraPosition = camera.position.clone();
 
-    var planet = 0;
+    var planet = SUN;
     if (qmlView.oldPlanet !== SOLAR_SYSTEM)
         planet = qmlView.oldPlanet;
     oldFocusedPlanetPosition = objects[planet].position.clone();
@@ -452,6 +452,9 @@ function setOldPlanet() {
         setScale(actualScale);
     }
 
+    calculateLookAtOffset();
+    calculateCameraOffset();
+
 }
 
 function setCameraDistance(distance) {
@@ -460,7 +463,7 @@ function setCameraDistance(distance) {
 
 }
 
-function setLookAtOffset() {
+function calculateLookAtOffset() {
 
     var offset = oldFocusedPlanetPosition.clone();
 
@@ -477,7 +480,7 @@ function setLookAtOffset() {
 
 }
 
-function setCameraOffset() {
+function calculateCameraOffset() {
 
     var offset = oldCameraPosition.clone();
 
