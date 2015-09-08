@@ -1,7 +1,7 @@
 QT += openglextensions qml quick qml-private core-private
 DEFINES += QTCANVAS3D_LIBRARY
 TARGETPATH = QtCanvas3D
-IMPORT_VERSION = $$MODULE_VERSION
+IMPORT_VERSION = 1.1
 
 QMAKE_DOCS = $$PWD/doc/qtcanvas3d.qdocconf
 
