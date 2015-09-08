@@ -39,6 +39,7 @@
 
 #include <QtCore/QMap>
 #include <QtCore/QMutexLocker>
+#include <QtGui/QOpenGLFunctions>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -70,8 +71,8 @@ CanvasGlCommandQueue::~CanvasGlCommandQueue()
 {
     deleteUntransferedCommandData();
 
-    // Note: Shader and program maps are cleared by canvas as correct context is required, so they
-    // are not cleared here.
+    // Note: Resource map clears are triggered by renderer shutdown as correct context is required,
+    // so they are not cleared here.
 }
 
 /*!
@@ -361,6 +362,81 @@ QOpenGLShaderProgram *CanvasGlCommandQueue::getProgram(GLint id)
     QMutexLocker locker(&m_resourceMutex);
 
     return m_programMap.value(id);
+}
+
+/*!
+ * Cleans up resource maps.
+ */
+void CanvasGlCommandQueue::clearResourceMaps()
+{
+    QMutexLocker locker(&m_resourceMutex);
+
+    if ((m_resourceIdMap.size() || m_shaderMap.size() || m_programMap.size())) {
+        if (QOpenGLContext::currentContext()) {
+            QOpenGLFunctions *funcs = QOpenGLContext::currentContext()->functions();
+
+            QMap<GLint, GlResource>::const_iterator i = m_resourceIdMap.constBegin();
+            while (i != m_resourceIdMap.constEnd()) {
+                const GLuint glId = i.value().glId;
+                const GlCommandId commandId = i.value().commandId;
+                switch (commandId) {
+                case internalNoCommand: {
+                    // Not allocated yet, no need to do anything
+                    break;
+                }
+                case glGenBuffers: {
+                    funcs->glDeleteBuffers(1, &glId);
+                    break;
+                }
+                case glGenFramebuffers: {
+                    funcs->glDeleteFramebuffers(1, &glId);
+                    break;
+                }
+                case glGenRenderbuffers: {
+                    funcs->glDeleteRenderbuffers(1, &glId);
+                    break;
+                }
+                case glGenTextures: {
+                    funcs->glDeleteTextures(1, &glId);
+                    break;
+                }
+                case glGetUniformLocation: {
+                    // Nothing to do, uniforms do not actually consume resources
+                    break;
+                }
+                case internalClearQuickItemAsTexture: {
+                    // Nothing to do, scenegraph will handle texture clearing
+                    break;
+                }
+                default:
+                    qWarning() << __FUNCTION__ << "Invalid command, cannot cleanup:"
+                               << commandId << "Resource:" << glId;
+                    break;
+                }
+                i++;
+            }
+        }
+
+        // We need to clean up shaders and programs even if there is no context.
+        // It is safe to delete them out of context.
+        QMap<GLint, QOpenGLShader *>::const_iterator si = m_shaderMap.constBegin();
+        while (si != m_shaderMap.constEnd()) {
+            QOpenGLShader *shader = si.value();
+            delete shader;
+            si++;
+        }
+
+        QMap<GLint, QOpenGLShaderProgram *>::const_iterator pi = m_programMap.constBegin();
+        while (pi != m_programMap.constEnd()) {
+            QOpenGLShaderProgram *program = pi.value();
+            delete program;
+            pi++;
+        }
+
+        m_resourceIdMap.clear();
+        m_shaderMap.clear();
+        m_programMap.clear();
+    }
 }
 
 GLuint CanvasGlCommandQueue::takeSingleIdParam(const GlCommand &command)

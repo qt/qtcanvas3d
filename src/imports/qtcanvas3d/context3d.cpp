@@ -2887,8 +2887,6 @@ CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(const QJSValue &any
     CanvasUniformLocation *uniformLocation =
             static_cast<CanvasUniformLocation *>(anyObject.toQObject());
 
-    // TODO: Should uniform locations be killed and checked for "isAlive" when program is
-    // deleted?
     return uniformLocation;
 }
 
@@ -4612,7 +4610,6 @@ void CanvasContext::depthMask(bool flag)
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glDepthMask, GLint(flag));
 }
 
-// TODO: Why are all the enums for this commented out?
 /*!
  * \qmlmethod void Context3D::depthFunc(glEnums func)
  * Sets the depth function to \a func. Must be one of \c{Context3D.NEVER}, \c{Context3D.LESS},
