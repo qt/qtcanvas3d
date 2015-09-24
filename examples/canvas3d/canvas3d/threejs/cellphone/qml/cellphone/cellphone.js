@@ -185,11 +185,11 @@ function paintGL(canvas) {
         caseMesh.rotation.z = cameraRad + degToRad(canvas.zRotAnim);
         frontMesh.rotation.set(caseMesh.rotation.x, caseMesh.rotation.y, caseMesh.rotation.z);
         iconMesh.rotation.set(caseMesh.rotation.x, caseMesh.rotation.y, caseMesh.rotation.z);
-        camera.lookAt(zeroVector);
         camera.position.x = canvas.distance * Math.sin(cameraRad);
         camera.position.z = canvas.distance * Math.cos(cameraRad);
         cameraLight.position.x = (canvas.distance + 2) * Math.sin(lightRad);
         cameraLight.position.z = (canvas.distance + 2) * Math.cos(lightRad);
+        camera.lookAt(zeroVector);
     }
 
     renderer.render( scene, camera );
