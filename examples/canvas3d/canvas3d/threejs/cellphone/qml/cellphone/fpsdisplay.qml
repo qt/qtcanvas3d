@@ -36,38 +36,54 @@
 
 import QtQuick 2.0
 
-Rectangle {
+Item {
+    id: fpsDisplayControl
+    property bool hidden: true
+    property real fps: 0.0
 
-    id: planetButton
-    property alias text: planetText.text
-    property alias source: planetImage.source
-    property alias focusPlanet: planetImage.focusPlanet
-    property Item planetSelector: parent.parent
-    property int buttonSize: 70
-    property int fontSize: 16
+    onFpsChanged: fpsDisplay.updateFps();
 
-    width: buttonSize; height: buttonSize
-    color: "transparent"
-
-    Image {
-        id: planetImage
+    Rectangle {
         anchors.fill: parent
-        property int focusPlanet
+        id: fpsDisplay
+        color: "black"
+        visible: !fpsDisplayControl.hidden
 
-        MouseArea {
+        property real maxFps: 60.0
+        property color maxFpsColor: "#00FF00"
+        property color minFpsColor: "#FF0000"
+
+        function updateFps() {
+            var scale = (fps > maxFps)?1.0:(fps/maxFps);
+            var r = (1 - scale) * minFpsColor.r + scale * maxFpsColor.r;
+            var g = (1 - scale) * minFpsColor.g + scale * maxFpsColor.g;
+            var b = (1 - scale) * minFpsColor.b + scale * maxFpsColor.b;
+            var a = (1 - scale) * minFpsColor.a + scale * maxFpsColor.a;
+            fpsCauge.height = scale * fpsDisplay.height;
+            fpsCauge.color = Qt.rgba(r,g,b,a);
+        }
+
+        Rectangle {
+            id: fpsCauge
+            width: parent.width
+            anchors.bottom: parent.bottom
+        }
+
+        Text {
+            id: fpsText
+            text: ""+(fps | 0)
+            font.family: "Helvetica"
+            font.pixelSize: 16
+            font.weight: Font.Light
+            color: "white"
             anchors.fill: parent
-            hoverEnabled: true
-            onClicked: { planetSelector.focusedPlanet = focusPlanet; }
+            verticalAlignment: Text.AlignVCenter
+            horizontalAlignment: Text.AlignHCenter
         }
     }
-
-    Text {
-        id: planetText
-        anchors.centerIn: parent
-        font.family: "Helvetica"
-        font.pixelSize: fontSize
-        font.weight: Font.Light
-        color: "white"
+    MouseArea {
+        anchors.fill: parent
+        onClicked: fpsDisplayControl.hidden = !fpsDisplayControl.hidden;
     }
-
 }
+

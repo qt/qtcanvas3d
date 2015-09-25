@@ -2887,8 +2887,6 @@ CanvasUniformLocation *CanvasContext::getAsUniformLocation3D(const QJSValue &any
     CanvasUniformLocation *uniformLocation =
             static_cast<CanvasUniformLocation *>(anyObject.toQObject());
 
-    // TODO: Should uniform locations be killed and checked for "isAlive" when program is
-    // deleted?
     return uniformLocation;
 }
 
@@ -4099,9 +4097,6 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case MAX_TEXTURE_IMAGE_UNITS:
     case MAX_TEXTURE_SIZE:
     case MAX_CUBE_MAP_TEXTURE_SIZE:
-#if defined(QT_OPENGL_ES_2)
-    case MAX_VERTEX_UNIFORM_VECTORS:
-#endif
     {
         scheduleSyncCommand(&syncCommand);
         return QJSValue(int(value));
@@ -4125,14 +4120,15 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         m_error |= CANVAS_INVALID_ENUM;
         return QJSValue(QJSValue::NullValue);
 
-#if !defined(QT_OPENGL_ES_2)
     case MAX_VERTEX_UNIFORM_VECTORS: {
-        syncCommand.i1 = GLint(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+#if !defined(QT_OPENGL_ES_2)
+        if (!m_isOpenGLES2)
+            syncCommand.i1 = GLint(GL_MAX_VERTEX_UNIFORM_COMPONENTS);
+#endif
         scheduleSyncCommand(&syncCommand);
         qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__ << "():" << value;
         return QJSValue(value);
     }
-#endif
 
         // GLboolean values
         // Intentional flow through
@@ -4195,9 +4191,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case DEPTH_RANGE: {
         QV4::Scope scope(m_v4engine);
         QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(float) * 2));
+                                             m_v4engine->newArrayBuffer(sizeof(float) * 2));
 
         syncCommand.id = CanvasGlCommandQueue::glGetFloatv;
         syncCommand.returnValue = buffer->data();
@@ -4217,9 +4211,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case COLOR_CLEAR_VALUE: {
         QV4::Scope scope(m_v4engine);
         QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(float) * 4));
+                                             m_v4engine->newArrayBuffer(sizeof(float) * 4));
 
         syncCommand.id = CanvasGlCommandQueue::glGetFloatv;
         syncCommand.returnValue = buffer->data();
@@ -4237,9 +4229,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case MAX_VIEWPORT_DIMS: {
         QV4::Scope scope(m_v4engine);
         QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(int) * 2));
+                                             m_v4engine->newArrayBuffer(sizeof(int) * 2));
 
         syncCommand.returnValue = buffer->data();
         scheduleSyncCommand(&syncCommand);
@@ -4257,9 +4247,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case VIEWPORT: {
         QV4::Scope scope(m_v4engine);
         QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                             m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                 m_v4engine,
-                                                 sizeof(int) * 4));
+                                             m_v4engine->newArrayBuffer(sizeof(int) * 4));
 
         syncCommand.returnValue = buffer->data();
         scheduleSyncCommand(&syncCommand);
@@ -4301,18 +4289,22 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         scheduleSyncCommand(&syncCommand);
         return QJSValue(float(floatValue));
     }
-
         // DomString values
-        // Intentional flow through
-    case RENDERER:
-    case SHADING_LANGUAGE_VERSION:
     case VENDOR:
+        return QJSValue(QStringLiteral("The Qt Company"));
+    case RENDERER:
+        return QJSValue(QStringLiteral("Qt Canvas3D Renderer"));
+    case SHADING_LANGUAGE_VERSION: // Intentional flow through
     case VERSION: {
         syncCommand.id = CanvasGlCommandQueue::glGetString;
         scheduleSyncCommand(&syncCommand);
         const char *text = reinterpret_cast<char *>(syncCommand.returnValue);
-
         QString qtext = QString::fromLatin1(text);
+        if (pname == SHADING_LANGUAGE_VERSION)
+            qtext.prepend(QStringLiteral("WebGL GLSL ES 1.0 - Qt Canvas3D (OpenGL: "));
+        else // VERSION
+            qtext.prepend(QStringLiteral("WebGL 1.0 - Qt Canvas3D (OpenGL: "));
+        qtext.append(QStringLiteral(")"));
         qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__ << "():" << qtext;
         return QJSValue(qtext);
     }
@@ -4334,9 +4326,7 @@ QJSValue CanvasContext::getParameter(glEnums pname)
         if (value > 0) {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                     m_v4engine,
-                                                     sizeof(int) * value));
+                                                 m_v4engine->newArrayBuffer(sizeof(int) * value));
 
             syncCommand.i1 = GLint(pname);
             syncCommand.returnValue = buffer->data();
@@ -4610,7 +4600,6 @@ void CanvasContext::depthMask(bool flag)
     m_commandQueue->queueCommand(CanvasGlCommandQueue::glDepthMask, GLint(flag));
 }
 
-// TODO: Why are all the enums for this commented out?
 /*!
  * \qmlmethod void Context3D::depthFunc(glEnums func)
  * Sets the depth function to \a func. Must be one of \c{Context3D.NEVER}, \c{Context3D.LESS},
@@ -5419,9 +5408,7 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
         case CURRENT_VERTEX_ATTRIB: {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                     m_v4engine,
-                                                     sizeof(float) * 4));
+                                                 m_v4engine->newArrayBuffer(sizeof(float) * 4));
 
             syncCommand.id = CanvasGlCommandQueue::glGetVertexAttribfv;
             syncCommand.returnValue = buffer->data();
@@ -5620,9 +5607,7 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         case INT_VEC4: {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                     m_v4engine,
-                                                     sizeof(int) * numValues));
+                                                 m_v4engine->newArrayBuffer(sizeof(int) * numValues));
 
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
@@ -5646,9 +5631,7 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         case FLOAT_VEC4: {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                     m_v4engine,
-                                                     sizeof(float) * numValues));
+                                                 m_v4engine->newArrayBuffer(sizeof(float) * numValues));
 
             syncCommand.id = CanvasGlCommandQueue::glGetUniformfv;
             syncCommand.returnValue = buffer->data();
@@ -5696,9 +5679,7 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
             numValues = numValues * numValues;
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->memoryManager->alloc<QV4::ArrayBuffer>(
-                                                     m_v4engine,
-                                                     sizeof(float) * numValues));
+                                                 m_v4engine->newArrayBuffer(sizeof(float) * numValues));
 
             syncCommand.id = CanvasGlCommandQueue::glGetUniformfv;
             syncCommand.returnValue = buffer->data();

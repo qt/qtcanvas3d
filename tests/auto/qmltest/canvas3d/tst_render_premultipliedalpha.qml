@@ -59,7 +59,7 @@ Item {
     Rectangle {
         id: canvasRect
         anchors.fill: parent
-        color: "#6688AA"
+        color: "#FF00FF"
 
         Canvas3D {
             id: canvas
@@ -123,7 +123,7 @@ Item {
 
             // Grabbing an image and checking final colors should show the background colors
             var image = grabImage(canvasRect);
-            compare(image.pixel(xpos, ypos), Qt.rgba(0x66, 0x88, 0xaa, 0xff));
+            verify(image.pixel(xpos, ypos) === Qt.rgba(1, 0, 1, 1));
         }
     }
 }

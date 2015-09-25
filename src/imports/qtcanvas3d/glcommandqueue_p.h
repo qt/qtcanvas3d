@@ -263,9 +263,7 @@ public:
     QOpenGLShader *getShader(GLint id);
     QOpenGLShaderProgram *getProgram(GLint id);
 
-    QMap<GLint, GlResource> resourceMap() { return m_resourceIdMap; }
-    QMap<GLint, QOpenGLShader *> shaderMap() { return m_shaderMap; }
-    QMap<GLint, QOpenGLShaderProgram *> programMap() { return m_programMap; }
+    void clearResourceMaps();
 
     GLuint takeSingleIdParam(const GlCommand &command);
     void handleGenerateCommand(const GlCommand &command, GLuint glId);

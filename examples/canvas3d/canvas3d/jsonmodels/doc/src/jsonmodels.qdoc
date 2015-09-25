@@ -45,12 +45,6 @@
     one JSON model and more than one texture. It also implements simple
     mouse input handling to allow rotating the scene and zooming into it.
 
-    The example optionally incorporates some Qt Quick Enterprise Controls,
-    which you can switch on by commenting out the \c{#define NO_ENTERPRISE}
-    line in \l{canvas3d/jsonmodels/main.cpp}{main.cpp}. The controls are used to toggle
-    some optional animations and draw options, as well as displaying camera
-    rotations and distance.
-
     \image jsonmodels-example.png
 
     \section1 JSON Model Loader

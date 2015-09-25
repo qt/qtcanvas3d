@@ -34,40 +34,16 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
 
-Rectangle {
+int main(int argc, char *argv[])
+{
+    QGuiApplication app(argc, argv);
 
-    id: planetButton
-    property alias text: planetText.text
-    property alias source: planetImage.source
-    property alias focusPlanet: planetImage.focusPlanet
-    property Item planetSelector: parent.parent
-    property int buttonSize: 70
-    property int fontSize: 16
+    QQmlApplicationEngine engine;
 
-    width: buttonSize; height: buttonSize
-    color: "transparent"
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
 
-    Image {
-        id: planetImage
-        anchors.fill: parent
-        property int focusPlanet
-
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: { planetSelector.focusedPlanet = focusPlanet; }
-        }
-    }
-
-    Text {
-        id: planetText
-        anchors.centerIn: parent
-        font.family: "Helvetica"
-        font.pixelSize: fontSize
-        font.weight: Font.Light
-        color: "white"
-    }
-
+    return app.exec();
 }

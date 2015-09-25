@@ -37,8 +37,7 @@
 import QtQuick 2.2
 import QtQuick.Window 2.1
 import QtCanvas3D 1.0
-import QtQuick.Enterprise.Controls 1.1
-import QtQuick.Enterprise.Controls.Styles 1.1
+import QtQuick.Controls 1.1
 import QtQuick.Layouts 1.1
 
 import "jsonmodels.js" as GLCode
@@ -47,11 +46,46 @@ Window {
     visible: true
     width: 1200
     height: 900
+    color: "#e6e6e6"
 
     //! [3]
     property int previousY: 0
     property int previousX: 0
     //! [3]
+
+    Rectangle {
+        id: valuePanel
+        width: 150
+        height: 100
+        anchors.left: parent.left
+        anchors.top: parent.top
+        opacity: 0.3
+        border.color: "black"
+        border.width: 2
+        radius: 5
+        z: 1
+    }
+    ColumnLayout {
+        width: valuePanel.width
+        height: valuePanel.height
+        x: 10
+        z: 2
+        Label {
+            font.pixelSize: 20
+            text: "x angle: " + angle
+            readonly property int angle: canvas3d.xRot
+        }
+        Label {
+            font.pixelSize: 20
+            text: "y angle: " + angle
+            readonly property int angle: canvas3d.yRot
+        }
+        Label {
+            font.pixelSize: 20
+            text: "distance: " + distance
+            readonly property int distance: canvas3d.distance * 10
+        }
+    }
 
     ColumnLayout {
         anchors.fill: parent
@@ -60,7 +94,6 @@ Window {
             Layout.fillWidth: true
             Canvas3D {
                 id: canvas3d
-
                 Layout.fillHeight: true
                 Layout.fillWidth: true
                 //! [1]
@@ -133,106 +166,34 @@ Window {
                     //! [4]
                 }
             }
-
-            ColumnLayout {
-                CircularGauge {
-                    Layout.fillHeight: true
-                    minimumValue: -180
-                    maximumValue: 180
-                    value: canvas3d.xRot
-                    style: CircularGaugeStyle {
-                        labelStepSize: 30
-                        tickmarkStepSize: 15
-                    }
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#00000000"
-                        z: parent.z - 1
-                        Text {
-                            font.pixelSize: 20
-                            text: "x angle: " + angle
-                            color: "darkgray"
-                            horizontalAlignment: Text.AlignHCenter
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: parent.verticalCenter
-                            anchors.topMargin: parent.height / 8
-                            readonly property int angle: canvas3d.xRot
-                        }
-                    }
-                }
-                CircularGauge {
-                    Layout.fillHeight: true
-                    minimumValue: -90
-                    maximumValue: 90
-                    value: canvas3d.yRot
-                    style: CircularGaugeStyle {
-                        labelStepSize: 30
-                        tickmarkStepSize: 15
-                    }
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#00000000"
-                        z: parent.z - 1
-                        Text {
-                            font.pixelSize: 20
-                            text: "y angle: " + angle
-                            color: "darkgray"
-                            horizontalAlignment: Text.AlignHCenter
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: parent.verticalCenter
-                            anchors.topMargin: parent.height / 8
-                            readonly property int angle: canvas3d.yRot
-                        }
-                    }
-                }
-                CircularGauge {
-                    Layout.fillHeight: true
-                    minimumValue: 0
-                    maximumValue: 100
-                    value: canvas3d.distance * 10
-                    style: CircularGaugeStyle {
-                        labelStepSize: 20
-                        tickmarkStepSize: 10
-                    }
-                    Rectangle {
-                        anchors.fill: parent
-                        color: "#00000000"
-                        z: parent.z - 1
-                        Text {
-                            font.pixelSize: 20
-                            text: "distance: " + distance
-                            color: "darkgray"
-                            horizontalAlignment: Text.AlignHCenter
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            anchors.top: parent.verticalCenter
-                            anchors.topMargin: parent.height / 8
-                            readonly property int distance: canvas3d.distance * 10
-                        }
-                    }
-                }
-            }
         }
         RowLayout {
             Layout.fillWidth: true
-            ToggleButton {
+            Button {
                 id: lightButton
+                Layout.fillWidth: true
                 text: "Animate Light"
+                checkable: true
                 onCheckedChanged: canvas3d.animatingLight = checked
             }
-            ToggleButton {
+            Button {
                 id: cameraButton
+                Layout.fillWidth: true
                 text: "Animate Camera"
+                checkable: true
                 onCheckedChanged: canvas3d.animatingCamera = checked
             }
-            ToggleButton {
+            Button {
                 id: drawButton
+                Layout.fillWidth: true
                 text: "Wireframe"
+                checkable: true
                 onCheckedChanged: canvas3d.drawWireframe = checked
             }
-            DelayButton {
+            Button {
+                Layout.fillWidth: true
                 text: "Reset"
-                delay: 1000
-                onCheckedChanged: {
+                onClicked: {
                     canvas3d.xRot = 0.0
                     canvas3d.yRot = 45.0
                     canvas3d.distance = 2.0
@@ -243,13 +204,12 @@ Window {
                     lightButton.checked = false
                     cameraButton.checked = false
                     drawButton.checked = false
-                    checked = false
                 }
             }
-            DelayButton {
+            Button {
+                Layout.fillWidth: true
                 text: "Quit"
-                delay: 1000
-                onCheckedChanged: Qt.quit()
+                onClicked: Qt.quit()
             }
         }
     }

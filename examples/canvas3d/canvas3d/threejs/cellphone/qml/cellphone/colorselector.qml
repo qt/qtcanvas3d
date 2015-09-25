@@ -34,40 +34,66 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.0
+import QtQuick 2.6
 
-Rectangle {
+Item {
+    id: colorSelector
+    property color selectedColor
 
-    id: planetButton
-    property alias text: planetText.text
-    property alias source: planetImage.source
-    property alias focusPlanet: planetImage.focusPlanet
-    property Item planetSelector: parent.parent
-    property int buttonSize: 70
-    property int fontSize: 16
+    height: ((width - 4) * colorSelectorModel.count) + 4
 
-    width: buttonSize; height: buttonSize
-    color: "transparent"
-
-    Image {
-        id: planetImage
+    Rectangle {
         anchors.fill: parent
-        property int focusPlanet
+        color: "black"
+        radius: width / 10
+        opacity: 0.3
+    }
 
-        MouseArea {
-            anchors.fill: parent
-            hoverEnabled: true
-            onClicked: { planetSelector.focusedPlanet = focusPlanet; }
+    ListModel {
+        id: colorSelectorModel
+        ListElement { caseColor: "#eeeeee" }
+        ListElement { caseColor: "#111111" }
+        ListElement { caseColor: "#ffe400" }
+        ListElement { caseColor: "#469835" }
+        ListElement { caseColor: "#fa0000" }
+    }
+
+    GridView {
+        id: colorSelectorGrid
+        anchors.fill: colorSelector
+        anchors.margins: 4
+        model: colorSelectorModel
+        interactive: false
+        cellWidth: width
+        cellHeight: cellWidth + 4
+        delegate: Component {
+            Rectangle {
+                id: colorDelegate
+                width: colorSelectorGrid.cellWidth
+                height: colorSelectorGrid.cellWidth
+                color: caseColor
+                border.color: "lightgray"
+                border.width: 2
+                radius: width / 10
+                MouseArea {
+                    anchors.fill: parent
+                    onClicked: {
+                        selectedColor = parent.color
+                        colorDelegateAnimation.start()
+                    }
+                }
+                NumberAnimation {
+                    id: colorDelegateAnimation
+                    running: false
+                    loops: 1
+                    target: colorDelegate
+                    property: "opacity"
+                    from: 0.1
+                    to: 1.0
+                    duration: 500
+                }
+            }
         }
     }
-
-    Text {
-        id: planetText
-        anchors.centerIn: parent
-        font.family: "Helvetica"
-        font.pixelSize: fontSize
-        font.weight: Font.Light
-        color: "white"
-    }
-
 }
+

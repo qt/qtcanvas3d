@@ -1,5 +1,6 @@
 TEMPLATE = subdirs
 SUBDIRS += oneqt \
-           planets
+           planets \
+           cellphone
 
 EXAMPLE_FILES = controls
