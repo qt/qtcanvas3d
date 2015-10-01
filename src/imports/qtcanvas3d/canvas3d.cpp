@@ -160,7 +160,6 @@ void Canvas::setWidth(int width)
                                              << maxWidth;
         newWidth = maxWidth;
     }
-
     QQuickItem::setWidth(qreal(newWidth));
 }
 
@@ -454,7 +453,6 @@ void Canvas::setPixelSize(QSize pixelSize)
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                          << "(pixelSize:" << pixelSize
                                          << ")";
-
     if (pixelSize.width() > m_maxSize.width()) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << "():"
@@ -470,6 +468,11 @@ void Canvas::setPixelSize(QSize pixelSize)
                                              << m_maxSize.height();
         pixelSize.setHeight(m_maxSize.height());
     }
+
+    if (pixelSize.width() <= 0)
+        pixelSize.setWidth(1);
+    if (pixelSize.height() <= 0)
+        pixelSize.setHeight(1);
 
     if (m_fboSize == pixelSize)
         return;
@@ -583,6 +586,10 @@ bool Canvas::firstSync()
     if (!m_renderer->qtContextResolved()) {
         m_firstSync = false;
         QSize initializedSize = boundingRect().size().toSize();
+        if (initializedSize.width() <= 0)
+            initializedSize.setWidth(1);
+        if (initializedSize.height() <= 0)
+            initializedSize.setHeight(1);
         m_renderer->resolveQtContext(window(), initializedSize, m_renderTarget);
         m_isOpenGLES2 = m_renderer->isOpenGLES2();
 
