@@ -151,7 +151,8 @@ void Canvas::shutDown()
     if (!m_glContext)
         return;
 
-    disconnect(m_contextWindow, 0, this, 0);
+    if (m_contextWindow)
+        disconnect(m_contextWindow, 0, this, 0);
     disconnect(this, 0, this, 0);
 
     m_glContext->makeCurrent(m_offscreenSurface);
