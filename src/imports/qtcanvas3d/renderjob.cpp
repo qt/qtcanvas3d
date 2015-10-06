@@ -49,14 +49,26 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  */
 CanvasRenderJob::CanvasRenderJob(GlSyncCommand *command,
                                  QMutex *mutex, QWaitCondition *condition,
-                                 CanvasRenderer *renderer)
-    : m_command(command), m_mutex(mutex), m_condition(condition), m_renderer(renderer)
+                                 CanvasRenderer *renderer, bool *deleted)
+    : m_command(command),
+      m_mutex(mutex),
+      m_condition(condition),
+      m_renderer(renderer),
+      m_deleted(deleted),
+      m_creationThread(QThread::currentThread())
 {
 }
 
 CanvasRenderJob::~CanvasRenderJob()
 {
-    notifyGuiThread();
+    if (m_creationThread != QThread::currentThread()) {
+        notifyGuiThread();
+    } else {
+        // If the job is deleted in the thread it was created in, we can assume the scheduling
+        // failed and notify the context that we got deleted via the m_deleted flag,
+        // so it won't start waiting for job to complete.
+        *m_deleted = true;
+    }
 }
 
 void CanvasRenderJob::run()

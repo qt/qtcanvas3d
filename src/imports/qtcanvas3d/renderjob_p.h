@@ -53,6 +53,7 @@
 #include <QtCore/QWaitCondition>
 #include <QtCore/QMutex>
 #include <QtCore/QRunnable>
+#include <QtCore/QThread>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -63,7 +64,8 @@ class CanvasRenderJob : public QRunnable
 {
 public:
     CanvasRenderJob(GlSyncCommand *command, QMutex *mutex,
-                    QWaitCondition *condition, QtCanvas3D::CanvasRenderer *renderer);
+                    QWaitCondition *condition, QtCanvas3D::CanvasRenderer *renderer,
+                    bool *deleted);
     ~CanvasRenderJob();
 
     void run();
@@ -76,6 +78,8 @@ private:
     QMutex *m_mutex;
     QWaitCondition *m_condition;
     CanvasRenderer *m_renderer;
+    bool *m_deleted;
+    QThread *m_creationThread;
 };
 
 QT_CANVAS3D_END_NAMESPACE
