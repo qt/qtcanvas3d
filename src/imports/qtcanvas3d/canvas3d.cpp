@@ -764,9 +764,9 @@ void Canvas::queueNextRender()
     updateWindowParameters();
 
     // Don't try to do anything before the renderer/node are ready
-    if (!m_rendererReady) {
+    if (!m_rendererReady || !window()) {
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << " Renderer not ready, returning";
+                                             << " Renderer or window not ready, returning";
         return;
     }
 
