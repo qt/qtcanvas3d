@@ -51,12 +51,13 @@ Item {
         property bool widthChanged: false
         property bool initOk: false
         property bool renderOk: false
-        anchors.fill: parent
+        height: 300
+        width: 300
         onInitializeGL: initOk = Content.initializeGL(render_simple)
         onPaintGL: {
-            Content.paintGL(render_simple)
-            renderOk = true
+            renderOk = Content.paintGL(render_simple)
         }
+        onResizeGL: Content.resizeGL(render_simple)
         onHeightChanged: heightChanged = true
         onWidthChanged: widthChanged = true
     }
@@ -75,18 +76,42 @@ Item {
             render_simple.heightChanged = false
             render_simple.widthChanged = false
             render_simple.renderOk = false
-            top.height = 200
+            render_simple.height = 200
             waitForRendering(render_simple)
             verify(render_simple.heightChanged === true)
             verify(render_simple.widthChanged === false)
             tryCompare(render_simple, "renderOk", true)
+            var fboHeight = Content.getHeight()
+            var fboWidth = Content.getWidth()
+            verify(fboHeight === render_simple.height)
+            verify(fboWidth === render_simple.width)
 
             render_simple.renderOk = false
-            top.width = 200
+            render_simple.width = 200
             waitForRendering(render_simple)
             verify(render_simple.heightChanged === true)
             verify(render_simple.widthChanged === true)
             tryCompare(render_simple, "renderOk", true)
+            fboHeight = Content.getHeight()
+            fboWidth = Content.getWidth()
+            verify(fboHeight === render_simple.height)
+            verify(fboWidth === render_simple.width)
+
+            render_simple.heightChanged = false
+            render_simple.widthChanged = false
+            render_simple.width = 0
+            render_simple.height = 0
+            waitForRendering(render_simple)
+            verify(render_simple.heightChanged === true)
+            verify(render_simple.widthChanged === true)
+            render_simple.renderOk = false
+            waitForRendering(render_simple)
+            tryCompare(render_simple, "renderOk", true)
+            fboHeight = Content.getHeight()
+            fboWidth = Content.getWidth()
+            // Zero size canvas will still create 1x1 fbo
+            verify(fboHeight === 1)
+            verify(fboWidth === 1)
         }
     }
 }

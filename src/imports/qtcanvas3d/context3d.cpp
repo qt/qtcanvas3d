@@ -5754,19 +5754,25 @@ void CanvasContext::scheduleSyncCommand(GlSyncCommand *command)
     if (m_canvas->window() && m_canvas->renderer()) {
         QOpenGLContext *ctx = m_canvas->window()->openglContext();
         if (ctx) {
+            bool jobDeleted = false;
             if (ctx->thread() != QThread::currentThread()) {
                 // In case of threaded renderer, we block the main thread until the job is done
                 CanvasRenderJob *syncJob = new CanvasRenderJob(command, &m_renderJobMutex,
                                                                &m_renderJobCondition,
-                                                               m_canvas->renderer());
+                                                               m_canvas->renderer(),
+                                                               &jobDeleted);
                 m_renderJobMutex.lock();
                 m_canvas->window()->scheduleRenderJob(syncJob, QQuickWindow::NoStage);
-                m_renderJobCondition.wait(&m_renderJobMutex);
+                // scheduleRenderJob will delete the job if the window is not exposed
+                if (!jobDeleted)
+                    m_renderJobCondition.wait(&m_renderJobMutex);
                 m_renderJobMutex.unlock();
+
             } else {
                 // In case of non-threaded renderer, scheduling a job executes it immediately,
                 // so we don't need synchronization.
-                CanvasRenderJob *syncJob = new CanvasRenderJob(command, 0, 0, m_canvas->renderer());
+                CanvasRenderJob *syncJob = new CanvasRenderJob(command, 0, 0, m_canvas->renderer(),
+                                                               &jobDeleted);
                 m_canvas->window()->scheduleRenderJob(syncJob, QQuickWindow::NoStage);
             }
         }

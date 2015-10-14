@@ -82,6 +82,28 @@ function initializeGL(canvas) {
 function paintGL(canvas) {
     gl.clear(gl.COLOR_BUFFER_BIT);
     gl.drawArrays(gl.TRIANGLES, 0, 3);
+    return (gl.getError() === 0);
+}
+
+function resizeGL(canvas)
+{
+    var pixelRatio = canvas.devicePixelRatio;
+    canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
+                               canvas.height * pixelRatio);
+
+    if (gl) {
+        gl.viewport(0, 0,
+                    canvas.width * canvas.devicePixelRatio,
+                    canvas.height * canvas.devicePixelRatio);
+    }
+}
+
+function getWidth() {
+    return gl.drawingBufferWidth
+}
+
+function getHeight() {
+    return gl.drawingBufferHeight
 }
 
 function initShaders()

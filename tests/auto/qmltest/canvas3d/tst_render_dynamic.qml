@@ -72,6 +72,7 @@ Item {
         import QtCanvas3D 1.0
         import QtQuick.Window 2.0
         Window {
+            property alias windowCanvas: theCanvas
             visible: true
             width: 300
             height: 300
@@ -151,20 +152,28 @@ Item {
             tryCompare(top, "initOk", true)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "windowHidden", false)
+            canvasWindow.destroy()
+            tryCompare(top, "canvasWindow", null)
         }
 
         function test_render_5_dynamic_window_hide_and_reshow() {
-            verify(canvasWindow !== null)
+            initOk = false
+            renderOk = false
+            verify(canvasWindow === null)
             verify(windowHidden === false)
+            createCanvasWindow()
+            verify(canvasWindow !== null)
+            tryCompare(top, "initOk", true)
+            tryCompare(top, "renderOk", true)
+            tryCompare(top, "windowHidden", false)
+            waitForRendering(canvasWindow.windowCanvas)
             canvasWindow.hide()
             tryCompare(top, "windowHidden", true)
             renderOk = false
             canvasWindow.show()
+            waitForRendering(canvasWindow.windowCanvas)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "windowHidden", false)
-        }
-        function test_render_6_dynamic_window_destroy() {
-            verify(canvasWindow !== null)
             canvasWindow.destroy()
             tryCompare(top, "canvasWindow", null)
         }
