@@ -95,13 +95,15 @@ Canvas::Canvas(QQuickItem *parent):
     m_isContextAttribsSet(false),
     m_alphaChanged(false),
     m_resizeGLQueued(false),
-    m_firstSync(true),
+    m_allowRenderTargetChange(true),
+    m_renderTargetSyncConnected(false),
     m_renderTarget(RenderTargetOffscreenBuffer),
     m_renderOnDemand(false),
     m_renderer(0),
     m_maxVertexAttribs(0),
     m_contextVersion(0),
-    m_fps(0)
+    m_fps(0),
+    m_contextState(ContextNone)
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::queueNextRender, Qt::QueuedConnection);
@@ -132,17 +134,33 @@ Canvas::Canvas(QQuickItem *parent):
  * Driven by the Qt Quick scenegraph loop.
  */
 
+/*!
+ * \qmlsignal void Canvas3D::contextLost()
+ * Emitted when OpenGL context is lost. This happens whenever the parent window of the Canvas3D
+ * is destroyed (or otherwise loses its context), or Canvas3D is moved to a different window.
+ * Removing Canvas3D from a window and adding it back to the same window doesn't cause context
+ * loss, as long as the window itself stays alive.
+ *
+ * When context is lost, all objects created by Context3D are invalidated.
+ *
+ * \sa contextRestored
+ */
+
+/*!
+ * \qmlsignal void Canvas3D::contextRestored()
+ * Emitted when OpenGL context is restored after a loss of context occurred. The Context3D attached
+ * to the canvas needs to be reinitialized, so initializeGL is also emitted after this signal.
+ *
+ * \sa contextLost
+ */
+
 Canvas::~Canvas()
 {
     // Ensure that all JS objects have been destroyed before we destroy the command queue.
     delete m_context3D;
 
-    if (m_renderer) {
-        if (m_renderer->thread() == QThread::currentThread())
-            delete m_renderer;
-        else
-            m_renderer->deleteLater();
-    }
+    if (m_renderer)
+        m_renderer->destroy();
 }
 
 /*!
@@ -265,7 +283,7 @@ int Canvas::height()
  */
 void Canvas::setRenderTarget(RenderTarget target)
 {
-    if (m_firstSync) {
+    if (m_allowRenderTargetChange) {
         RenderTarget oldTarget = m_renderTarget;
         m_renderTarget = target;
         if (m_renderTarget == RenderTargetOffscreenBuffer)
@@ -274,6 +292,13 @@ void Canvas::setRenderTarget(RenderTarget target)
             setFlag(ItemHasContents, false);
         if (oldTarget != m_renderTarget)
             emit renderTargetChanged();
+        if (!m_renderTargetSyncConnected && window()
+                && m_renderTarget != RenderTargetOffscreenBuffer) {
+            m_renderTargetSyncConnected = true;
+            connect(window(), &QQuickWindow::beforeSynchronizing,
+                    this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
+            window()->setClearBeforeRendering(false);
+        }
     } else {
         qCWarning(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                                << ": renderTarget property can only be "
@@ -488,10 +513,49 @@ void Canvas::setPixelSize(QSize pixelSize)
 void Canvas::handleWindowChanged(QQuickWindow *window)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "(" << window << ")";
-    if (!window)
-        return;
 
-    if (m_renderTarget != RenderTargetOffscreenBuffer) {
+    if (!window) {
+        if (!m_contextWindow.isNull()) {
+            if (m_renderTarget != RenderTargetOffscreenBuffer) {
+                disconnect(m_contextWindow.data(), &QQuickWindow::beforeSynchronizing,
+                           this, &Canvas::handleBeforeSynchronizing);
+            }
+            if (m_renderer) {
+                if (m_renderTarget == RenderTargetForeground) {
+                    disconnect(m_contextWindow.data(), &QQuickWindow::beforeRendering,
+                            m_renderer, &CanvasRenderer::clearBackground);
+                    disconnect(m_contextWindow.data(), &QQuickWindow::afterRendering,
+                            m_renderer, &CanvasRenderer::render);
+                } else {
+                    disconnect(m_contextWindow.data(), &QQuickWindow::beforeRendering,
+                            m_renderer, &CanvasRenderer::render);
+                }
+            }
+        }
+        return;
+    }
+
+    if (window != m_contextWindow.data()) {
+        handleContextLost();
+        m_contextWindow = window;
+    } else {
+        // Re-added to same window
+        if (m_renderer) {
+            if (m_renderTarget == RenderTargetForeground) {
+                connect(window, &QQuickWindow::beforeRendering,
+                        m_renderer, &CanvasRenderer::clearBackground, Qt::DirectConnection);
+                connect(window, &QQuickWindow::afterRendering,
+                        m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+            } else {
+                connect(window, &QQuickWindow::beforeRendering,
+                        m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+            }
+        }
+    }
+
+    if ((!m_allowRenderTargetChange || !m_renderTargetSyncConnected)
+            && m_renderTarget != RenderTargetOffscreenBuffer) {
+        m_renderTargetSyncConnected = true;
         connect(window, &QQuickWindow::beforeSynchronizing,
                 this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
         window->setClearBeforeRendering(false);
@@ -576,15 +640,26 @@ bool Canvas::firstSync()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
 
-    if (!m_renderer) {
-        m_renderer = new CanvasRenderer();
+    if (m_contextState == ContextLost || !m_renderer) {
+        if (m_renderer)
+            m_renderer->destroy();
 
+        m_renderer = new CanvasRenderer();
+        m_contextState = ContextRestoring;
+
+        // Update necessary things to m_context3D
+        if (m_context3D) {
+           m_context3D->setCommandQueue(m_renderer->commandQueue());
+           connect(m_renderer, &CanvasRenderer::textureIdResolved,
+                   m_context3D, &CanvasContext::handleTextureIdResolved,
+                   Qt::QueuedConnection);
+        }
         connect(m_renderer, &CanvasRenderer::fpsChanged,
                 this, &Canvas::handleRendererFpsChange);
     }
 
     if (!m_renderer->qtContextResolved()) {
-        m_firstSync = false;
+        m_allowRenderTargetChange = false;
         QSize initializedSize = boundingRect().size().toSize();
         if (initializedSize.width() <= 0)
             initializedSize.setWidth(1);
@@ -606,6 +681,9 @@ bool Canvas::firstSync()
 
         connect(window(), &QQuickWindow::sceneGraphInvalidated,
                 m_renderer, &CanvasRenderer::shutDown, Qt::DirectConnection);
+        connect(window(), &QQuickWindow::sceneGraphInvalidated,
+                this, &Canvas::handleContextLost, Qt::QueuedConnection);
+        connect(window(), &QObject::destroyed, this, &Canvas::handleContextLost);
 
         if (m_renderTarget == RenderTargetForeground) {
             connect(window(), &QQuickWindow::beforeRendering,
@@ -770,15 +848,22 @@ void Canvas::queueNextRender()
         return;
     }
 
-    if (!m_context3D) {
+    if (!m_context3D || m_contextState == ContextRestoring) {
         // Call the initialize function from QML/JavaScript. It'll call the getContext()
         // that in turn creates the renderer context.
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Emit initializeGL() signal";
 
+        if (m_context3D) {
+            m_context3D->setContextLostState(false);
+            emit contextRestored();
+        }
+
         // Call init on JavaScript side to queue the user's GL initialization commands.
         // The initial context creation get will also initialize the context command queue.
         emit initializeGL();
+
+        m_contextState = ContextAlive;
 
         if (!m_isContextAttribsSet) {
             qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -879,6 +964,26 @@ void Canvas::handleRendererFpsChange(uint fps)
     if (fps != m_fps) {
         m_fps = fps;
         emit fpsChanged(m_fps);
+    }
+}
+
+void Canvas::handleContextLost()
+{
+    if (m_contextState == ContextAlive || m_contextState == ContextRestoring) {
+        m_contextState = ContextLost;
+        m_rendererReady = false;
+
+        if (!m_contextWindow.isNull()) {
+            disconnect(m_contextWindow.data(), &QQuickWindow::sceneGraphInvalidated,
+                       this, &Canvas::handleContextLost);
+            disconnect(m_contextWindow.data(), &QObject::destroyed,
+                        this, &Canvas::handleContextLost);
+        }
+
+        if (m_context3D)
+            m_context3D->setContextLostState(true);
+
+        emit contextLost();
     }
 }
 

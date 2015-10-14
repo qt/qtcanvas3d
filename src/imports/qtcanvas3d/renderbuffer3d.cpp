@@ -43,6 +43,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DRenderBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains an OpenGL renderbuffer.
  *
  * An uncreatable QML type that contains an OpenGL renderbuffer. You can get it by calling
@@ -53,9 +54,7 @@ CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *par
     CanvasAbstractObject(queue, parent),
     m_renderbufferId(queue->createResourceId())
 {
-    Q_ASSERT(m_commandQueue);
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_renderbufferId);
+    queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_renderbufferId);
 }
 
 
@@ -72,7 +71,7 @@ bool CanvasRenderBuffer::isAlive()
 void CanvasRenderBuffer::del()
 {
     if (m_renderbufferId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_renderbufferId);
+        queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_renderbufferId);
         m_renderbufferId = 0;
     }
 }

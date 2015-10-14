@@ -1193,14 +1193,20 @@ public:
 
     void scheduleSyncCommand(GlSyncCommand *command);
 
-public slots:
-    void handleFullCommandQueue();
-    void handleTextureIdResolved(QQuickItem *item);
+    void setContextLostState(bool lost);
+
+    CanvasGlCommandQueue *commandQueue() { return m_commandQueue; }
+    void setCommandQueue(CanvasGlCommandQueue *queue);
 
 signals:
     void canvasChanged(Canvas *canvas);
     void drawingBufferWidthChanged();
     void drawingBufferHeightChanged();
+
+private slots:
+    void handleFullCommandQueue();
+    void handleTextureIdResolved(QQuickItem *item);
+    void handleObjectDeletion(QObject *obj);
 
 private:
     uchar *getTypedArrayAsRawDataPtr(const QJSValue &jsValue, int &byteLength,
@@ -1230,7 +1236,7 @@ private:
     bool isOfType(const QJSValue &value, const char *classname) const;
 
     bool isValidTextureBound(glEnums target, const QString &funcName, bool singleLayer = true);
-    bool checkParent(QObject *jsObj, const char *function);
+    bool checkValidity(CanvasAbstractObject *jsObj, const char *function);
 
     float *transposeMatrix(int dim, int count, float *src);
     void uniformMatrixNfv(int dim, const QJSValue &location3D, bool transpose,
@@ -1254,6 +1260,9 @@ private:
     bool checkBufferUsage(glEnums usage);
     bool checkTextureFormats(glEnums internalFormat, glEnums format);
     bool checkTextureTarget(glEnums target);
+    bool checkContextLost();
+
+    void addObjectToValidList(CanvasAbstractObject *jsObj);
 
     typedef enum {
         CANVAS_NO_ERRORS = 0,
@@ -1294,15 +1303,9 @@ private:
     QMutex m_renderJobMutex;
     QWaitCondition m_renderJobCondition;
     QMap<QQuickItem *, CanvasTexture *> m_quickItemToTextureMap;
-
-    bool invalidEnumFlag;
-    bool invalidValueFlag;
-    bool invalidOperationFlag;
-    bool invalidStackOverflowFlag;
-    bool invalidStackUnderflowFlag;
-    bool invalidOutOfMemoryFlag;
-    bool invalidFramebufferFlag;
-    bool invalidContextLostFlag;
+    bool m_contextLost;
+    QMap<CanvasAbstractObject *, int> m_validObjectMap;
+    bool m_contextLostErrorReported;
 
     // EXTENSIONS
     CanvasGLStateDump *m_stateDumpExt;

@@ -46,6 +46,7 @@
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
 #include <QtQuick/QQuickWindow>
+#include <QtCore/QMutexLocker>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -300,7 +301,7 @@ void CanvasRenderer::shutDown()
     if (!m_glContext)
         return;
 
-    disconnect(m_contextWindow, 0, this, 0);
+    QMutexLocker locker(&m_shutdownMutex);
 
     m_fps = 0;
 
@@ -1947,6 +1948,20 @@ qint64 CanvasRenderer::previousFrameTime()
 {
     m_frameTimer.start();
     return m_frameTimeMs;
+}
+
+void CanvasRenderer::destroy()
+{
+    QMutexLocker locker(&m_shutdownMutex);
+
+    if (m_glContext) {
+        deleteLater();
+    } else {
+        // It is safe to delete even in another thread if we are already shut down or not yet
+        // started up.
+        locker.unlock();
+        delete this;
+    }
 }
 
 QT_CANVAS3D_END_NAMESPACE

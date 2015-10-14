@@ -43,6 +43,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DProgram
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains a shader program.
  *
  * An uncreatable QML type that contains a compiled shader program. You can get it by calling
@@ -54,9 +55,7 @@ CanvasProgram::CanvasProgram(CanvasGlCommandQueue *queue, QObject *parent) :
     m_programId(queue->createResourceId()),
     m_linked(false)
 {
-    Q_ASSERT(m_commandQueue);
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateProgram, m_programId);
+    queueCommand(CanvasGlCommandQueue::glCreateProgram, m_programId);
 }
 
 CanvasProgram::~CanvasProgram()
@@ -74,8 +73,7 @@ void CanvasProgram::attach(CanvasShader *shader)
     if (m_programId) {
         if (m_attachedShaders.count(shader) == 0) {
             m_attachedShaders.append(shader);
-            m_commandQueue->queueCommand(CanvasGlCommandQueue::glAttachShader,
-                                         m_programId, shader->id());
+            queueCommand(CanvasGlCommandQueue::glAttachShader, m_programId, shader->id());
         }
     }
 }
@@ -85,8 +83,7 @@ void CanvasProgram::detach(CanvasShader *shader)
     if (m_programId) {
         if (m_attachedShaders.count(shader) > 0) {
             m_attachedShaders.removeOne(shader);
-            m_commandQueue->queueCommand(CanvasGlCommandQueue::glDetachShader,
-                                         m_programId, shader->id());
+            queueCommand(CanvasGlCommandQueue::glDetachShader, m_programId, shader->id());
         }
     }
 }
@@ -99,7 +96,7 @@ const QList<CanvasShader *> &CanvasProgram::attachedShaders() const
 void CanvasProgram::link()
 {
     if (m_programId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glLinkProgram, m_programId);
+        queueCommand(CanvasGlCommandQueue::glLinkProgram, m_programId);
         m_linked = true;
     }
 }
@@ -113,24 +110,22 @@ bool CanvasProgram::isLinked()
 
 void CanvasProgram::useProgram()
 {
-    if (m_programId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glUseProgram, m_programId);
-    }
+    if (m_programId)
+        queueCommand(CanvasGlCommandQueue::glUseProgram, m_programId);
 }
 
 void CanvasProgram::bindAttributeLocation(int index, const QString &name)
 {
     if (m_programId) {
-        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindAttribLocation,
-                                                          m_programId, GLint(index));
-        command.data = new QByteArray(name.toLatin1());
+        queueCommand(CanvasGlCommandQueue::glBindAttribLocation, new QByteArray(name.toLatin1()),
+                     m_programId, GLint(index));
     }
 }
 
 void CanvasProgram::del()
 {
     if (m_programId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteProgram, m_programId);
+        queueCommand(CanvasGlCommandQueue::glDeleteProgram, m_programId);
         m_programId = 0;
     }
     m_attachedShaders.clear();
@@ -139,7 +134,7 @@ void CanvasProgram::del()
 void CanvasProgram::validateProgram()
 {
     if (m_programId)
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glValidateProgram, m_programId);
+        queueCommand(CanvasGlCommandQueue::glValidateProgram, m_programId);
 }
 
 GLint CanvasProgram::id()

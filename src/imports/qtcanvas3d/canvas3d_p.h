@@ -54,6 +54,7 @@
 #include <QtQuick/QQuickWindow>
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtCore/QElapsedTimer>
+#include <QtCore/QPointer>
 
 QT_BEGIN_NAMESPACE
 
@@ -100,6 +101,14 @@ public:
         RenderTargetForeground
     };
 
+    // internal
+    enum ContextState {
+        ContextNone,
+        ContextLost,
+        ContextRestoring,
+        ContextAlive
+    };
+
     Canvas(QQuickItem *parent = 0);
     ~Canvas();
 
@@ -126,12 +135,15 @@ public:
     CanvasRenderer *renderer();
 
 public slots:
+    void requestRender();
+
+private slots:
     void queueNextRender();
     void queueResizeGL();
-    void requestRender();
     void emitNeedRender();
     void handleBeforeSynchronizing();
     void handleRendererFpsChange(uint fps);
+    void handleContextLost();
 
 signals:
     void needRender();
@@ -143,6 +155,8 @@ signals:
     void heightChanged();
     void renderTargetChanged();
     void renderOnDemandChanged();
+    void contextLost();
+    void contextRestored();
 
     void initializeGL();
     void paintGL();
@@ -180,7 +194,8 @@ private:
     bool m_isContextAttribsSet;
     bool m_alphaChanged;
     bool m_resizeGLQueued;
-    bool m_firstSync;
+    bool m_allowRenderTargetChange;
+    bool m_renderTargetSyncConnected;
     RenderTarget m_renderTarget;
     bool m_renderOnDemand;
 
@@ -191,6 +206,9 @@ private:
     QSet<QByteArray> m_extensions;
 
     uint m_fps;
+
+    ContextState m_contextState;
+    QPointer<QQuickWindow> m_contextWindow; // Not owned
 };
 
 QT_CANVAS3D_END_NAMESPACE

@@ -58,6 +58,7 @@
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtQuick/QQuickItem>
+#include <QtCore/QMutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -114,6 +115,7 @@ public:
     void deleteCommandData();
 
     qint64 previousFrameTime();
+    void destroy();
 
 public slots:
     void shutDown();
@@ -183,6 +185,7 @@ private:
     bool m_textureFinalized;
 
     GLbitfield m_clearMask;
+    QMutex m_shutdownMutex;
 };
 
 QT_CANVAS3D_END_NAMESPACE

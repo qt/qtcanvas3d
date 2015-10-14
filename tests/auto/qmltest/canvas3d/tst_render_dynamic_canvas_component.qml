@@ -34,70 +34,37 @@
 **
 ****************************************************************************/
 
-#include "shader3d_p.h"
+import QtQuick 2.2
+import QtCanvas3D 1.1
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
+import "tst_render_simple.js" as Content
 
-/*!
- * \qmltype Canvas3DShader
- * \since QtCanvas3D 1.0
- * \inqmlmodule QtCanvas3D
- * \inherits Canvas3DAbstractObject
- * \brief Contains a shader.
- *
- * An uncreatable QML type that contains a shader. You can get it by calling
- * the \l{Context3D::createShader()}{Context3D.createShader()} method.
- */
+Canvas3D {
+    id: canvas3d
+    anchors.fill: parent
 
-CanvasShader::CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *parent) :
-    CanvasAbstractObject(queue, parent),
-    m_shaderId(queue->createResourceId()),
-    m_sourceCode("")
-{
-    queueCommand(CanvasGlCommandQueue::glCreateShader, GLint(type), m_shaderId);
-}
+    property var activeContent: Content
+    property bool initOk: false
+    property bool renderOk: false
+    property bool contextLostOk: false
+    property bool contextRestoredOk: false
 
-CanvasShader::~CanvasShader()
-{
-    del();
-}
+    onInitializeGL: {
+        initOk = activeContent.initializeGL(canvas3d)
+    }
+    onPaintGL: {
+        renderOk = true
+        activeContent.paintGL(canvas3d)
+    }
+    onContextLost: {
+        contextLostOk = activeContent.checkContextLost();
+    }
 
-GLint CanvasShader::id()
-{
-    return m_shaderId;
-}
+    onContextRestored: {
+        contextRestoredOk = activeContent.checkContextRestored();
+    }
 
-bool CanvasShader::isAlive()
-{
-    return bool(m_shaderId);
-}
-
-void CanvasShader::del()
-{
-    if (m_shaderId) {
-        queueCommand(CanvasGlCommandQueue::glDeleteShader, m_shaderId);
-        m_shaderId = 0;
+    function checkContextLostError() {
+        return activeContent.checkContextLostError();
     }
 }
-
-QString CanvasShader::sourceCode()
-{
-    return m_sourceCode;
-}
-
-void CanvasShader::setSourceCode(const QString &source)
-{
-    m_sourceCode = source;
-}
-
-void CanvasShader::compileShader()
-{
-    if (m_shaderId) {
-        queueCommand(CanvasGlCommandQueue::glCompileShader, new QByteArray(m_sourceCode.toLatin1()),
-                     m_shaderId);
-    }
-}
-
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE
