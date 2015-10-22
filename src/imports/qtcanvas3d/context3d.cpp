@@ -78,7 +78,6 @@ const int maxUniformAttributeNameLen = 512;
  *
  * \sa Canvas3D
  */
-
 CanvasContext::CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttribs,
                              int contextVersion, const QSet<QByteArray> &extensions,
                              CanvasGlCommandQueue *commandQueue, QObject *parent) :
@@ -6085,6 +6084,17 @@ void CanvasContext::setCommandQueue(CanvasGlCommandQueue *queue)
     m_commandQueue = queue;
     connect(m_commandQueue, &CanvasGlCommandQueue::queueFull,
             this, &CanvasContext::handleFullCommandQueue, Qt::DirectConnection);
+}
+
+void CanvasContext::markQuickTexturesDirty()
+{
+    if (m_quickItemToTextureMap.size()) {
+        QMap<QQuickItem *, CanvasTexture *>::iterator i = m_quickItemToTextureMap.begin();
+        while (i != m_quickItemToTextureMap.end()) {
+            m_commandQueue->addQuickItemAsTexture(i.key(), i.value()->textureId());
+            i++;
+        }
+    }
 }
 
 void CanvasContext::handleObjectDeletion(QObject *obj)

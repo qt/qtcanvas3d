@@ -137,7 +137,7 @@ void CanvasRenderer::createContextShare()
     m_glContextQt->doneCurrent();
     if (!m_glContextShare->create()) {
         qCWarning(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                               << "Failed to create share context";
+                                               << " Failed to create share context";
     }
     if (!m_glContextQt->makeCurrent(surface)) {
         qCWarning(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__

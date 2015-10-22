@@ -96,7 +96,7 @@ bool CanvasTexture::isAlive() const
 
 void CanvasTexture::del()
 {
-    if (m_textureId) {
+    if (!invalidated() && m_textureId) {
         if (m_quickItem) {
             m_context->quickItemToTextureMap().remove(m_quickItem);
             m_quickItem = 0;

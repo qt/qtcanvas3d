@@ -83,7 +83,6 @@ Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_isNeedRenderQueued(false),
     m_rendererReady(false),
-    m_context3D(0),
     m_fboSize(0, 0),
     m_maxSize(0, 0),
     m_frameTimeMs(0),
@@ -157,7 +156,8 @@ Canvas::Canvas(QQuickItem *parent):
 Canvas::~Canvas()
 {
     // Ensure that all JS objects have been destroyed before we destroy the command queue.
-    delete m_context3D;
+    if (!m_context3D.isNull())
+        delete m_context3D.data();
 
     if (m_renderer)
         m_renderer->destroy();
@@ -433,7 +433,7 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
                                         m_renderer->commandQueue());
 
         connect(m_renderer, &CanvasRenderer::textureIdResolved,
-                m_context3D, &CanvasContext::handleTextureIdResolved,
+                m_context3D.data(), &CanvasContext::handleTextureIdResolved,
                 Qt::QueuedConnection);
 
         // Verify that width and height are not initially too large, in case width and height
@@ -457,10 +457,10 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
         m_context3D->setContextAttributes(m_contextAttribs);
 
-        emit contextChanged(m_context3D);
+        emit contextChanged(m_context3D.data());
     }
 
-    return QQmlEngine::contextForObject(this)->engine()->newQObject(m_context3D);
+    return QQmlEngine::contextForObject(this)->engine()->newQObject(m_context3D.data());
 }
 
 /*!
@@ -540,6 +540,9 @@ void Canvas::handleWindowChanged(QQuickWindow *window)
         m_contextWindow = window;
     } else {
         // Re-added to same window
+        if (!m_context3D.isNull())
+            m_context3D->markQuickTexturesDirty();
+
         if (m_renderer) {
             if (m_renderTarget == RenderTargetForeground) {
                 connect(window, &QQuickWindow::beforeRendering,
@@ -594,7 +597,7 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
 CanvasContext *Canvas::context()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
-    return m_context3D;
+    return m_context3D.data();
 }
 
 void Canvas::updateWindowParameters()
@@ -614,7 +617,7 @@ void Canvas::updateWindowParameters()
         }
     }
 
-    if (m_context3D) {
+    if (!m_context3D.isNull()) {
         if (m_context3D->devicePixelRatio() != m_devicePixelRatio)
             m_context3D->setDevicePixelRatio(m_devicePixelRatio);
     }
@@ -648,10 +651,10 @@ bool Canvas::firstSync()
         m_contextState = ContextRestoring;
 
         // Update necessary things to m_context3D
-        if (m_context3D) {
+        if (!m_context3D.isNull()) {
            m_context3D->setCommandQueue(m_renderer->commandQueue());
            connect(m_renderer, &CanvasRenderer::textureIdResolved,
-                   m_context3D, &CanvasContext::handleTextureIdResolved,
+                   m_context3D.data(), &CanvasContext::handleTextureIdResolved,
                    Qt::QueuedConnection);
         }
         connect(m_renderer, &CanvasRenderer::fpsChanged,
@@ -848,13 +851,13 @@ void Canvas::queueNextRender()
         return;
     }
 
-    if (!m_context3D || m_contextState == ContextRestoring) {
+    if (m_context3D.isNull() || m_contextState == ContextRestoring) {
         // Call the initialize function from QML/JavaScript. It'll call the getContext()
         // that in turn creates the renderer context.
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Emit initializeGL() signal";
 
-        if (m_context3D) {
+        if (!m_context3D.isNull()) {
             m_context3D->setContextLostState(false);
             emit contextRestored();
         }
@@ -972,6 +975,7 @@ void Canvas::handleContextLost()
     if (m_contextState == ContextAlive || m_contextState == ContextRestoring) {
         m_contextState = ContextLost;
         m_rendererReady = false;
+        m_fboSize = QSize(0, 0);
 
         if (!m_contextWindow.isNull()) {
             disconnect(m_contextWindow.data(), &QQuickWindow::sceneGraphInvalidated,
@@ -980,7 +984,7 @@ void Canvas::handleContextLost()
                         this, &Canvas::handleContextLost);
         }
 
-        if (m_context3D)
+        if (!m_context3D.isNull())
             m_context3D->setContextLostState(true);
 
         emit contextLost();

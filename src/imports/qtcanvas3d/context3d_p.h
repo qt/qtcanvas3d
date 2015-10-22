@@ -1197,6 +1197,7 @@ public:
 
     CanvasGlCommandQueue *commandQueue() { return m_commandQueue; }
     void setCommandQueue(CanvasGlCommandQueue *queue);
+    void markQuickTexturesDirty();
 
 signals:
     void canvasChanged(Canvas *canvas);

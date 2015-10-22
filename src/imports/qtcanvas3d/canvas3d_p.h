@@ -177,7 +177,7 @@ private:
 
     bool m_isNeedRenderQueued;
     bool m_rendererReady;
-    CanvasContext *m_context3D;
+    QPointer<CanvasContext> m_context3D;
     QSize m_fboSize;
     QSize m_maxSize;
 
