@@ -69,9 +69,11 @@ Window {
             Layout.fillWidth: true
             Layout.preferredHeight: 400
 
-            function handleParentChange() {
-                previousCanvas = canvas
-                canvas = null
+            onChildrenChanged: {
+                if (children.length === 0) {
+                    previousCanvas = canvas
+                    canvas = null
+                }
             }
         }
 
@@ -80,6 +82,7 @@ Window {
             Layout.fillWidth: true
             text: "New QuickTexture canvas"
             onClicked: {
+                previousCanvas = canvas
                 if (canvas)
                     canvas.parent = null
                 canvas = managerObject.createItemTextureCanvas(canvasArea)
@@ -91,6 +94,7 @@ Window {
             Layout.fillWidth: true
             text: "New framebuffer canvas"
             onClicked: {
+                previousCanvas = canvas
                 if (canvas)
                     canvas.parent = null
                 canvas = managerObject.createFboCanvas(canvasArea)
@@ -102,6 +106,7 @@ Window {
             Layout.fillWidth: true
             text: "Grab random canvas"
             onClicked: {
+                previousCanvas = canvas
                 if (canvas)
                     canvas.parent = null
                 canvas = chooseRandomCanvas()
@@ -115,9 +120,11 @@ Window {
             Layout.fillWidth: true
             text: "Grab previous canvas"
             onClicked: {
+                var previous = previousCanvas
+                previousCanvas = canvas
                 if (canvas)
                     canvas.parent = null
-                canvas = previousCanvas
+                canvas = previous
                 if (canvas)
                     canvas.parent = canvasArea
             }

@@ -47,6 +47,7 @@ Rectangle {
     visible: true
     color: "#f2f2f2"
 
+    property alias canvas3d: canvas3d
     property string canvasName: ""
     property var previousParent: null
 
@@ -74,7 +75,10 @@ Rectangle {
 
         // Emitted each time Canvas3D is ready for a new frame
         onPaintGL: {
-            GLCode.paintGL(canvas3d);
+            if (canvas3d.renderTarget === Canvas3D.RenderTargetOffscreenBuffer)
+                GLCode.paintGL(canvas3d, true);
+            else
+                GLCode.paintGL(canvas3d, false);
         }
 
         onResizeGL: {

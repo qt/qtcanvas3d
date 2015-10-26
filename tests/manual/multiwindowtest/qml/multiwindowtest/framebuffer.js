@@ -159,11 +159,12 @@ function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function paintGL(canvas) {
+function paintGL(canvas, clear) {
     // bind the FBO and setup viewport
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     gl.viewport(0, 0, rttWidth, rttHeight);
 
+    // Clear the cube buffer
     gl.clearColor(0.95, 0.95, 0.95, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
@@ -198,8 +199,10 @@ function paintGL(canvas) {
                 canvas.width * canvas.devicePixelRatio,
                 canvas.height * canvas.devicePixelRatio);
 
-    gl.clearColor(0.98, 0.98, 0.98, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    // Clear the canvas buffer
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    if (clear)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Calculate and set matrix uniforms
     mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);

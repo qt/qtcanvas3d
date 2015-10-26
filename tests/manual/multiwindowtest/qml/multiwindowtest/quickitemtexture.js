@@ -105,7 +105,7 @@ function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function paintGL(canvas) {
+function paintGL(canvas, clear) {
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
     var pixelRatio = canvas.devicePixelRatio;
     var currentWidth = canvas.width * pixelRatio;
@@ -118,7 +118,8 @@ function paintGL(canvas) {
         gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
     }
 
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (clear)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     mat4.identity(mvMatrix);
     mat4.translate(mvMatrix, mvMatrix, [(canvas.yRotAnim - 120.0) / 120.0,
