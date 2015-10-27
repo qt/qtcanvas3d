@@ -178,6 +178,10 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     maxSize.setHeight(viewportDims[1]);
 
     // Set the size
+    if (maxSize.width() < m_initializedSize.width())
+        m_initializedSize.setWidth(maxSize.width());
+    if (maxSize.height() < m_initializedSize.height())
+        m_initializedSize.setHeight(maxSize.height());
     setFboSize(m_initializedSize);
     m_forceViewportRect = QRect(0, 0, m_fboSize.width(), m_fboSize.height());
     glScissor(0, 0, m_fboSize.width(), m_fboSize.height());

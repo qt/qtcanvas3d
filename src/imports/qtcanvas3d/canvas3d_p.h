@@ -89,8 +89,6 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
-    Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged)
-    Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(RenderTarget renderTarget READ renderTarget WRITE setRenderTarget NOTIFY renderTargetChanged REVISION 1)
     Q_PROPERTY(bool renderOnDemand READ renderOnDemand WRITE setRenderOnDemand NOTIFY renderOnDemandChanged REVISION 1)
 
@@ -116,10 +114,6 @@ public:
     float devicePixelRatio();
     QSize pixelSize();
     void setPixelSize(QSize pixelSize);
-    void setWidth(int width);
-    int width();
-    void setHeight(int height);
-    int height();
     void setRenderTarget(RenderTarget target);
     RenderTarget renderTarget() const;
     void setRenderOnDemand(bool enable);
@@ -151,8 +145,6 @@ signals:
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
-    void widthChanged();
-    void heightChanged();
     void renderTargetChanged();
     void renderOnDemandChanged();
     void contextLost();

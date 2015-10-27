@@ -108,8 +108,6 @@ Canvas::Canvas(QQuickItem *parent):
     connect(this, &Canvas::needRender, this, &Canvas::queueNextRender, Qt::QueuedConnection);
     connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
-    connect(this, &QQuickItem::widthChanged, this, &Canvas::widthChanged, Qt::DirectConnection);
-    connect(this, &QQuickItem::heightChanged, this, &Canvas::heightChanged, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -161,53 +159,6 @@ Canvas::~Canvas()
 
     if (m_renderer)
         m_renderer->destroy();
-}
-
-/*!
- * Override QQuickItem's setWidth to be able to limit the maximum canvas size to maximum viewport
- * dimensions.
- */
-void Canvas::setWidth(int width)
-{
-    int newWidth = width;
-    int maxWidth = m_maxSize.width();
-    if (maxWidth && width > maxWidth) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << "():"
-                                             << "Maximum width exceeded. Limiting to "
-                                             << maxWidth;
-        newWidth = maxWidth;
-    }
-    QQuickItem::setWidth(qreal(newWidth));
-}
-
-int Canvas::width()
-{
-    return int(QQuickItem::width());
-}
-
-/*!
- * Override QQuickItem's setHeight to be able to limit the maximum canvas size to maximum viewport
- * dimensions.
- */
-void Canvas::setHeight(int height)
-{
-    int newHeight = height;
-    int maxHeight = m_maxSize.height();
-    if (maxHeight && height > maxHeight) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << "():"
-                                             << "Maximum height exceeded. Limiting to "
-                                             << maxHeight;
-        newHeight = maxHeight;
-    }
-
-    QQuickItem::setHeight(qreal(newHeight));
-}
-
-int Canvas::height()
-{
-    return int(QQuickItem::height());
 }
 
 /*!
@@ -435,23 +386,6 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         connect(m_renderer, &CanvasRenderer::textureIdResolved,
                 m_context3D.data(), &CanvasContext::handleTextureIdResolved,
                 Qt::QueuedConnection);
-
-        // Verify that width and height are not initially too large, in case width and height
-        // were set before getting GL_MAX_VIEWPORT_DIMS
-        if (width() > m_maxSize.width()) {
-            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                                 << "():"
-                                                 << "Maximum width exceeded. Limiting to "
-                                                 << m_maxSize.width();
-            QQuickItem::setWidth(m_maxSize.width());
-        }
-        if (height() > m_maxSize.height()) {
-            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                                 << "():"
-                                                 << "Maximum height exceeded. Limiting to "
-                                                 << m_maxSize.height();
-            QQuickItem::setHeight(m_maxSize.height());
-        }
 
         m_context3D->setCanvas(this);
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
