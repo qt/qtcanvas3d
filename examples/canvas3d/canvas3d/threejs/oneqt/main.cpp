@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 
     viewer.setTitle(QStringLiteral("One Qt"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
+    viewer.setColor(QColor("#FCFCFC"));
     viewer.show();
 
     return app.exec();

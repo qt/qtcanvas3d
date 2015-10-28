@@ -63,7 +63,7 @@ function initializeGL(canvas) {
     canvas3d = canvas;
     //! [1]
     // Get the OpenGL context object that represents the API we call
-    gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
+    gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
     //! [1]
 
     //! [2]

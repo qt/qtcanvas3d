@@ -75,7 +75,7 @@ function initializeGL(canvas, textureLoader) {
     canvas3d = canvas
     try {
         // Get the OpenGL context object that represents the API we call
-        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
 
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);

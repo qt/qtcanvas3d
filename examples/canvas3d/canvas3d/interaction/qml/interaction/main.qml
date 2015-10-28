@@ -43,12 +43,11 @@ import QtQuick.Layouts 1.0
 
 import "interaction.js" as GLCode
 
-Rectangle {
+Item {
     id: mainview
     width: 1280
     height: 768
     visible: true
-    color: "#fafafa"
 
     Canvas3D {
         id: canvas3d

@@ -38,13 +38,12 @@ import QtQuick 2.0
 import QtCanvas3D 1.0
 import QtQuick.Layouts 1.1
 
-Rectangle {
+Item {
     id: mainview
     width: 1280
     height: 768
     visible: true
     focus: true
-    color: "#FCFCFC"
 
     Keys.onPressed: {
         if (event.key === Qt.Key_1) imageCube.state = 'image1';

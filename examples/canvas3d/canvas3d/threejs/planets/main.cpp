@@ -59,6 +59,7 @@ int main(int argc, char *argv[])
 
     viewer.setTitle(QStringLiteral("Qt Canvas 3D Examples - Planets"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
+    viewer.setColor(Qt::black);
     viewer.show();
 
     return app.exec();
