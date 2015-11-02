@@ -41,8 +41,7 @@ Text {
     id: menubarItem
     text: ""
     font.family: "Helvetica"
-    font.pixelSize: 1.125 * 16
-    //font.pointSize: 20
+    font.pointSize: 20
     font.weight: Font.Light
     color: "#404244"
     Layout.alignment: Qt.AlignHCenter

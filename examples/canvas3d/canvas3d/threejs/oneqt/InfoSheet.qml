@@ -95,7 +95,7 @@ Item {
             id: heading1
             text: ""
             font.family: "Helvetica"
-            font.pixelSize: 3.0 * 16
+            font.pointSize: 36
             font.weight: Font.Light
             color: "black"
 
@@ -105,7 +105,7 @@ Item {
                 anchors.left: heading1.right
                 text: ""
                 font.family: "Helvetica"
-                font.pixelSize: 3.0 * 16
+                font.pointSize: 36
                 font.weight: Font.Light
                 color: "#5caa15"
             }
@@ -123,10 +123,8 @@ Item {
             text: ""
             width: (infoSheet.width - infoSheet.anchors.leftMargin) * 0.3
             font.family: "Helvetica"
-            font.pixelSize: 16
+            font.pointSize: 16
             font.weight: Font.Light
-            lineHeight: 1.625 * 16
-            lineHeightMode: Text.FixedHeight
         }
     }
 }
