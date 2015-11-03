@@ -180,6 +180,7 @@ private:
     float m_devicePixelRatio;
 
     bool m_isOpenGLES2;
+    bool m_isCombinedDepthStencilSupported;
     bool m_isSoftwareRendered;
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;

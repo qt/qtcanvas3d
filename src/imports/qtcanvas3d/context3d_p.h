@@ -973,8 +973,9 @@ public:
     ENUM_AS_PROPERTY(UNPACK_COLORSPACE_CONVERSION_WEBGL)
     ENUM_AS_PROPERTY(BROWSER_DEFAULT_WEBGL)
 
-    CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttribs, int contextVersion, const QSet<QByteArray> &extensions,
-                  CanvasGlCommandQueue *commandQueue, QObject *parent = 0);
+    CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttribs, int contextVersion,
+                  const QSet<QByteArray> &extensions, CanvasGlCommandQueue *commandQueue,
+                  bool isCombinedDepthStencilSupported, QObject *parent = 0);
     ~CanvasContext();
 
     void setCanvas(Canvas *canvas);
@@ -1300,6 +1301,7 @@ private:
     int m_contextVersion;
     float **m_vertexAttribPointers;
     bool m_isOpenGLES2;
+    bool m_isCombinedDepthStencilSupported;
     CanvasGlCommandQueue *m_commandQueue; // Not owned
     QMutex m_renderJobMutex;
     QWaitCondition m_renderJobCondition;

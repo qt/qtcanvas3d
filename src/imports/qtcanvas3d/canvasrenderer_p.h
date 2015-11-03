@@ -84,10 +84,10 @@ public:
     void getQtContextAttributes(CanvasContextAttributes &contextAttributes);
     void init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
               GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-              QSet<QByteArray> &extensions);
+              QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported);
     bool createContext(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
                        GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-                       QSet<QByteArray> &extensions);
+                       QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported);
 
     void createFBOs();
     void bindCurrentRenderTarget();

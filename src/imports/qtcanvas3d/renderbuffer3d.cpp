@@ -50,11 +50,17 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
  */
 
-CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
+CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue,
+                                       bool initSecondaryId, QObject *parent) :
     CanvasAbstractObject(queue, parent),
-    m_renderbufferId(queue->createResourceId())
+    m_renderbufferId(queue->createResourceId()),
+    m_secondaryId(0)
 {
     queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_renderbufferId);
+    if (initSecondaryId) {
+        m_secondaryId = queue->createResourceId();
+        queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_secondaryId);
+    }
 }
 
 
@@ -72,6 +78,10 @@ void CanvasRenderBuffer::del()
 {
     if (m_renderbufferId) {
         queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_renderbufferId);
+        if (m_secondaryId) {
+            queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_secondaryId);
+            m_secondaryId = 0;
+        }
         m_renderbufferId = 0;
     }
 }
@@ -79,6 +89,11 @@ void CanvasRenderBuffer::del()
 GLint CanvasRenderBuffer::id()
 {
     return m_renderbufferId;
+}
+
+GLint CanvasRenderBuffer::secondaryId()
+{
+    return m_secondaryId;
 }
 
 QT_CANVAS3D_END_NAMESPACE

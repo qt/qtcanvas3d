@@ -66,6 +66,10 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 
 const int maxUniformAttributeNameLen = 512;
 
+#ifndef GL_DEPTH24_STENCIL8
+#define GL_DEPTH24_STENCIL8 0x88F0
+#endif
+
 /*!
  * \qmltype Context3D
  * \since QtCanvas3D 1.0
@@ -80,7 +84,8 @@ const int maxUniformAttributeNameLen = 512;
  */
 CanvasContext::CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttribs,
                              int contextVersion, const QSet<QByteArray> &extensions,
-                             CanvasGlCommandQueue *commandQueue, QObject *parent) :
+                             CanvasGlCommandQueue *commandQueue,
+                             bool isCombinedDepthStencilSupported, QObject *parent) :
     CanvasAbstractObject(0, parent),
     m_engine(engine),
     m_v4engine(QQmlEnginePrivate::getV4Engine(engine)),
@@ -101,6 +106,7 @@ CanvasContext::CanvasContext(QQmlEngine *engine, bool isES2, int maxVertexAttrib
     m_maxVertexAttribs(maxVertexAttribs),
     m_contextVersion(contextVersion),
     m_isOpenGLES2(isES2),
+    m_isCombinedDepthStencilSupported(isCombinedDepthStencilSupported),
     m_commandQueue(0),
     m_contextLost(false),
     m_contextLostErrorReported(false),
@@ -1828,22 +1834,38 @@ void CanvasContext::framebufferRenderbuffer(glEnums target, glEnums attachment,
     }
 
     CanvasRenderBuffer *renderbuffer = getAsRenderbuffer3D(renderbuffer3D);
-    if (renderbuffer && renderbuffertarget != RENDERBUFFER) {
-        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
-                                               << "(): INVALID_OPERATION renderbuffertarget must be"
-                                               << " RENDERBUFFER for non null renderbuffers";
-        m_error |= CANVAS_INVALID_OPERATION;
-        return;
+    if (renderbuffer) {
+        if (renderbuffertarget != RENDERBUFFER) {
+            qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                                   << "(): INVALID_OPERATION renderbuffertarget must be"
+                                                   << " RENDERBUFFER for non null renderbuffers";
+            m_error |= CANVAS_INVALID_OPERATION;
+            return;
+        }
+        if (!checkValidity(renderbuffer, __FUNCTION__))
+            return;
     }
-    if (!checkValidity(renderbuffer, __FUNCTION__))
-        return;
 
     GLint renderbufferId = renderbuffer ? renderbuffer->id() : 0;
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glFramebufferRenderbuffer,
-                                 GLint(target), GLint(attachment),
-                                 GLint(renderbuffertarget),
-                                 GLint(renderbufferId));
+    if (attachment == DEPTH_STENCIL_ATTACHMENT) {
+        GLint secondaryId = m_isCombinedDepthStencilSupported
+                ? renderbufferId
+                : (renderbuffer ? renderbuffer->secondaryId() : 0);
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glFramebufferRenderbuffer,
+                                     GLint(GL_FRAMEBUFFER), GLint(DEPTH_ATTACHMENT),
+                                     GLint(GL_RENDERBUFFER),
+                                     GLint(renderbufferId));
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glFramebufferRenderbuffer,
+                                     GLint(GL_FRAMEBUFFER), GLint(STENCIL_ATTACHMENT),
+                                     GLint(GL_RENDERBUFFER),
+                                     GLint(secondaryId));
+    } else {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glFramebufferRenderbuffer,
+                                     GLint(GL_FRAMEBUFFER), GLint(attachment),
+                                     GLint(GL_RENDERBUFFER),
+                                     GLint(renderbufferId));
+    }
 }
 
 /*!
@@ -2001,7 +2023,8 @@ QJSValue CanvasContext::createRenderbuffer()
     if (checkContextLost())
         return QJSValue(QJSValue::NullValue);
 
-    CanvasRenderBuffer *renderbuffer = new CanvasRenderBuffer(m_commandQueue, this);
+    CanvasRenderBuffer *renderbuffer =
+            new CanvasRenderBuffer(m_commandQueue, !m_isCombinedDepthStencilSupported, this);
     QJSValue value = m_engine->newQObject(renderbuffer);
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "():" << value.toString();
@@ -2048,7 +2071,7 @@ void CanvasContext::bindRenderbuffer(glEnums target, QJSValue renderbuffer3D)
  * \a target must be \c Context3D.RENDERBUFFER.
  * \a internalformat specifies the color-renderable, depth-renderable or stencil-renderable format
  * of the renderbuffer. Must be one of \c{Context3D.RGBA4}, \c{Context3D.RGB565}, \c{Context3D.RGB5_A1},
- * \c{Context3D.DEPTH_COMPONENT16} or \c{Context3D.STENCIL_INDEX8}.
+ * \c{Context3D.DEPTH_COMPONENT16}, \c{Context3D.STENCIL_INDEX8}, or \c{Context3D.DEPTH_STENCIL}.
  * \a width specifies the renderbuffer width in pixels.
  * \a height specifies the renderbuffer height in pixels.
  */
@@ -2072,9 +2095,38 @@ void CanvasContext::renderbufferStorage(glEnums target, glEnums internalformat,
         return;
     }
 
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glRenderbufferStorage,
-                                 GLint(target), GLint(internalformat),
-                                 GLint(width), GLint(height));
+    if (!m_currentRenderbuffer) {
+        qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
+                                               << ": INVALID_OPERATION no renderbuffer bound";
+        m_error |= CANVAS_INVALID_OPERATION;
+        return;
+    }
+
+    if (internalformat == DEPTH_STENCIL) {
+        if (m_isCombinedDepthStencilSupported) {
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glRenderbufferStorage,
+                                         GLint(target), GLint(GL_DEPTH24_STENCIL8),
+                                         GLint(width), GLint(height));
+        } else {
+            // Some platforms do not support combined DEPTH_STENCIL buffer natively, so create
+            // two separate render buffers for them. Depth buffer is the primary buffer
+            // and the stencil buffer is the secondary buffer.
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glRenderbufferStorage,
+                                         GLint(target), GLint(GL_DEPTH_COMPONENT16),
+                                         GLint(width), GLint(height));
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindRenderbuffer,
+                                         GLint(target), m_currentRenderbuffer->secondaryId());
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glRenderbufferStorage,
+                                         GLint(target), GLint(GL_STENCIL_INDEX8),
+                                         GLint(width), GLint(height));
+            m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindRenderbuffer,
+                                         GLint(target), m_currentRenderbuffer->id());
+        }
+    } else {
+        m_commandQueue->queueCommand(CanvasGlCommandQueue::glRenderbufferStorage,
+                                     GLint(target), GLint(internalformat),
+                                     GLint(width), GLint(height));
+    }
 }
 
 /*!

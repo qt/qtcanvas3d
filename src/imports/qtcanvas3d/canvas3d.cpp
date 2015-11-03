@@ -90,6 +90,7 @@ Canvas::Canvas(QQuickItem *parent):
     m_maxSamples(0),
     m_devicePixelRatio(1.0f),
     m_isOpenGLES2(false),
+    m_isCombinedDepthStencilSupported(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
     m_alphaChanged(false),
@@ -370,7 +371,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         updateWindowParameters();
 
         if (!m_renderer->createContext(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
-                                       m_contextVersion, m_extensions)) {
+                                       m_contextVersion, m_extensions,
+                                       m_isCombinedDepthStencilSupported)) {
             return QJSValue(QJSValue::NullValue);
         }
 
@@ -381,7 +383,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_context3D = new CanvasContext(QQmlEngine::contextForObject(this)->engine(),
                                         m_isOpenGLES2, m_maxVertexAttribs,
                                         m_contextVersion, m_extensions,
-                                        m_renderer->commandQueue());
+                                        m_renderer->commandQueue(),
+                                        m_isCombinedDepthStencilSupported);
 
         connect(m_renderer, &CanvasRenderer::textureIdResolved,
                 m_context3D.data(), &CanvasContext::handleTextureIdResolved,
@@ -609,7 +612,7 @@ bool Canvas::firstSync()
             m_renderer->getQtContextAttributes(m_contextAttribs);
             m_isContextAttribsSet = true;
             m_renderer->init(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
-                             m_contextVersion, m_extensions);
+                             m_contextVersion, m_extensions, m_isCombinedDepthStencilSupported);
             setPixelSize(m_renderer->fboSize());
         } else {
             m_renderer->createContextShare();

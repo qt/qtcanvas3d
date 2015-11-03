@@ -158,7 +158,7 @@ void CanvasRenderer::getQtContextAttributes(CanvasContextAttributes &contextAttr
 
 void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
                           GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-                          QSet<QByteArray> &extensions)
+                          QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported)
 {
     m_antialias = contextAttributes.antialias();
     m_preserveDrawingBuffer = contextAttributes.preserveDrawingBuffer();
@@ -227,6 +227,19 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     m_glContext->functions()->glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
 
     contextVersion = m_glContext->format().majorVersion();
+
+    if (contextVersion < 3) {
+        if (m_isOpenGLES2) {
+            isCombinedDepthStencilSupported =
+                    m_glContext->hasExtension(QByteArrayLiteral("GL_OES_packed_depth_stencil"));
+        } else {
+            isCombinedDepthStencilSupported =
+                    m_glContext->hasExtension(QByteArrayLiteral("GL_ARB_framebuffer_object"))
+                    || m_glContext->hasExtension(QByteArrayLiteral("GL_EXT_packed_depth_stencil"));
+        }
+    } else {
+        isCombinedDepthStencilSupported = true;
+    }
 
     extensions = m_glContext->extensions();
 
@@ -369,7 +382,8 @@ void CanvasRenderer::shutDown()
 bool CanvasRenderer::createContext(QQuickWindow *window,
                                    const CanvasContextAttributes &contextAttributes,
                                    GLint &maxVertexAttribs, QSize &maxSize,
-                                   int &contextVersion, QSet<QByteArray> &extensions)
+                                   int &contextVersion, QSet<QByteArray> &extensions,
+                                   bool &isCombinedDepthStencilSupported)
 {
     // Initialize the swap buffer chain
     if (contextAttributes.depth() && contextAttributes.stencil() && !contextAttributes.antialias())
@@ -458,7 +472,8 @@ bool CanvasRenderer::createContext(QQuickWindow *window,
         return false;
     }
 
-    init(window, contextAttributes, maxVertexAttribs, maxSize, contextVersion, extensions);
+    init(window, contextAttributes, maxVertexAttribs, maxSize, contextVersion, extensions,
+         isCombinedDepthStencilSupported);
 
     if (m_glContext->thread() != contextThread) {
         m_glContext->doneCurrent();
