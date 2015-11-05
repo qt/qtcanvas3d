@@ -34,67 +34,16 @@
 **
 ****************************************************************************/
 
-#include "renderbuffer3d_p.h"
+#include <QtGui/QGuiApplication>
+#include <QtQml/QQmlApplicationEngine>
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
-
-/*!
- * \qmltype Canvas3DRenderBuffer
- * \since QtCanvas3D 1.0
- * \inqmlmodule QtCanvas3D
- * \inherits Canvas3DAbstractObject
- * \brief Contains an OpenGL renderbuffer.
- *
- * An uncreatable QML type that contains an OpenGL renderbuffer. You can get it by calling
- * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
- */
-
-CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue,
-                                       bool initSecondaryId, QObject *parent) :
-    CanvasAbstractObject(queue, parent),
-    m_renderbufferId(queue->createResourceId()),
-    m_secondaryId(0)
+int main(int argc, char *argv[])
 {
-    queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_renderbufferId);
-    if (initSecondaryId) {
-        m_secondaryId = queue->createResourceId();
-        queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_secondaryId);
-    }
+    QGuiApplication app(argc, argv);
+
+    QQmlApplicationEngine engine;
+
+    engine.load(QUrl(QStringLiteral("qrc:/main.qml")));
+
+    return app.exec();
 }
-
-
-CanvasRenderBuffer::~CanvasRenderBuffer()
-{
-    del();
-}
-
-bool CanvasRenderBuffer::isAlive()
-{
-    return bool(m_renderbufferId);
-}
-
-void CanvasRenderBuffer::del()
-{
-    if (m_renderbufferId) {
-        queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_renderbufferId);
-        if (m_secondaryId) {
-            queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_secondaryId);
-            m_secondaryId = 0;
-        }
-        m_renderbufferId = 0;
-    }
-}
-
-GLint CanvasRenderBuffer::id()
-{
-    return m_renderbufferId;
-}
-
-GLint CanvasRenderBuffer::secondaryId()
-{
-    return m_secondaryId;
-}
-
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE

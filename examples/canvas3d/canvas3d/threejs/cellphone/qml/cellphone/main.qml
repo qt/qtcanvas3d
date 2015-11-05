@@ -45,6 +45,7 @@ Window {
     height: initialHeight
     visible: true
     title: "Interactive Mobile Phone Demo"
+    color: "black"
 
     //! [0]
     Item {

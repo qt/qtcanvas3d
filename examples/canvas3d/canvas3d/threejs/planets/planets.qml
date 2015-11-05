@@ -39,12 +39,11 @@ import QtCanvas3D 1.0
 
 import "planets.js" as GLCode
 
-Rectangle {
+Item {
     id: mainview
     width: 1280
     height: 768
     visible: true
-    color: "black"
     property int focusedPlanet: 100
     property int oldPlanet: 0
     property real xLookAtOffset: 0

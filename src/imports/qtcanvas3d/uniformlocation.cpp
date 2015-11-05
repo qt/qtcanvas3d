@@ -44,6 +44,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DUniformLocation
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains uniform location id.
  *
  * An uncreatable QML type that contains an uniform location id. You can get it by calling
@@ -60,7 +61,7 @@ CanvasUniformLocation::CanvasUniformLocation(CanvasGlCommandQueue *queue, QObjec
 CanvasUniformLocation::~CanvasUniformLocation()
 {
     if (m_locationId)
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearLocation, m_locationId);
+        queueCommand(CanvasGlCommandQueue::internalClearLocation, m_locationId);
 }
 
 GLint CanvasUniformLocation::id()

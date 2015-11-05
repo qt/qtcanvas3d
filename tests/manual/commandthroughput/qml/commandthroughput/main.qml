@@ -58,7 +58,6 @@ Item {
         property double xRotAnim: 0
         property double yRotAnim: 0
         property double zRotAnim: 0
-        property bool isRunning: true
         property int itemCount: 0
         property int maxCount: 5000
         property int frameTime: 0
@@ -87,19 +86,6 @@ Item {
         onDevicePixelRatioChanged: {
             GLCode.onCanvasResize(canvas3d);
         }
-
-        Keys.onSpacePressed: {
-            canvas3d.isRunning = !canvas3d.isRunning
-            if (canvas3d.isRunning) {
-                objAnimationX.pause();
-                objAnimationY.pause();
-                objAnimationZ.pause();
-            } else {
-                objAnimationX.resume();
-                objAnimationY.resume();
-                objAnimationZ.resume();
-            }
-        }
     }
 
     Timer {
@@ -125,7 +111,7 @@ Item {
             id: fpsLabel
             Layout.alignment: Qt.AlignRight
             Layout.fillWidth: false
-            Layout.preferredWidth : 180
+            Layout.preferredWidth : 200
             text: "Fps: " + canvas3d.fps + " GL:" + canvas3d.frameTime + " onPaintGL:" + canvas3d.frameSetupTime
             color: "#FFFFFF"
         }

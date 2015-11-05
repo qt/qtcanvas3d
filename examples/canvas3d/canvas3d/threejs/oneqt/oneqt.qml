@@ -38,13 +38,12 @@ import QtQuick 2.0
 import QtCanvas3D 1.0
 import QtQuick.Layouts 1.1
 
-Rectangle {
+Item {
     id: mainview
     width: 1280
     height: 768
     visible: true
     focus: true
-    color: "#FCFCFC"
 
     Keys.onPressed: {
         if (event.key === Qt.Key_1) imageCube.state = 'image1';
@@ -307,7 +306,7 @@ Rectangle {
         text: "Your productivity is at the core of what drives us. We made creating embedded<br>"+
               "devices agile and painless without sacrificing maximum native performance. You get<br>"+
               "to write your application using high level C++ libraries with no need to worry about<br>"+
-              "nasty platform details. Using Qt Creator IDE and with a variety of UI approaches to<br"+
+              "nasty platform details. Using Qt Creator IDE and with a variety of UI approaches to<br>"+
               "choose from you can create the optimal UX for your end users."
     }
 
@@ -322,7 +321,7 @@ Rectangle {
         headingText2: "is Our Specialty"
         text: "We make cross-platform application development easy. Target all the screens in your<br>"+
               "end users’ lives. You only need to write and maintain one code base regardless of<br>"+
-              "what kind of and how many target platforms you might have and we’re talking about<br"+
+              "what kind of and how many target platforms you might have and we’re talking about<br>"+
               "all major operating systems here. No need for separate implementations for<br>"+
               "different user devices. Qt makes your time-to-market faster, technology strategy<br>"+
               "simpler and future-proof, consequently reducing costs."

@@ -58,6 +58,7 @@
 #include <QtGui/QOpenGLFunctions>
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtQuick/QQuickItem>
+#include <QtCore/QMutex>
 
 QT_BEGIN_NAMESPACE
 
@@ -83,10 +84,10 @@ public:
     void getQtContextAttributes(CanvasContextAttributes &contextAttributes);
     void init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
               GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-              QSet<QByteArray> &extensions);
+              QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported);
     bool createContext(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
                        GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-                       QSet<QByteArray> &extensions);
+                       QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported);
 
     void createFBOs();
     void bindCurrentRenderTarget();
@@ -114,6 +115,7 @@ public:
     void deleteCommandData();
 
     qint64 previousFrameTime();
+    void destroy();
 
 public slots:
     void shutDown();
@@ -183,6 +185,7 @@ private:
     bool m_textureFinalized;
 
     GLbitfield m_clearMask;
+    QMutex m_shutdownMutex;
 };
 
 QT_CANVAS3D_END_NAMESPACE

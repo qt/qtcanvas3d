@@ -43,6 +43,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DFrameBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains an OpenGL framebuffer.
  *
  * An uncreatable QML type that contains an OpenGL framebuffer object. You can get it by calling the
@@ -54,9 +55,7 @@ CanvasFrameBuffer::CanvasFrameBuffer(CanvasGlCommandQueue *queue, QObject *paren
     m_framebufferId(queue->createResourceId()),
     m_texture(0)
 {
-    Q_ASSERT(m_commandQueue);
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenFramebuffers, m_framebufferId);
+    queueCommand(CanvasGlCommandQueue::glGenFramebuffers, m_framebufferId);
 }
 
 CanvasFrameBuffer::~CanvasFrameBuffer()
@@ -72,7 +71,7 @@ bool CanvasFrameBuffer::isAlive()
 void CanvasFrameBuffer::del()
 {
     if (m_framebufferId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteFramebuffers, m_framebufferId);
+        queueCommand(CanvasGlCommandQueue::glDeleteFramebuffers, m_framebufferId);
         m_framebufferId = 0;
     }
 }

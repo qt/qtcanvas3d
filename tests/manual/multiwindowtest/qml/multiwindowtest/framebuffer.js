@@ -43,12 +43,10 @@ Qt.include("gl-matrix.js")
 
 var gl;
 
-//! [0]
 var rttFramebuffer;
 var rttTexture;
 var rttWidth = 512;
 var rttHeight = 512;
-//! [0]
 
 var cubeTexture = 0;
 
@@ -75,7 +73,7 @@ function initializeGL(canvas, textureLoader) {
     canvas3d = canvas
     try {
         // Get the OpenGL context object that represents the API we call
-        gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
 
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);
@@ -111,14 +109,11 @@ function initializeGL(canvas, textureLoader) {
         });
         qtLogoImage.src = "qrc:/qtlogo.png";
 
-        //! [1]
         // Create the framebuffer object
         rttFramebuffer = gl.createFramebuffer();
         rttFramebuffer.name = "OffscreenRenderTarget";
         gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-        //! [1]
 
-        //! [2]
         // Create the texture
         rttTexture = gl.createTexture();
         rttTexture.name = "OffscreenRenderTargetTexture";
@@ -130,9 +125,7 @@ function initializeGL(canvas, textureLoader) {
                       0, gl.RGBA, gl.UNSIGNED_BYTE,
                       null);
         gl.generateMipmap(gl.TEXTURE_2D);
-        //! [2]
 
-        //! [3]
         // Bind the texture as color attachment, create and bind a depth buffer
         gl.framebufferTexture2D(gl.FRAMEBUFFER,
                                 gl.COLOR_ATTACHMENT0,
@@ -145,7 +138,6 @@ function initializeGL(canvas, textureLoader) {
         gl.framebufferRenderbuffer(gl.FRAMEBUFFER,
                                    gl.DEPTH_ATTACHMENT,
                                    gl.RENDERBUFFER, renderbuffer);
-        //! [3]
         gl.bindTexture(gl.TEXTURE_2D, 0);
         gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
         gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
@@ -156,24 +148,28 @@ function initializeGL(canvas, textureLoader) {
     }
 }
 
+function handleContextLost() {
+    // Null all used textures so we don't get invalid operation on first few paints
+    // after context lost while the textures re-resolve.
+    rttTexture = null;
+    cubeTexture = null;
+}
+
 function degToRad(degrees) {
     return degrees * Math.PI / 180;
 }
 
-function paintGL(canvas) {
-    //! [4]
+function paintGL(canvas, clear) {
     // bind the FBO and setup viewport
     gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
     gl.viewport(0, 0, rttWidth, rttHeight);
-    //! [4]
 
+    // Clear the cube buffer
     gl.clearColor(0.95, 0.95, 0.95, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    //! [5]
     // Bind the loaded texture
     gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-    //! [5]
 
     // Calculate and set matrix uniforms
     mat4.perspective(pMatrix, degToRad(45), rttWidth / rttHeight, 0.1, 100.0);
@@ -190,26 +186,23 @@ function paintGL(canvas) {
     mat4.transpose(nMatrix, nMatrix);
     gl.uniformMatrix4fv(nUniform, false, nMatrix);
 
-    //! [6]
     // Draw the cube to the FBO
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    //! [6]
 
-    //! [7]
     // Bind the render-to-texture and generate mipmaps
     gl.bindTexture(gl.TEXTURE_2D, rttTexture);
     gl.generateMipmap(gl.TEXTURE_2D);
-    //! [7]
 
-    //! [8]
     // Bind default framebuffer and setup viewport accordingly
     gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
     gl.viewport(0, 0,
                 canvas.width * canvas.devicePixelRatio,
                 canvas.height * canvas.devicePixelRatio);
-    //! [8]
-    gl.clearColor(0.98, 0.98, 0.98, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+    // Clear the canvas buffer
+    gl.clearColor(0.0, 0.0, 0.0, 0.0);
+    if (clear)
+        gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
     // Calculate and set matrix uniforms
     mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);
@@ -226,10 +219,8 @@ function paintGL(canvas) {
     mat4.transpose(nMatrix, nMatrix);
     gl.uniformMatrix4fv(nUniform, false, nMatrix);
 
-    //! [9]
     // Draw the on-screen cube
     gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    //! [9]
 }
 
 function resizeGL(canvas)
@@ -431,7 +422,7 @@ function initShaders()
     gl.linkProgram(shaderProgram);
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        console.log("Could not initialise shaders");
+        console.log("Could not initialize shaders");
         console.log(gl.getProgramInfoLog(shaderProgram));
     }
 

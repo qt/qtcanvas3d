@@ -117,7 +117,7 @@ function initializeGL(canvas) {
     canvas3d = canvas
     log("initializeGL...")
     try {
-        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
         log("   Received context: "+gl);
 
         stateDumpExt = gl.getExtension("QTCANVAS3D_gl_state_dump");

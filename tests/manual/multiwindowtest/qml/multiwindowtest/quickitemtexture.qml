@@ -42,19 +42,26 @@ import QtQuick.Window 2.2
 
 import "quickitemtexture.js" as GLCode
 
-Window {
-    id: mainview
-    width: 800
-    height: 600
+Rectangle {
+    id: mainView
+    anchors.fill: parent
     visible: true
-    title: "Qt Quick Item as Texture"
     color: "#f9f9f9"
+
+    property alias canvas3d: canvas3d
+    property string canvasName: ""
+    property var previousParent: null
+
+    onParentChanged: {
+        if (previousParent && previousParent.handleParentChange)
+            previousParent.handleParentChange()
+        previousParent = parent
+    }
 
     ColumnLayout {
         Layout.fillWidth: true
         x: 4
         y: 4
-        //! [0]
         Rectangle {
             id: textureSource
             color: "lightgreen"
@@ -72,12 +79,11 @@ Window {
                     + "Z Rot:" + (canvas3d.zRotAnim | 0) + "\n"
                     + "FPS:" + canvas3d.fps
                 color: "red"
-                font.pointSize: 26
+                font.pointSize: 30
                 horizontalAlignment: Text.AlignLeft
                 verticalAlignment: Text.AlignVCenter
             }
         }
-        //! [0]
         Button {
             Layout.fillWidth: true
             Layout.minimumWidth: 256
@@ -108,11 +114,22 @@ Window {
 
         // Emitted each time Canvas3D is ready for a new frame
         onPaintGL: {
-            GLCode.paintGL(canvas3d);
+            if (canvas3d.renderTarget === Canvas3D.RenderTargetOffscreenBuffer)
+                GLCode.paintGL(canvas3d, true);
+            else
+                GLCode.paintGL(canvas3d, false);
         }
 
         onResizeGL: {
             GLCode.resizeGL(canvas3d);
+        }
+
+        onContextLost: {
+            console.log("Context lost on: ", mainView.canvasName)
+        }
+
+        onContextRestored: {
+            console.log("Context restored on: ", mainView.canvasName)
         }
 
         Keys.onSpacePressed: {

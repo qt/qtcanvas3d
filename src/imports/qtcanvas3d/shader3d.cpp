@@ -43,6 +43,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DShader
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains a shader.
  *
  * An uncreatable QML type that contains a shader. You can get it by calling
@@ -54,9 +55,7 @@ CanvasShader::CanvasShader(GLenum type, CanvasGlCommandQueue *queue, QObject *pa
     m_shaderId(queue->createResourceId()),
     m_sourceCode("")
 {
-    Q_ASSERT(m_commandQueue);
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glCreateShader, GLint(type), m_shaderId);
+    queueCommand(CanvasGlCommandQueue::glCreateShader, GLint(type), m_shaderId);
 }
 
 CanvasShader::~CanvasShader()
@@ -77,7 +76,7 @@ bool CanvasShader::isAlive()
 void CanvasShader::del()
 {
     if (m_shaderId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteShader, m_shaderId);
+        queueCommand(CanvasGlCommandQueue::glDeleteShader, m_shaderId);
         m_shaderId = 0;
     }
 }
@@ -95,9 +94,8 @@ void CanvasShader::setSourceCode(const QString &source)
 void CanvasShader::compileShader()
 {
     if (m_shaderId) {
-        GlCommand &command = m_commandQueue->queueCommand(CanvasGlCommandQueue::glCompileShader,
-                                                          m_shaderId);
-        command.data = new QByteArray(m_sourceCode.toLatin1());
+        queueCommand(CanvasGlCommandQueue::glCompileShader, new QByteArray(m_sourceCode.toLatin1()),
+                     m_shaderId);
     }
 }
 

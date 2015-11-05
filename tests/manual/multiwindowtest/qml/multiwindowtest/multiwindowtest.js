@@ -34,7 +34,7 @@
 **
 ****************************************************************************/
 
-Qt.include("gl-matrix.js")
+Qt.include("../../../examples/canvas3d/canvas3d/3rdparty/gl-matrix.js")
 
 //
 // Draws a cube that has the Qt logo as decal texture on each face in to a texture.
@@ -43,17 +43,9 @@ Qt.include("gl-matrix.js")
 
 var gl;
 
-//! [0]
-var rttFramebuffer;
-var rttTexture;
-var rttWidth = 512;
-var rttHeight = 512;
-//! [0]
-
 var cubeTexture = 0;
 
 var vertexPositionAttribute;
-var textureCoordAttribute;
 var vertexNormalAttribute;
 var vertexColorAttribute;
 var mvMatrix = mat4.create();
@@ -75,7 +67,7 @@ function initializeGL(canvas, textureLoader) {
     canvas3d = canvas
     try {
         // Get the OpenGL context object that represents the API we call
-        gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
 
         // Setup the OpenGL state
         gl.enable(gl.DEPTH_TEST);
@@ -89,66 +81,6 @@ function initializeGL(canvas, textureLoader) {
         // Initialize vertex and color buffers
         initBuffers();
 
-        // Load the Qt logo as texture
-        var qtLogoImage = TextureImageFactory.newTexImage();
-        qtLogoImage.imageLoaded.connect(function() {
-            cubeTexture = gl.createTexture();
-            cubeTexture.name = "CubeTexture";
-            gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-            gl.texImage2D(gl.TEXTURE_2D,    // target
-                          0,                // level
-                          gl.RGBA,          // internalformat
-                          gl.RGBA,          // format
-                          gl.UNSIGNED_BYTE, // type
-                          qtLogoImage);    // pixels
-
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-            gl.generateMipmap(gl.TEXTURE_2D);
-        });
-        qtLogoImage.imageLoadingFailed.connect(function() {
-            console.log("Texture load FAILED, "+qtLogoImage.errorString);
-        });
-        qtLogoImage.src = "qrc:/qtlogo.png";
-
-        //! [1]
-        // Create the framebuffer object
-        rttFramebuffer = gl.createFramebuffer();
-        rttFramebuffer.name = "OffscreenRenderTarget";
-        gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-        //! [1]
-
-        //! [2]
-        // Create the texture
-        rttTexture = gl.createTexture();
-        rttTexture.name = "OffscreenRenderTargetTexture";
-        gl.bindTexture(gl.TEXTURE_2D, rttTexture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR_MIPMAP_NEAREST);
-        gl.texImage2D(gl.TEXTURE_2D, 0,
-                      gl.RGBA, rttWidth, rttHeight,
-                      0, gl.RGBA, gl.UNSIGNED_BYTE,
-                      null);
-        gl.generateMipmap(gl.TEXTURE_2D);
-        //! [2]
-
-        //! [3]
-        // Bind the texture as color attachment, create and bind a depth buffer
-        gl.framebufferTexture2D(gl.FRAMEBUFFER,
-                                gl.COLOR_ATTACHMENT0,
-                                gl.TEXTURE_2D, rttTexture, 0);
-        var renderbuffer = gl.createRenderbuffer();
-        gl.bindRenderbuffer(gl.RENDERBUFFER, renderbuffer);
-        gl.renderbufferStorage(gl.RENDERBUFFER,
-                               gl.DEPTH_COMPONENT16,
-                               rttWidth, rttHeight);
-        gl.framebufferRenderbuffer(gl.FRAMEBUFFER,
-                                   gl.DEPTH_ATTACHMENT,
-                                   gl.RENDERBUFFER, renderbuffer);
-        //! [3]
-        gl.bindTexture(gl.TEXTURE_2D, 0);
-        gl.bindRenderbuffer(gl.RENDERBUFFER, 0);
-        gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
     } catch(e) {
         console.log("initializeGL FAILURE!");
         console.log(""+e);
@@ -161,78 +93,48 @@ function degToRad(degrees) {
 }
 
 function paintGL(canvas) {
-    //! [4]
-    // bind the FBO and setup viewport
-    gl.bindFramebuffer(gl.FRAMEBUFFER, rttFramebuffer);
-    gl.viewport(0, 0, rttWidth, rttHeight);
-    //! [4]
-
-    gl.clearColor(0.95, 0.95, 0.95, 1.0);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    //! [5]
-    // Bind the loaded texture
-    gl.bindTexture(gl.TEXTURE_2D, cubeTexture);
-    //! [5]
-
-    // Calculate and set matrix uniforms
-    mat4.perspective(pMatrix, degToRad(45), rttWidth / rttHeight, 0.1, 100.0);
-    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
-
-    mat4.identity(mvMatrix);
-    mat4.translate(mvMatrix, mvMatrix, [0, 0, -5.0]);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotSlider), [0, 1, 0]);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotSlider), [1, 0, 0]);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotSlider), [0, 0, 1]);
-    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
-
-    mat4.invert(nMatrix, mvMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fv(nUniform, false, nMatrix);
-
-    //! [6]
-    // Draw the cube to the FBO
-    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    //! [6]
-
-    //! [7]
-    // Bind the render-to-texture and generate mipmaps
-    gl.bindTexture(gl.TEXTURE_2D, rttTexture);
-    gl.generateMipmap(gl.TEXTURE_2D);
-    //! [7]
-
-    //! [8]
-    // Bind default framebuffer and setup viewport accordingly
-    gl.bindFramebuffer(gl.FRAMEBUFFER, 0);
     gl.viewport(0, 0,
                 canvas.width * canvas.devicePixelRatio,
                 canvas.height * canvas.devicePixelRatio);
-    //! [8]
-    gl.clearColor(0.98, 0.98, 0.98, 1.0);
+
+    gl.clearColor(0.0, 0.0, 0.0, 1.0);
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-    // Calculate and set matrix uniforms
-    mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);
-    gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
+    var xStart = -6.0;
+    var yStart = -3.2;
+    var zStart = -15.0;
+    var xRange = 12.0;
+    var yRange = 7.0;
+    var zRange = 5.0;
 
-    mat4.identity(mvMatrix);
-    mat4.translate(mvMatrix, mvMatrix, [(canvas.yRotAnim - 120.0) / 120.0,
-                                        (canvas.xRotAnim -  60.0) / 50.0,
-                                        -10.0]);
-    mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotAnim), [0, 1, 0]);
-    gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
+    for (var count = 0; count < canvas3d.itemCount; count++) {
+        // Calculate and set matrix uniforms
+        mat4.perspective(pMatrix, degToRad(45), canvas.width / canvas.height, 0.1, 100.0);
+        gl.uniformMatrix4fv(pMatrixUniform, false, pMatrix);
 
-    mat4.invert(nMatrix, mvMatrix);
-    mat4.transpose(nMatrix, nMatrix);
-    gl.uniformMatrix4fv(nUniform, false, nMatrix);
+        mat4.identity(mvMatrix);
+        var xFrac = ((count % 200) / 200);
+        var yFrac = count / canvas3d.maxCount;
+        var zFrac = ((count % 12) / 12);
+        mat4.translate(mvMatrix, mvMatrix, [xStart + (xFrac * xRange),
+                                            yStart + (yFrac * yRange),
+                                            zStart + (zFrac * zRange)]);
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.xRotSlider), [0, 1, 0]);
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.yRotSlider), [1, 0, 0]);
+        mat4.rotate(mvMatrix, mvMatrix, degToRad(canvas.zRotSlider), [0, 0, 1]);
+        mat4.scale(mvMatrix, mvMatrix, [0.15, 0.15, 0.15])
+        gl.uniformMatrix4fv(mvMatrixUniform, false, mvMatrix);
 
-    //! [9]
-    // Draw the on-screen cube
-    gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
-    //! [9]
+        mat4.invert(nMatrix, mvMatrix);
+        mat4.transpose(nMatrix, nMatrix);
+        gl.uniformMatrix4fv(nUniform, false, nMatrix);
+
+        // Draw the on-screen cube
+        gl.drawElements(gl.TRIANGLES, 36, gl.UNSIGNED_SHORT, 0);
+    }
 }
 
-function resizeGL(canvas)
+function onCanvasResize(canvas)
 {
     var pixelRatio = canvas.devicePixelRatio;
     canvas.pixelSize = Qt.size(canvas.width * pixelRatio,
@@ -284,7 +186,6 @@ function initBuffers()
                                         -1.0,  1.0, -1.0
                                        ]),
                 gl.STATIC_DRAW);
-
     gl.enableVertexAttribArray(vertexPositionAttribute);
     gl.vertexAttribPointer(vertexPositionAttribute, 3, gl.FLOAT, false, 0, 0);
 
@@ -303,6 +204,31 @@ function initBuffers()
                                         ]),
                   gl.STATIC_DRAW);
     gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, cubeVertexIndexBuffer);
+
+    var colors = [
+                [0.0,  1.0,  1.0,  1.0],    // Front face: white
+                [1.0,  0.0,  0.0,  1.0],    // Back face: red
+                [0.0,  1.0,  0.0,  1.0],    // Top face: green
+                [0.0,  0.0,  1.0,  1.0],    // Bottom face: blue
+                [1.0,  1.0,  0.0,  1.0],    // Right face: yellow
+                [1.0,  0.0,  1.0,  1.0]     // Left face: purple
+            ];
+
+    var generatedColors = [];
+    for (var j = 0; j < 6; j++) {
+        var c = colors[j];
+
+        for (var i = 0; i < 4; i++) {
+            generatedColors = generatedColors.concat(c);
+        }
+    }
+    log("        cubeVertexColorBuffer");
+    var cubeVertexColorBuffer = gl.createBuffer();
+    cubeVertexColorBuffer.name = "cubeVertexColorBuffer";
+    gl.bindBuffer(gl.ARRAY_BUFFER, cubeVertexColorBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(generatedColors), gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(vertexColorAttribute);
+    gl.vertexAttribPointer(vertexColorAttribute, 4, gl.FLOAT, false, 0, 0);
 
     log("        cubeVerticesTextureCoordBuffer");
     var cubeVerticesTextureCoordBuffer = gl.createBuffer();
@@ -342,8 +268,6 @@ function initBuffers()
             ];
     gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
                   gl.STATIC_DRAW);
-    gl.enableVertexAttribArray(textureCoordAttribute);
-    gl.vertexAttribPointer(textureCoordAttribute, 2, gl.FLOAT, false, 0, 0);
 
     var cubeVerticesNormalBuffer = gl.createBuffer();
     cubeVerticesNormalBuffer.name = "cubeVerticesNormalBuffer";
@@ -394,6 +318,7 @@ function initShaders()
     var vertexShader = getShader(gl,
                                  "attribute highp vec3 aVertexNormal;   \
                                   attribute highp vec3 aVertexPosition; \
+                                  attribute mediump vec4 aVertexColor;  \
                                   attribute highp vec2 aTextureCoord;   \
 
                                   uniform highp mat4 uNormalMatrix;     \
@@ -401,28 +326,24 @@ function initShaders()
                                   uniform mat4 uPMatrix;                \
 
                                   varying mediump vec4 vColor;          \
-                                  varying highp vec2 vTextureCoord;     \
                                   varying highp vec3 vLighting;         \
 
                                   void main(void) {                     \
                                       gl_Position = uPMatrix * uMVMatrix * vec4(aVertexPosition, 1.0);                      \
-                                      vTextureCoord = aTextureCoord;                                                        \
+                                      vColor = aVertexColor;                                                                \
                                       highp vec3 ambientLight = vec3(0.5, 0.5, 0.5);                                        \
-                                      highp vec3 directionalLightColor = vec3(0.75, 0.75, 0.75);                             \
+                                      highp vec3 directionalLightColor = vec3(0.15, 0.15, 0.15);                             \
                                       highp vec3 directionalVector = vec3(0.85, 0.8, 0.75);                                 \
                                       highp vec4 transformedNormal = uNormalMatrix * vec4(aVertexNormal, 1.0);              \
                                       highp float directional = max(dot(transformedNormal.xyz, directionalVector), 0.0);    \
                                       vLighting = ambientLight + (directionalLightColor * directional);                     \
                                   }", gl.VERTEX_SHADER);
     var fragmentShader = getShader(gl,
-                                   "varying highp vec2 vTextureCoord;   \
+                                   "varying mediump vec4 vColor;        \
                                     varying highp vec3 vLighting;       \
 
-                                    uniform sampler2D uSampler;         \
-
                                     void main(void) {                   \
-                                        mediump vec3 texelColor = texture2D(uSampler, vec2(vTextureCoord.s, vTextureCoord.t)).rgb;  \
-                                        gl_FragColor = vec4(texelColor * vLighting, 1.0);                                       \
+                                        gl_FragColor = vec4(vColor.rgb * vLighting, 1.0);                                       \
                                     }", gl.FRAGMENT_SHADER);
 
     var shaderProgram = gl.createProgram();
@@ -431,7 +352,7 @@ function initShaders()
     gl.linkProgram(shaderProgram);
 
     if (!gl.getProgramParameter(shaderProgram, gl.LINK_STATUS)) {
-        console.log("Could not initialise shaders");
+        console.log("Could not initialize shaders");
         console.log(gl.getProgramInfoLog(shaderProgram));
     }
 
@@ -440,18 +361,14 @@ function initShaders()
     // look up where the vertex data needs to go.
     vertexPositionAttribute = gl.getAttribLocation(shaderProgram, "aVertexPosition");
     gl.enableVertexAttribArray(vertexPositionAttribute);
-    textureCoordAttribute = gl.getAttribLocation(shaderProgram, "aTextureCoord");
-    gl.enableVertexAttribArray(textureCoordAttribute);
+    vertexColorAttribute = gl.getAttribLocation(shaderProgram, "aVertexColor");
+    gl.enableVertexAttribArray(vertexColorAttribute);
     vertexNormalAttribute =gl.getAttribLocation(shaderProgram, "aVertexNormal");
     gl.enableVertexAttribArray(vertexNormalAttribute);
 
     pMatrixUniform  = gl.getUniformLocation(shaderProgram, "uPMatrix");
     mvMatrixUniform = gl.getUniformLocation(shaderProgram, "uMVMatrix");
     nUniform = gl.getUniformLocation(shaderProgram, "uNormalMatrix");
-
-    var textureSamplerUniform = gl.getUniformLocation(shaderProgram, "uSampler")
-    gl.activeTexture(gl.TEXTURE0);
-    gl.uniform1i(textureSamplerUniform, 0);
 }
 
 function getShader(gl, str, type) {

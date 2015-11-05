@@ -54,6 +54,7 @@
 #include <QtQuick/QQuickWindow>
 #include <QtGui/QOpenGLFramebufferObject>
 #include <QtCore/QElapsedTimer>
+#include <QtCore/QPointer>
 
 QT_BEGIN_NAMESPACE
 
@@ -88,8 +89,6 @@ class QT_CANVAS3D_EXPORT Canvas : public QQuickItem
     Q_PROPERTY(float devicePixelRatio READ devicePixelRatio NOTIFY devicePixelRatioChanged)
     Q_PROPERTY(uint fps READ fps NOTIFY fpsChanged)
     Q_PROPERTY(QSize pixelSize READ pixelSize WRITE setPixelSize NOTIFY pixelSizeChanged)
-    Q_PROPERTY(int width READ width WRITE setWidth NOTIFY widthChanged)
-    Q_PROPERTY(int height READ height WRITE setHeight NOTIFY heightChanged)
     Q_PROPERTY(RenderTarget renderTarget READ renderTarget WRITE setRenderTarget NOTIFY renderTargetChanged REVISION 1)
     Q_PROPERTY(bool renderOnDemand READ renderOnDemand WRITE setRenderOnDemand NOTIFY renderOnDemandChanged REVISION 1)
 
@@ -100,6 +99,14 @@ public:
         RenderTargetForeground
     };
 
+    // internal
+    enum ContextState {
+        ContextNone,
+        ContextLost,
+        ContextRestoring,
+        ContextAlive
+    };
+
     Canvas(QQuickItem *parent = 0);
     ~Canvas();
 
@@ -107,10 +114,6 @@ public:
     float devicePixelRatio();
     QSize pixelSize();
     void setPixelSize(QSize pixelSize);
-    void setWidth(int width);
-    int width();
-    void setHeight(int height);
-    int height();
     void setRenderTarget(RenderTarget target);
     RenderTarget renderTarget() const;
     void setRenderOnDemand(bool enable);
@@ -126,12 +129,15 @@ public:
     CanvasRenderer *renderer();
 
 public slots:
+    void requestRender();
+
+private slots:
     void queueNextRender();
     void queueResizeGL();
-    void requestRender();
     void emitNeedRender();
     void handleBeforeSynchronizing();
     void handleRendererFpsChange(uint fps);
+    void handleContextLost();
 
 signals:
     void needRender();
@@ -139,10 +145,10 @@ signals:
     void contextChanged(CanvasContext *context);
     void fpsChanged(uint fps);
     void pixelSizeChanged(QSize pixelSize);
-    void widthChanged();
-    void heightChanged();
     void renderTargetChanged();
     void renderOnDemandChanged();
+    void contextLost();
+    void contextRestored();
 
     void initializeGL();
     void paintGL();
@@ -163,7 +169,7 @@ private:
 
     bool m_isNeedRenderQueued;
     bool m_rendererReady;
-    CanvasContext *m_context3D;
+    QPointer<CanvasContext> m_context3D;
     QSize m_fboSize;
     QSize m_maxSize;
 
@@ -174,13 +180,15 @@ private:
     float m_devicePixelRatio;
 
     bool m_isOpenGLES2;
+    bool m_isCombinedDepthStencilSupported;
     bool m_isSoftwareRendered;
     bool m_runningInDesigner;
     CanvasContextAttributes m_contextAttribs;
     bool m_isContextAttribsSet;
     bool m_alphaChanged;
     bool m_resizeGLQueued;
-    bool m_firstSync;
+    bool m_allowRenderTargetChange;
+    bool m_renderTargetSyncConnected;
     RenderTarget m_renderTarget;
     bool m_renderOnDemand;
 
@@ -191,6 +199,9 @@ private:
     QSet<QByteArray> m_extensions;
 
     uint m_fps;
+
+    ContextState m_contextState;
+    QPointer<QQuickWindow> m_contextWindow; // Not owned
 };
 
 QT_CANVAS3D_END_NAMESPACE

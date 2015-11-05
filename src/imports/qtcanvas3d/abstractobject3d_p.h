@@ -59,6 +59,7 @@ class CanvasAbstractObject : public QObject
 {
     Q_OBJECT
     Q_PROPERTY(QString name READ name WRITE setName NOTIFY nameChanged)
+    Q_PROPERTY(bool invalidated READ invalidated NOTIFY invalidatedChanged)
 
 public:
     explicit CanvasAbstractObject(CanvasGlCommandQueue *queue, QObject *parent);
@@ -67,15 +68,23 @@ public:
     void setName(const QString &name);
     const QString &name() const;
     bool hasSpecificName() const;
+    bool invalidated() const;
+    void setInvalidated(bool invalidated); // Internal
 
 signals:
     void nameChanged(const QString &name);
+    void invalidatedChanged(bool invalidated);
+
+protected:
+    void queueCommand(CanvasGlCommandQueue::GlCommandId id, GLint p1, GLint p2 = 0);
+    void queueCommand(CanvasGlCommandQueue::GlCommandId id, QByteArray *data,
+                      GLint p1, GLint p2 = 0);
+    CanvasGlCommandQueue *commandQueue() const { return m_commandQueue; }
 
 private:
     QString m_name;
     bool m_hasName;
-
-protected:
+    bool m_invalidated;
     // Not owned. Can be null pointer if the object type doesn't need OpenGL commands
     CanvasGlCommandQueue *m_commandQueue;
 };

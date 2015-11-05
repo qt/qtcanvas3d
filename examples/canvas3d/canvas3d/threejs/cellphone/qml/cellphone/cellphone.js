@@ -98,8 +98,7 @@ function initializeGL(canvas, textureSource) {
     }
 
     renderer = new THREE.Canvas3DRenderer(
-                { canvas: canvas, antialias: true, devicePixelRatio: canvas.devicePixelRatio,
-                  alpha: true});
+                { canvas: canvas, antialias: true, devicePixelRatio: canvas.devicePixelRatio });
     renderer.setSize( canvas.width, canvas.height );
 
     // The cellphone meshes were created using a third party tool (Blender).

@@ -1,2 +1,3 @@
 TEMPLATE = subdirs
-SUBDIRS = commandthroughput
+SUBDIRS = commandthroughput \
+    multiwindowtest

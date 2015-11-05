@@ -44,6 +44,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DTexture
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains an OpenGL texture.
  *
  * An uncreatable QML type that contains an OpenGL texture. You can get it by calling
@@ -58,12 +59,10 @@ CanvasTexture::CanvasTexture(CanvasGlCommandQueue *queue, CanvasContext *context
     m_context(context),
     m_quickItem(quickItem)
 {
-    Q_ASSERT(m_commandQueue);
-
     if (m_quickItem)
         connect(m_quickItem, &QObject::destroyed, this, &CanvasTexture::handleItemDestroyed);
     else
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
+        queueCommand(CanvasGlCommandQueue::glGenTextures, m_textureId);
 }
 
 CanvasTexture::~CanvasTexture()
@@ -73,10 +72,8 @@ CanvasTexture::~CanvasTexture()
 
 void CanvasTexture::bind(CanvasContext::glEnums target)
 {
-    if (m_textureId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glBindTexture, GLint(target),
-                                     m_textureId);
-    }
+    if (m_textureId)
+        queueCommand(CanvasGlCommandQueue::glBindTexture, GLint(target), m_textureId);
 }
 
 GLint CanvasTexture::textureId() const
@@ -99,14 +96,13 @@ bool CanvasTexture::isAlive() const
 
 void CanvasTexture::del()
 {
-    if (m_textureId) {
+    if (!invalidated() && m_textureId) {
         if (m_quickItem) {
             m_context->quickItemToTextureMap().remove(m_quickItem);
             m_quickItem = 0;
-            m_commandQueue->queueCommand(CanvasGlCommandQueue::internalClearQuickItemAsTexture,
-                                         m_textureId);
+            queueCommand(CanvasGlCommandQueue::internalClearQuickItemAsTexture, m_textureId);
         } else {
-            m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
+            queueCommand(CanvasGlCommandQueue::glDeleteTextures, m_textureId);
         }
     }
     m_textureId = 0;

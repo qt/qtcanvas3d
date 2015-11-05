@@ -34,67 +34,37 @@
 **
 ****************************************************************************/
 
-#include "renderbuffer3d_p.h"
+import QtQuick 2.2
+import QtCanvas3D 1.1
 
-QT_BEGIN_NAMESPACE
-QT_CANVAS3D_BEGIN_NAMESPACE
+import "tst_render_simple.js" as Content
 
-/*!
- * \qmltype Canvas3DRenderBuffer
- * \since QtCanvas3D 1.0
- * \inqmlmodule QtCanvas3D
- * \inherits Canvas3DAbstractObject
- * \brief Contains an OpenGL renderbuffer.
- *
- * An uncreatable QML type that contains an OpenGL renderbuffer. You can get it by calling
- * the \l{Context3D::createRenderbuffer()}{Context3D.createRenderbuffer()} method.
- */
+Canvas3D {
+    id: canvas3d
+    anchors.fill: parent
 
-CanvasRenderBuffer::CanvasRenderBuffer(CanvasGlCommandQueue *queue,
-                                       bool initSecondaryId, QObject *parent) :
-    CanvasAbstractObject(queue, parent),
-    m_renderbufferId(queue->createResourceId()),
-    m_secondaryId(0)
-{
-    queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_renderbufferId);
-    if (initSecondaryId) {
-        m_secondaryId = queue->createResourceId();
-        queueCommand(CanvasGlCommandQueue::glGenRenderbuffers, m_secondaryId);
+    property var activeContent: Content
+    property bool initOk: false
+    property bool renderOk: false
+    property bool contextLostOk: false
+    property bool contextRestoredOk: false
+
+    onInitializeGL: {
+        initOk = activeContent.initializeGL(canvas3d)
+    }
+    onPaintGL: {
+        renderOk = true
+        activeContent.paintGL(canvas3d)
+    }
+    onContextLost: {
+        contextLostOk = activeContent.checkContextLost();
+    }
+
+    onContextRestored: {
+        contextRestoredOk = activeContent.checkContextRestored();
+    }
+
+    function checkContextLostError() {
+        return activeContent.checkContextLostError();
     }
 }
-
-
-CanvasRenderBuffer::~CanvasRenderBuffer()
-{
-    del();
-}
-
-bool CanvasRenderBuffer::isAlive()
-{
-    return bool(m_renderbufferId);
-}
-
-void CanvasRenderBuffer::del()
-{
-    if (m_renderbufferId) {
-        queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_renderbufferId);
-        if (m_secondaryId) {
-            queueCommand(CanvasGlCommandQueue::glDeleteRenderbuffers, m_secondaryId);
-            m_secondaryId = 0;
-        }
-        m_renderbufferId = 0;
-    }
-}
-
-GLint CanvasRenderBuffer::id()
-{
-    return m_renderbufferId;
-}
-
-GLint CanvasRenderBuffer::secondaryId()
-{
-    return m_secondaryId;
-}
-
-QT_CANVAS3D_END_NAMESPACE
-QT_END_NAMESPACE

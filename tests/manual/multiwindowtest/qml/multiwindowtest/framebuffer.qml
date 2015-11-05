@@ -34,68 +34,35 @@
 **
 ****************************************************************************/
 
-import QtQuick 2.2
+import QtQuick 2.0
 import QtCanvas3D 1.1
-import QtQuick.Controls 1.1
-import QtQuick.Layouts 1.1
-import QtQuick.Window 2.2
+import QtQuick.Controls 1.0
+import QtQuick.Layouts 1.0
 
-import "quickitemtexture.js" as GLCode
+import "framebuffer.js" as GLCode
 
-Window {
-    id: mainview
-    width: 800
-    height: 600
+Rectangle {
+    id: mainView
+    anchors.fill: parent
     visible: true
-    title: "Qt Quick Item as Texture"
-    color: "#f9f9f9"
+    color: "#f2f2f2"
 
-    ColumnLayout {
-        Layout.fillWidth: true
-        x: 4
-        y: 4
-        //! [0]
-        Rectangle {
-            id: textureSource
-            color: "lightgreen"
-            width: 256
-            height: 256
-            border.color: "blue"
-            border.width: 4
-            layer.enabled: true
-            layer.smooth: true
-            Label {
-                anchors.fill: parent
-                anchors.margins: 16
-                text: "X Rot:" + (canvas3d.xRotAnim | 0) + "\n"
-                    + "Y Rot:" + (canvas3d.yRotAnim | 0) + "\n"
-                    + "Z Rot:" + (canvas3d.zRotAnim | 0) + "\n"
-                    + "FPS:" + canvas3d.fps
-                color: "red"
-                font.pointSize: 26
-                horizontalAlignment: Text.AlignLeft
-                verticalAlignment: Text.AlignVCenter
-            }
-        }
-        //! [0]
-        Button {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 256
-            text: textureSource.visible ? "Hide texture source" : "Show texture source"
-            onClicked: textureSource.visible = !textureSource.visible
-        }
-        Button {
-            Layout.fillWidth: true
-            Layout.minimumWidth: 256
-            text: "Quit"
-            onClicked: Qt.quit()
-        }
+    property alias canvas3d: canvas3d
+    property string canvasName: ""
+    property var previousParent: null
+
+    onParentChanged: {
+        if (previousParent && previousParent.handleParentChange)
+            previousParent.handleParentChange()
+        previousParent = parent
     }
 
     Canvas3D {
         id: canvas3d
-        anchors.fill:parent
-        focus: true
+        anchors.fill: parent
+        property double xRotSlider: 0
+        property double yRotSlider: 0
+        property double zRotSlider: 0
         property double xRotAnim: 0
         property double yRotAnim: 0
         property double zRotAnim: 0
@@ -103,16 +70,28 @@ Window {
 
         // Emitted when one time initializations should happen
         onInitializeGL: {
-            GLCode.initializeGL(canvas3d, textureSource);
+            GLCode.initializeGL(canvas3d);
         }
 
         // Emitted each time Canvas3D is ready for a new frame
         onPaintGL: {
-            GLCode.paintGL(canvas3d);
+            if (canvas3d.renderTarget === Canvas3D.RenderTargetOffscreenBuffer)
+                GLCode.paintGL(canvas3d, true);
+            else
+                GLCode.paintGL(canvas3d, false);
         }
 
         onResizeGL: {
             GLCode.resizeGL(canvas3d);
+        }
+
+        onContextLost: {
+            console.log("Context lost on: ", mainView.canvasName)
+            GLCode.handleContextLost();
+        }
+
+        onContextRestored: {
+            console.log("Context restored on: ", mainView.canvasName)
         }
 
         Keys.onSpacePressed: {
@@ -192,6 +171,64 @@ Window {
                 duration: 3000
                 easing.type: Easing.InOutSine
             }
+        }
+    }
+
+    RowLayout {
+        id: controlLayout
+        spacing: 5
+        x: 12
+        y: parent.height - 100
+        width: parent.width - (x * 2)
+        height: 100
+        visible: true
+
+        Label {
+            id: xRotLabel
+            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: false
+            text: "X-axis:"
+        }
+
+        Slider {
+            id: xSlider
+            Layout.alignment: Qt.AlignLeft
+            Layout.fillWidth: true
+            minimumValue: 0;
+            maximumValue: 360;
+            onValueChanged: canvas3d.xRotSlider = value;
+        }
+
+        Label {
+            id: yRotLabel
+            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: false
+            text: "Y-axis:"
+        }
+
+        Slider {
+            id: ySlider
+            Layout.alignment: Qt.AlignLeft
+            Layout.fillWidth: true
+            minimumValue: 0;
+            maximumValue: 360;
+            onValueChanged: canvas3d.yRotSlider = value;
+        }
+
+        Label {
+            id: zRotLabel
+            Layout.alignment: Qt.AlignRight
+            Layout.fillWidth: false
+            text: "Z-axis:"
+        }
+
+        Slider {
+            id: zSlider
+            Layout.alignment: Qt.AlignLeft
+            Layout.fillWidth: true
+            minimumValue: 0;
+            maximumValue: 360;
+            onValueChanged: canvas3d.zRotSlider = value;
         }
     }
 }

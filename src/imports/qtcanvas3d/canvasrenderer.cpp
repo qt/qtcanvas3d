@@ -46,6 +46,7 @@
 #include <QtQml/QQmlEngine>
 #include <QtQml/QQmlContext>
 #include <QtQuick/QQuickWindow>
+#include <QtCore/QMutexLocker>
 
 QT_BEGIN_NAMESPACE
 QT_CANVAS3D_BEGIN_NAMESPACE
@@ -136,7 +137,7 @@ void CanvasRenderer::createContextShare()
     m_glContextQt->doneCurrent();
     if (!m_glContextShare->create()) {
         qCWarning(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                               << "Failed to create share context";
+                                               << " Failed to create share context";
     }
     if (!m_glContextQt->makeCurrent(surface)) {
         qCWarning(canvas3drendering).nospace() << "CanvasRenderer::" << __FUNCTION__
@@ -157,7 +158,7 @@ void CanvasRenderer::getQtContextAttributes(CanvasContextAttributes &contextAttr
 
 void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &contextAttributes,
                           GLint &maxVertexAttribs, QSize &maxSize, int &contextVersion,
-                          QSet<QByteArray> &extensions)
+                          QSet<QByteArray> &extensions, bool &isCombinedDepthStencilSupported)
 {
     m_antialias = contextAttributes.antialias();
     m_preserveDrawingBuffer = contextAttributes.preserveDrawingBuffer();
@@ -177,6 +178,10 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     maxSize.setHeight(viewportDims[1]);
 
     // Set the size
+    if (maxSize.width() < m_initializedSize.width())
+        m_initializedSize.setWidth(maxSize.width());
+    if (maxSize.height() < m_initializedSize.height())
+        m_initializedSize.setHeight(maxSize.height());
     setFboSize(m_initializedSize);
     m_forceViewportRect = QRect(0, 0, m_fboSize.width(), m_fboSize.height());
     glScissor(0, 0, m_fboSize.width(), m_fboSize.height());
@@ -222,6 +227,19 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     m_glContext->functions()->glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &maxVertexAttribs);
 
     contextVersion = m_glContext->format().majorVersion();
+
+    if (contextVersion < 3) {
+        if (m_isOpenGLES2) {
+            isCombinedDepthStencilSupported =
+                    m_glContext->hasExtension(QByteArrayLiteral("GL_OES_packed_depth_stencil"));
+        } else {
+            isCombinedDepthStencilSupported =
+                    m_glContext->hasExtension(QByteArrayLiteral("GL_ARB_framebuffer_object"))
+                    || m_glContext->hasExtension(QByteArrayLiteral("GL_EXT_packed_depth_stencil"));
+        }
+    } else {
+        isCombinedDepthStencilSupported = true;
+    }
 
     extensions = m_glContext->extensions();
 
@@ -300,7 +318,7 @@ void CanvasRenderer::shutDown()
     if (!m_glContext)
         return;
 
-    disconnect(m_contextWindow, 0, this, 0);
+    QMutexLocker locker(&m_shutdownMutex);
 
     m_fps = 0;
 
@@ -364,7 +382,8 @@ void CanvasRenderer::shutDown()
 bool CanvasRenderer::createContext(QQuickWindow *window,
                                    const CanvasContextAttributes &contextAttributes,
                                    GLint &maxVertexAttribs, QSize &maxSize,
-                                   int &contextVersion, QSet<QByteArray> &extensions)
+                                   int &contextVersion, QSet<QByteArray> &extensions,
+                                   bool &isCombinedDepthStencilSupported)
 {
     // Initialize the swap buffer chain
     if (contextAttributes.depth() && contextAttributes.stencil() && !contextAttributes.antialias())
@@ -453,7 +472,8 @@ bool CanvasRenderer::createContext(QQuickWindow *window,
         return false;
     }
 
-    init(window, contextAttributes, maxVertexAttribs, maxSize, contextVersion, extensions);
+    init(window, contextAttributes, maxVertexAttribs, maxSize, contextVersion, extensions,
+         isCombinedDepthStencilSupported);
 
     if (m_glContext->thread() != contextThread) {
         m_glContext->doneCurrent();
@@ -1947,6 +1967,20 @@ qint64 CanvasRenderer::previousFrameTime()
 {
     m_frameTimer.start();
     return m_frameTimeMs;
+}
+
+void CanvasRenderer::destroy()
+{
+    QMutexLocker locker(&m_shutdownMutex);
+
+    if (m_glContext) {
+        deleteLater();
+    } else {
+        // It is safe to delete even in another thread if we are already shut down or not yet
+        // started up.
+        locker.unlock();
+        delete this;
+    }
 }
 
 QT_CANVAS3D_END_NAMESPACE

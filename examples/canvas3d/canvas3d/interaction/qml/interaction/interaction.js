@@ -86,7 +86,7 @@ function initializeGL(canvas) {
 
         // Get the OpenGL context jsonObj that represents the API we call
         log("Getting Context");
-        gl = canvas.getContext("canvas3d", {depth:true, antialias:true});
+        gl = canvas.getContext("canvas3d", {depth:true, antialias:true, alpha:false});
         log("Context received "+gl);
 
         var contextConfig = gl.getContextAttributes();

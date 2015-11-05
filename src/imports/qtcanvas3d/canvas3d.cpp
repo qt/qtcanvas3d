@@ -83,7 +83,6 @@ Canvas::Canvas(QQuickItem *parent):
     QQuickItem(parent),
     m_isNeedRenderQueued(false),
     m_rendererReady(false),
-    m_context3D(0),
     m_fboSize(0, 0),
     m_maxSize(0, 0),
     m_frameTimeMs(0),
@@ -91,24 +90,25 @@ Canvas::Canvas(QQuickItem *parent):
     m_maxSamples(0),
     m_devicePixelRatio(1.0f),
     m_isOpenGLES2(false),
+    m_isCombinedDepthStencilSupported(false),
     m_isSoftwareRendered(false),
     m_isContextAttribsSet(false),
     m_alphaChanged(false),
     m_resizeGLQueued(false),
-    m_firstSync(true),
+    m_allowRenderTargetChange(true),
+    m_renderTargetSyncConnected(false),
     m_renderTarget(RenderTargetOffscreenBuffer),
     m_renderOnDemand(false),
     m_renderer(0),
     m_maxVertexAttribs(0),
     m_contextVersion(0),
-    m_fps(0)
+    m_fps(0),
+    m_contextState(ContextNone)
 {
     connect(this, &QQuickItem::windowChanged, this, &Canvas::handleWindowChanged);
     connect(this, &Canvas::needRender, this, &Canvas::queueNextRender, Qt::QueuedConnection);
     connect(this, &QQuickItem::widthChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
     connect(this, &QQuickItem::heightChanged, this, &Canvas::queueResizeGL, Qt::DirectConnection);
-    connect(this, &QQuickItem::widthChanged, this, &Canvas::widthChanged, Qt::DirectConnection);
-    connect(this, &QQuickItem::heightChanged, this, &Canvas::heightChanged, Qt::DirectConnection);
     setAntialiasing(false);
 
     // Set contents to false in case we are in qml designer to make component look nice
@@ -132,64 +132,34 @@ Canvas::Canvas(QQuickItem *parent):
  * Driven by the Qt Quick scenegraph loop.
  */
 
+/*!
+ * \qmlsignal void Canvas3D::contextLost()
+ * Emitted when OpenGL context is lost. This happens whenever the parent window of the Canvas3D
+ * is destroyed (or otherwise loses its context), or Canvas3D is moved to a different window.
+ * Removing Canvas3D from a window and adding it back to the same window doesn't cause context
+ * loss, as long as the window itself stays alive.
+ *
+ * When context is lost, all objects created by Context3D are invalidated.
+ *
+ * \sa contextRestored
+ */
+
+/*!
+ * \qmlsignal void Canvas3D::contextRestored()
+ * Emitted when OpenGL context is restored after a loss of context occurred. The Context3D attached
+ * to the canvas needs to be reinitialized, so initializeGL is also emitted after this signal.
+ *
+ * \sa contextLost
+ */
+
 Canvas::~Canvas()
 {
     // Ensure that all JS objects have been destroyed before we destroy the command queue.
-    delete m_context3D;
+    if (!m_context3D.isNull())
+        delete m_context3D.data();
 
-    if (m_renderer) {
-        if (m_renderer->thread() == QThread::currentThread())
-            delete m_renderer;
-        else
-            m_renderer->deleteLater();
-    }
-}
-
-/*!
- * Override QQuickItem's setWidth to be able to limit the maximum canvas size to maximum viewport
- * dimensions.
- */
-void Canvas::setWidth(int width)
-{
-    int newWidth = width;
-    int maxWidth = m_maxSize.width();
-    if (maxWidth && width > maxWidth) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << "():"
-                                             << "Maximum width exceeded. Limiting to "
-                                             << maxWidth;
-        newWidth = maxWidth;
-    }
-    QQuickItem::setWidth(qreal(newWidth));
-}
-
-int Canvas::width()
-{
-    return int(QQuickItem::width());
-}
-
-/*!
- * Override QQuickItem's setHeight to be able to limit the maximum canvas size to maximum viewport
- * dimensions.
- */
-void Canvas::setHeight(int height)
-{
-    int newHeight = height;
-    int maxHeight = m_maxSize.height();
-    if (maxHeight && height > maxHeight) {
-        qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                             << "():"
-                                             << "Maximum height exceeded. Limiting to "
-                                             << maxHeight;
-        newHeight = maxHeight;
-    }
-
-    QQuickItem::setHeight(qreal(newHeight));
-}
-
-int Canvas::height()
-{
-    return int(QQuickItem::height());
+    if (m_renderer)
+        m_renderer->destroy();
 }
 
 /*!
@@ -265,7 +235,7 @@ int Canvas::height()
  */
 void Canvas::setRenderTarget(RenderTarget target)
 {
-    if (m_firstSync) {
+    if (m_allowRenderTargetChange) {
         RenderTarget oldTarget = m_renderTarget;
         m_renderTarget = target;
         if (m_renderTarget == RenderTargetOffscreenBuffer)
@@ -274,6 +244,13 @@ void Canvas::setRenderTarget(RenderTarget target)
             setFlag(ItemHasContents, false);
         if (oldTarget != m_renderTarget)
             emit renderTargetChanged();
+        if (!m_renderTargetSyncConnected && window()
+                && m_renderTarget != RenderTargetOffscreenBuffer) {
+            m_renderTargetSyncConnected = true;
+            connect(window(), &QQuickWindow::beforeSynchronizing,
+                    this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
+            window()->setClearBeforeRendering(false);
+        }
     } else {
         qCWarning(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                                << ": renderTarget property can only be "
@@ -394,7 +371,8 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         updateWindowParameters();
 
         if (!m_renderer->createContext(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
-                                       m_contextVersion, m_extensions)) {
+                                       m_contextVersion, m_extensions,
+                                       m_isCombinedDepthStencilSupported)) {
             return QJSValue(QJSValue::NullValue);
         }
 
@@ -405,37 +383,21 @@ QJSValue Canvas::getContext(const QString &type, const QVariantMap &options)
         m_context3D = new CanvasContext(QQmlEngine::contextForObject(this)->engine(),
                                         m_isOpenGLES2, m_maxVertexAttribs,
                                         m_contextVersion, m_extensions,
-                                        m_renderer->commandQueue());
+                                        m_renderer->commandQueue(),
+                                        m_isCombinedDepthStencilSupported);
 
         connect(m_renderer, &CanvasRenderer::textureIdResolved,
-                m_context3D, &CanvasContext::handleTextureIdResolved,
+                m_context3D.data(), &CanvasContext::handleTextureIdResolved,
                 Qt::QueuedConnection);
-
-        // Verify that width and height are not initially too large, in case width and height
-        // were set before getting GL_MAX_VIEWPORT_DIMS
-        if (width() > m_maxSize.width()) {
-            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                                 << "():"
-                                                 << "Maximum width exceeded. Limiting to "
-                                                 << m_maxSize.width();
-            QQuickItem::setWidth(m_maxSize.width());
-        }
-        if (height() > m_maxSize.height()) {
-            qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
-                                                 << "():"
-                                                 << "Maximum height exceeded. Limiting to "
-                                                 << m_maxSize.height();
-            QQuickItem::setHeight(m_maxSize.height());
-        }
 
         m_context3D->setCanvas(this);
         m_context3D->setDevicePixelRatio(m_devicePixelRatio);
         m_context3D->setContextAttributes(m_contextAttribs);
 
-        emit contextChanged(m_context3D);
+        emit contextChanged(m_context3D.data());
     }
 
-    return QQmlEngine::contextForObject(this)->engine()->newQObject(m_context3D);
+    return QQmlEngine::contextForObject(this)->engine()->newQObject(m_context3D.data());
 }
 
 /*!
@@ -488,10 +450,52 @@ void Canvas::setPixelSize(QSize pixelSize)
 void Canvas::handleWindowChanged(QQuickWindow *window)
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "(" << window << ")";
-    if (!window)
-        return;
 
-    if (m_renderTarget != RenderTargetOffscreenBuffer) {
+    if (!window) {
+        if (!m_contextWindow.isNull()) {
+            if (m_renderTarget != RenderTargetOffscreenBuffer) {
+                disconnect(m_contextWindow.data(), &QQuickWindow::beforeSynchronizing,
+                           this, &Canvas::handleBeforeSynchronizing);
+            }
+            if (m_renderer) {
+                if (m_renderTarget == RenderTargetForeground) {
+                    disconnect(m_contextWindow.data(), &QQuickWindow::beforeRendering,
+                            m_renderer, &CanvasRenderer::clearBackground);
+                    disconnect(m_contextWindow.data(), &QQuickWindow::afterRendering,
+                            m_renderer, &CanvasRenderer::render);
+                } else {
+                    disconnect(m_contextWindow.data(), &QQuickWindow::beforeRendering,
+                            m_renderer, &CanvasRenderer::render);
+                }
+            }
+        }
+        return;
+    }
+
+    if (window != m_contextWindow.data()) {
+        handleContextLost();
+        m_contextWindow = window;
+    } else {
+        // Re-added to same window
+        if (!m_context3D.isNull())
+            m_context3D->markQuickTexturesDirty();
+
+        if (m_renderer) {
+            if (m_renderTarget == RenderTargetForeground) {
+                connect(window, &QQuickWindow::beforeRendering,
+                        m_renderer, &CanvasRenderer::clearBackground, Qt::DirectConnection);
+                connect(window, &QQuickWindow::afterRendering,
+                        m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+            } else {
+                connect(window, &QQuickWindow::beforeRendering,
+                        m_renderer, &CanvasRenderer::render, Qt::DirectConnection);
+            }
+        }
+    }
+
+    if ((!m_allowRenderTargetChange || !m_renderTargetSyncConnected)
+            && m_renderTarget != RenderTargetOffscreenBuffer) {
+        m_renderTargetSyncConnected = true;
         connect(window, &QQuickWindow::beforeSynchronizing,
                 this, &Canvas::handleBeforeSynchronizing, Qt::DirectConnection);
         window->setClearBeforeRendering(false);
@@ -530,7 +534,7 @@ void Canvas::itemChange(ItemChange change, const ItemChangeData &value)
 CanvasContext *Canvas::context()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
-    return m_context3D;
+    return m_context3D.data();
 }
 
 void Canvas::updateWindowParameters()
@@ -550,7 +554,7 @@ void Canvas::updateWindowParameters()
         }
     }
 
-    if (m_context3D) {
+    if (!m_context3D.isNull()) {
         if (m_context3D->devicePixelRatio() != m_devicePixelRatio)
             m_context3D->setDevicePixelRatio(m_devicePixelRatio);
     }
@@ -576,15 +580,26 @@ bool Canvas::firstSync()
 {
     qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__ << "()";
 
-    if (!m_renderer) {
-        m_renderer = new CanvasRenderer();
+    if (m_contextState == ContextLost || !m_renderer) {
+        if (m_renderer)
+            m_renderer->destroy();
 
+        m_renderer = new CanvasRenderer();
+        m_contextState = ContextRestoring;
+
+        // Update necessary things to m_context3D
+        if (!m_context3D.isNull()) {
+           m_context3D->setCommandQueue(m_renderer->commandQueue());
+           connect(m_renderer, &CanvasRenderer::textureIdResolved,
+                   m_context3D.data(), &CanvasContext::handleTextureIdResolved,
+                   Qt::QueuedConnection);
+        }
         connect(m_renderer, &CanvasRenderer::fpsChanged,
                 this, &Canvas::handleRendererFpsChange);
     }
 
     if (!m_renderer->qtContextResolved()) {
-        m_firstSync = false;
+        m_allowRenderTargetChange = false;
         QSize initializedSize = boundingRect().size().toSize();
         if (initializedSize.width() <= 0)
             initializedSize.setWidth(1);
@@ -597,7 +612,7 @@ bool Canvas::firstSync()
             m_renderer->getQtContextAttributes(m_contextAttribs);
             m_isContextAttribsSet = true;
             m_renderer->init(window(), m_contextAttribs, m_maxVertexAttribs, m_maxSize,
-                             m_contextVersion, m_extensions);
+                             m_contextVersion, m_extensions, m_isCombinedDepthStencilSupported);
             setPixelSize(m_renderer->fboSize());
         } else {
             m_renderer->createContextShare();
@@ -606,6 +621,9 @@ bool Canvas::firstSync()
 
         connect(window(), &QQuickWindow::sceneGraphInvalidated,
                 m_renderer, &CanvasRenderer::shutDown, Qt::DirectConnection);
+        connect(window(), &QQuickWindow::sceneGraphInvalidated,
+                this, &Canvas::handleContextLost, Qt::QueuedConnection);
+        connect(window(), &QObject::destroyed, this, &Canvas::handleContextLost);
 
         if (m_renderTarget == RenderTargetForeground) {
             connect(window(), &QQuickWindow::beforeRendering,
@@ -770,15 +788,22 @@ void Canvas::queueNextRender()
         return;
     }
 
-    if (!m_context3D) {
+    if (m_context3D.isNull() || m_contextState == ContextRestoring) {
         // Call the initialize function from QML/JavaScript. It'll call the getContext()
         // that in turn creates the renderer context.
         qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
                                              << " Emit initializeGL() signal";
 
+        if (!m_context3D.isNull()) {
+            m_context3D->setContextLostState(false);
+            emit contextRestored();
+        }
+
         // Call init on JavaScript side to queue the user's GL initialization commands.
         // The initial context creation get will also initialize the context command queue.
         emit initializeGL();
+
+        m_contextState = ContextAlive;
 
         if (!m_isContextAttribsSet) {
             qCDebug(canvas3drendering).nospace() << "Canvas3D::" << __FUNCTION__
@@ -879,6 +904,27 @@ void Canvas::handleRendererFpsChange(uint fps)
     if (fps != m_fps) {
         m_fps = fps;
         emit fpsChanged(m_fps);
+    }
+}
+
+void Canvas::handleContextLost()
+{
+    if (m_contextState == ContextAlive || m_contextState == ContextRestoring) {
+        m_contextState = ContextLost;
+        m_rendererReady = false;
+        m_fboSize = QSize(0, 0);
+
+        if (!m_contextWindow.isNull()) {
+            disconnect(m_contextWindow.data(), &QQuickWindow::sceneGraphInvalidated,
+                       this, &Canvas::handleContextLost);
+            disconnect(m_contextWindow.data(), &QObject::destroyed,
+                        this, &Canvas::handleContextLost);
+        }
+
+        if (!m_context3D.isNull())
+            m_context3D->setContextLostState(true);
+
+        emit contextLost();
     }
 }
 

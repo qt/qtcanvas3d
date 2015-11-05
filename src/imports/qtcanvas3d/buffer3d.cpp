@@ -46,6 +46,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DBuffer
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
+ * \inherits Canvas3DAbstractObject
  * \brief Contains an OpenGL buffer.
  *
  * An uncreatable QML type that contains an OpenGL buffer. You can get it by calling the
@@ -65,13 +66,11 @@ CanvasBuffer::CanvasBuffer(CanvasGlCommandQueue *queue, QObject *parent) :
     m_bufferId(queue->createResourceId()),
     m_bindTarget(CanvasBuffer::UNINITIALIZED)
 {
-    Q_ASSERT(m_commandQueue);
-
-    m_commandQueue->queueCommand(CanvasGlCommandQueue::glGenBuffers, m_bufferId);
+    queueCommand(CanvasGlCommandQueue::glGenBuffers, m_bufferId);
 }
 
 CanvasBuffer::CanvasBuffer(const CanvasBuffer& other) :
-    CanvasAbstractObject(other.m_commandQueue, 0), // Copying a QObject, leave it parentless..
+    CanvasAbstractObject(other.commandQueue(), 0), // Copying a QObject, leave it parentless..
     m_bufferId(other.m_bufferId),
     m_bindTarget(other.m_bindTarget)
 {
@@ -85,9 +84,8 @@ CanvasBuffer::~CanvasBuffer()
 
 void CanvasBuffer::del()
 {
-    if (m_bufferId) {
-        m_commandQueue->queueCommand(CanvasGlCommandQueue::glDeleteBuffers, m_bufferId);
-    }
+    if (m_bufferId)
+        queueCommand(CanvasGlCommandQueue::glDeleteBuffers, m_bufferId);
     m_bufferId = 0;
 }
 

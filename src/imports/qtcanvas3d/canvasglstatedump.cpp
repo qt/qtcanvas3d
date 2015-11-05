@@ -433,6 +433,9 @@ void CanvasGLStateDump::doGLStateDump()
  */
 QString CanvasGLStateDump::getGLStateDump(CanvasGLStateDump::stateDumpEnums options)
 {
+    if (m_canvasContext->isContextLost())
+        return QString();
+
     m_options = options;
     m_stateDumpStr.clear();
 

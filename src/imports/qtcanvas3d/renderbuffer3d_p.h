@@ -58,14 +58,17 @@ class CanvasRenderBuffer : public CanvasAbstractObject
 {
     Q_OBJECT
 public:
-    explicit CanvasRenderBuffer(CanvasGlCommandQueue *queue, QObject *parent = 0);
+    explicit CanvasRenderBuffer(CanvasGlCommandQueue *queue, bool initSecondaryId,
+                                QObject *parent = 0);
     ~CanvasRenderBuffer();
     bool isAlive();
     void del();
     GLint id();
+    GLint secondaryId();
 
 private:
     GLint m_renderbufferId;
+    GLint m_secondaryId;
 };
 
 QT_CANVAS3D_END_NAMESPACE
