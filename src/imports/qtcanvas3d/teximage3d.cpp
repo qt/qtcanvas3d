@@ -154,7 +154,8 @@ QJSValue CanvasTextureImageFactory::newTexImage()
 CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEngine *engine) :
     CanvasAbstractObject(0, parent),
     m_engine(engine),
-    m_networkAccessManager(0),
+    m_networkAccessManager(m_engine->networkAccessManager()),
+    m_networkReply(0),
     m_state(INITIALIZED),
     m_errorString(""),
     m_pixelCache(0),
@@ -162,9 +163,6 @@ CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEn
     m_pixelCacheFlipY(false),
     m_parentFactory(parent)
 {
-    m_networkAccessManager = new QNetworkAccessManager(this);
-    QObject::connect(m_networkAccessManager, &QNetworkAccessManager::finished,
-                     this, &CanvasTextureImage::handleReply);
 }
 
 CanvasTextureImage::CanvasTextureImage(const QImage &source,
@@ -173,24 +171,32 @@ CanvasTextureImage::CanvasTextureImage(const QImage &source,
                                        QQmlEngine *engine) :
     CanvasAbstractObject(0, parent),
     m_engine(engine),
-    m_networkAccessManager(0),
+    m_networkAccessManager(m_engine->networkAccessManager()),
+    m_networkReply(0),
     m_state(INITIALIZED),
     m_errorString(""),
     m_pixelCache(0),
     m_pixelCacheFormat(CanvasContext::NONE),
     m_pixelCacheFlipY(false)
 {
-    m_networkAccessManager = new QNetworkAccessManager(this);
-    QObject::connect(m_networkAccessManager, &QNetworkAccessManager::finished,
-                     this, &CanvasTextureImage::handleReply);
-
     m_image = source.scaled(width, height);
     setImageState(LOADING_FINISHED);
 }
 
+void CanvasTextureImage::cleanupNetworkReply()
+{
+    if (m_networkReply) {
+        QObject::disconnect(m_networkReply, &QNetworkReply::finished,
+                            this, &CanvasTextureImage::handleReply);
+        m_networkReply->abort();
+        m_networkReply->deleteLater();
+        m_networkReply = 0;
+    }
+}
+
 CanvasTextureImage::~CanvasTextureImage()
 {
-    delete m_networkAccessManager;
+    cleanupNetworkReply();
     delete m_pixelCache;
 }
 
@@ -250,7 +256,9 @@ void CanvasTextureImage::load()
     emit imageLoadingStarted(this);
 
     QNetworkRequest request(m_source);
-    m_networkAccessManager->get(request);
+    m_networkReply = m_networkAccessManager->get(request);
+    QObject::connect(m_networkReply, &QNetworkReply::finished,
+                     this, &CanvasTextureImage::handleReply);
 }
 
 /*!
@@ -262,18 +270,19 @@ QString CanvasTextureImage::errorString() const
     return m_errorString;
 }
 
-void CanvasTextureImage::handleReply(QNetworkReply *reply)
+void CanvasTextureImage::handleReply()
 {
-    if (reply->error() != QNetworkReply::NoError) {
-        m_errorString = reply->errorString();
-        emit errorStringChanged(m_errorString);
-        setImageState(LOADING_ERROR);
-        return;
+    if (m_networkReply) {
+        if (m_networkReply->error() != QNetworkReply::NoError) {
+            m_errorString = m_networkReply->errorString();
+            emit errorStringChanged(m_errorString);
+            setImageState(LOADING_ERROR);
+        } else {
+            m_image.loadFromData(m_networkReply->readAll());
+            setImageState(LOADING_FINISHED);
+        }
+        cleanupNetworkReply();
     }
-
-    m_image.loadFromData(reply->readAll());
-
-    setImageState(LOADING_FINISHED);
 }
 
 QImage &CanvasTextureImage::getImage()

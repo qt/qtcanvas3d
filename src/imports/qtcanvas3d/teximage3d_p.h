@@ -120,7 +120,7 @@ public:
     void emitImageLoadingError();
 
     void load();
-    void handleReply(QNetworkReply *reply);
+    void handleReply();
     QImage &getImage();
     uchar *convertToFormat(CanvasContext::glEnums format, bool flipY = false, bool premultipliedAlpha = false);
 
@@ -143,8 +143,11 @@ signals:
     void imageLoadingFailed(CanvasTextureImage *image);
 
 private:
+    void cleanupNetworkReply();
+
     QQmlEngine *m_engine;
-    QNetworkAccessManager *m_networkAccessManager;
+    QNetworkAccessManager *m_networkAccessManager; // not owned
+    QNetworkReply *m_networkReply;
     QImage m_image;
     QUrl m_source;
     TextureImageState m_state;
