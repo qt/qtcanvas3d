@@ -413,7 +413,7 @@ void CanvasGlCommandQueue::clearResourceMaps()
                                << commandId << "Resource:" << glId;
                     break;
                 }
-                i++;
+                ++i;
             }
         }
 
@@ -423,14 +423,14 @@ void CanvasGlCommandQueue::clearResourceMaps()
         while (si != m_shaderMap.constEnd()) {
             QOpenGLShader *shader = si.value();
             delete shader;
-            si++;
+            ++si;
         }
 
         QMap<GLint, QOpenGLShaderProgram *>::const_iterator pi = m_programMap.constBegin();
         while (pi != m_programMap.constEnd()) {
             QOpenGLShaderProgram *program = pi.value();
             delete program;
-            pi++;
+            ++pi;
         }
 
         m_resourceIdMap.clear();

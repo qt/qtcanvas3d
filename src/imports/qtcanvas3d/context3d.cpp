@@ -2354,7 +2354,7 @@ QJSValue CanvasContext::getAttachedShaders(QJSValue program3D)
     QJSValue shaderList = m_engine->newArray(shaders.count());
 
     for (QList<CanvasShader *>::const_iterator iter = shaders.constBegin();
-         iter != shaders.constEnd(); iter++) {
+         iter != shaders.constEnd(); ++iter) {
         CanvasShader *shader = *iter;
         shaderList.setProperty(index++, m_engine->newQObject((CanvasShader *)shader));
     }
@@ -6144,7 +6144,7 @@ void CanvasContext::markQuickTexturesDirty()
         QMap<QQuickItem *, CanvasTexture *>::iterator i = m_quickItemToTextureMap.begin();
         while (i != m_quickItemToTextureMap.end()) {
             m_commandQueue->addQuickItemAsTexture(i.key(), i.value()->textureId());
-            i++;
+            ++i;
         }
     }
 }
