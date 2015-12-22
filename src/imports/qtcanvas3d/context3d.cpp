@@ -1098,6 +1098,8 @@ void CanvasContext::texImage2D(glEnums target, int level, glEnums internalformat
             qCWarning(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                                    << ":INVALID_ENUM:Invalid format supplied "
                                                    << glEnumToString(format);
+            if (deleteTempPixels)
+                delete[] srcData;
             return;
         }
 
