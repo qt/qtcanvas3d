@@ -343,7 +343,7 @@ void CanvasGLStateDump::doGLStateDump()
     }
 #endif
 
-    if (m_options && DUMP_VERTEX_ATTRIB_ARRAYS_BIT) {
+    if (m_options & DUMP_VERTEX_ATTRIB_ARRAYS_BIT) {
         for (int i = 0; i < m_maxVertexAttribs;i++) {
             funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_ENABLED, &vertexAttribArrayEnabledStates[i]);
             funcs->glGetVertexAttribiv(i, GL_VERTEX_ATTRIB_ARRAY_BUFFER_BINDING, &vertexAttribArrayBoundBuffers[i]);
@@ -385,7 +385,7 @@ void CanvasGLStateDump::doGLStateDump()
         }
     }
 
-    if (m_options && DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT) {
+    if (m_options & DUMP_VERTEX_ATTRIB_ARRAYS_BUFFERS_BIT) {
         if (boundElementArrayBuffer != 0) {
             m_stateDumpStr.append("GL_ELEMENT_ARRAY_BUFFER................");
             m_stateDumpStr.append(QString::number(boundElementArrayBuffer));
