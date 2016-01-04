@@ -68,8 +68,8 @@ Slider {
             anchors.centerIn: parent
             color: "transparent"
             border.width: 0
-            implicitWidth: 50
-            implicitHeight: 50
+            implicitWidth: 80
+            implicitHeight: 80
         }
     }
 }
