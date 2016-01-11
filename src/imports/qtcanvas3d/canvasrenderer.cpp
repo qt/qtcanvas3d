@@ -315,64 +315,64 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
  */
 void CanvasRenderer::shutDown()
 {
-    if (!m_glContext)
-        return;
-
     QMutexLocker locker(&m_shutdownMutex);
 
-    m_fps = 0;
+    if (m_glContext) {
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer)
+            m_glContext->makeCurrent(m_offscreenSurface);
 
-    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer)
-        m_glContext->makeCurrent(m_offscreenSurface);
+        m_commandQueue.clearResourceMaps();
 
-    m_commandQueue.clearResourceMaps();
+        deleteCommandData();
+        m_executeQueue.clear();
 
-    deleteCommandData();
-    m_executeQueue.clear();
+        delete m_renderFbo;
+        delete m_displayFbo;
+        delete m_antialiasFbo;
 
-    delete m_renderFbo;
-    delete m_displayFbo;
-    delete m_antialiasFbo;
+        if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
+            delete m_alphaMultiplierFbo;
+            m_alphaMultiplierFbo = 0;
+            glDeleteBuffers(1, &m_alphaMultiplierUVBuffer);
+            glDeleteBuffers(1, &m_alphaMultiplierVertexBuffer);
+            m_alphaMultiplierUVBuffer = 0;
+            m_alphaMultiplierVertexBuffer = 0;
+            delete m_alphaMultiplierProgram;
+            delete m_alphaMultiplierVertexShader;
+            delete m_alphaMultiplierFragmentShader;
+            m_alphaMultiplierProgram = 0;
+            m_alphaMultiplierVertexShader = 0;
+            m_alphaMultiplierFragmentShader = 0;
 
-    if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
-        delete m_alphaMultiplierFbo;
-        m_alphaMultiplierFbo = 0;
-        glDeleteBuffers(1, &m_alphaMultiplierUVBuffer);
-        glDeleteBuffers(1, &m_alphaMultiplierVertexBuffer);
-        m_alphaMultiplierUVBuffer = 0;
-        m_alphaMultiplierVertexBuffer = 0;
-        delete m_alphaMultiplierProgram;
-        delete m_alphaMultiplierVertexShader;
-        delete m_alphaMultiplierFragmentShader;
-        m_alphaMultiplierProgram = 0;
-        m_alphaMultiplierVertexShader = 0;
-        m_alphaMultiplierFragmentShader = 0;
+            m_glContext->doneCurrent();
+            delete m_glContext;
+        }
 
-        m_glContext->doneCurrent();
-        delete m_glContext;
+        m_renderFbo = 0;
+        m_displayFbo = 0;
+        m_antialiasFbo = 0;
+
+        // m_offscreenSurface is owned by main thread, as on some platforms that is required.
+        if (m_offscreenSurface) {
+            m_offscreenSurface->deleteLater();
+            m_offscreenSurface = 0;
+        }
+
+        m_currentFramebufferId = 0;
+        m_forceViewportRect = QRect();
+
+        delete m_stateStore;
+        m_stateStore = 0;
+
+        m_glContext = 0;
     }
-
-    m_renderFbo = 0;
-    m_displayFbo = 0;
-    m_antialiasFbo = 0;
 
     delete m_glContextShare;
 
-    // m_offscreenSurface is owned by main thread, as on some platforms that is required.
-    if (m_offscreenSurface) {
-        m_offscreenSurface->deleteLater();
-        m_offscreenSurface = 0;
-    }
-
-    m_glContext = 0;
     m_glContextQt = 0;
     m_glContextShare = 0;
 
-    m_currentFramebufferId = 0;
-    m_forceViewportRect = QRect();
-
-    delete m_stateStore;
-    m_stateStore = 0;
+    m_fps = 0;
 }
 
 /*!
