@@ -74,6 +74,8 @@ public:
     void notifyLoadedImages();
 
     Q_INVOKABLE QJSValue newTexImage();
+    void handleImageDestroyed(CanvasTextureImage *image);
+
 private:
     QQmlEngine *m_qmlEngine;
     QList<CanvasTextureImage *> m_loadingImagesList;
@@ -129,7 +131,7 @@ public:
 private:
     void setImageState(TextureImageState state);
     explicit CanvasTextureImage(const QImage &source, int width, int height,
-                                QObject *parent, QQmlEngine *engine);
+                                CanvasTextureImageFactory *parent, QQmlEngine *engine);
 
 signals:
     void srcChanged(QUrl source);

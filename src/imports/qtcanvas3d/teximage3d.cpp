@@ -119,7 +119,6 @@ void CanvasTextureImageFactory::notifyLoadedImages()
         if (image->imageState() == CanvasTextureImage::LOADING_FINISHED) {
             m_loadingImagesList.removeOne(image);
             image->emitImageLoaded();
-
         } else if (image->imageState() == CanvasTextureImage::LOADING_ERROR) {
             m_loadingImagesList.removeOne(image);
             image->emitImageLoadingError();
@@ -134,10 +133,12 @@ void CanvasTextureImageFactory::notifyLoadedImages()
 QJSValue CanvasTextureImageFactory::newTexImage()
 {
     CanvasTextureImage *newImg = new CanvasTextureImage(this, m_qmlEngine);
-    connect(newImg, &CanvasTextureImage::imageLoadingStarted,
-            this, &CanvasTextureImageFactory::handleImageLoadingStarted);
-
     return m_qmlEngine->newQObject(newImg);
+}
+
+void CanvasTextureImageFactory::handleImageDestroyed(CanvasTextureImage *image)
+{
+    m_loadingImagesList.removeOne(image);
 }
 
 /*!
@@ -152,7 +153,7 @@ QJSValue CanvasTextureImageFactory::newTexImage()
  * \sa TextureImageFactory
  */
 CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEngine *engine) :
-    CanvasAbstractObject(0, parent),
+    CanvasAbstractObject(0, 0),
     m_engine(engine),
     m_networkAccessManager(m_engine->networkAccessManager()),
     m_networkReply(0),
@@ -167,9 +168,9 @@ CanvasTextureImage::CanvasTextureImage(CanvasTextureImageFactory *parent, QQmlEn
 
 CanvasTextureImage::CanvasTextureImage(const QImage &source,
                                        int width, int height,
-                                       QObject *parent,
+                                       CanvasTextureImageFactory *parent,
                                        QQmlEngine *engine) :
-    CanvasAbstractObject(0, parent),
+    CanvasAbstractObject(0, 0),
     m_engine(engine),
     m_networkAccessManager(m_engine->networkAccessManager()),
     m_networkReply(0),
@@ -177,7 +178,8 @@ CanvasTextureImage::CanvasTextureImage(const QImage &source,
     m_errorString(""),
     m_pixelCache(0),
     m_pixelCacheFormat(CanvasContext::NONE),
-    m_pixelCacheFlipY(false)
+    m_pixelCacheFlipY(false),
+    m_parentFactory(parent)
 {
     m_image = source.scaled(width, height);
     setImageState(LOADING_FINISHED);
@@ -196,8 +198,10 @@ void CanvasTextureImage::cleanupNetworkReply()
 
 CanvasTextureImage::~CanvasTextureImage()
 {
+    if (m_parentFactory)
+        m_parentFactory->handleImageDestroyed(this);
     cleanupNetworkReply();
-    delete m_pixelCache;
+    delete[] m_pixelCache;
 }
 
 /*!
@@ -253,6 +257,7 @@ void CanvasTextureImage::load()
         return;
 
     setImageState(LOADING);
+    m_parentFactory->handleImageLoadingStarted(this);
     emit imageLoadingStarted(this);
 
     QNetworkRequest request(m_source);
@@ -353,7 +358,7 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format,
         return m_pixelCache;
 
     // Destroy the pixel cache
-    delete m_pixelCache;
+    delete[] m_pixelCache;
     m_pixelCache = 0;
     m_pixelCacheFormat = CanvasContext::NONE;
 
