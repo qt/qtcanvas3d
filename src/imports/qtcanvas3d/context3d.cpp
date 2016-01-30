@@ -5973,14 +5973,14 @@ QVariantList CanvasContext::getSupportedExtensions()
 
         if (!m_isOpenGLES2 ||
                 (m_contextVersion >= 3
-                 || m_extensions.contains("OES_standard_derivatives"))) {
+                 || m_extensions.contains("GL_OES_standard_derivatives"))) {
             list.append(QVariant::fromValue(QStringLiteral("OES_standard_derivatives")));
         }
 
         if (m_extensions.contains("GL_EXT_texture_compression_s3tc"))
             list.append(QVariant::fromValue(QStringLiteral("WEBGL_compressed_texture_s3tc")));
 
-        if (m_extensions.contains("IMG_texture_compression_pvrtc"))
+        if (m_extensions.contains("GL_IMG_texture_compression_pvrtc"))
             list.append(QVariant::fromValue(QStringLiteral("WEBGL_compressed_texture_pvrtc")));
     }
 
