@@ -51,6 +51,7 @@
 #include "abstractobject3d_p.h"
 
 #include <QtCore/QUrl>
+#include <QtCore/QPointer>
 #include <QtGui/QImage>
 #include <QtNetwork/QNetworkAccessManager>
 #include <QtNetwork/QNetworkReply>
@@ -159,7 +160,7 @@ private:
     bool m_pixelCacheFlipY;
     QImage m_glImage;
     QVariant *m_anyValue;
-    CanvasTextureImageFactory *m_parentFactory;
+    QPointer<CanvasTextureImageFactory> m_parentFactory;
 };
 
 QT_CANVAS3D_END_NAMESPACE
