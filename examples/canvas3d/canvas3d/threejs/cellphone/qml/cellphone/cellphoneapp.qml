@@ -314,14 +314,12 @@ Rectangle {
         flickDeceleration: 0
         onMovementStarted: {
             // Interpret all drags as flicks instead
-            if (interactive)
+            if (interactive) {
+                interactive = false
                 flick(-flickSpeed, 0)
-            interactive = false
+            }
         }
         onFlickStarted: {
-            // All flicks will open the screen at consistent speed
-            if (interactive)
-                flick(-flickSpeed, 0)
             interactive = false
         }
         onFlickEnded: {

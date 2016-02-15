@@ -5978,14 +5978,14 @@ QVariantList CanvasContext::getSupportedExtensions()
 
         if (!m_isOpenGLES2 ||
                 (m_contextVersion >= 3
-                 || m_extensions.contains("OES_standard_derivatives"))) {
+                 || m_extensions.contains("GL_OES_standard_derivatives"))) {
             list.append(QVariant::fromValue(QStringLiteral("OES_standard_derivatives")));
         }
 
         if (m_extensions.contains("GL_EXT_texture_compression_s3tc"))
             list.append(QVariant::fromValue(QStringLiteral("WEBGL_compressed_texture_s3tc")));
 
-        if (m_extensions.contains("IMG_texture_compression_pvrtc"))
+        if (m_extensions.contains("GL_IMG_texture_compression_pvrtc"))
             list.append(QVariant::fromValue(QStringLiteral("WEBGL_compressed_texture_pvrtc")));
     }
 
@@ -6087,7 +6087,7 @@ QVariant CanvasContext::getExtension(const QString &name)
                 m_textureProviderExt = new CanvasTextureProvider(this, this);
             return QVariant::fromValue(m_textureProviderExt);
         } else if (upperCaseName == QStringLiteral("OES_STANDARD_DERIVATIVES") &&
-                   m_extensions.contains("OES_standard_derivatives")) {
+                   m_extensions.contains("GL_OES_standard_derivatives")) {
             if (!m_standardDerivatives)
                 m_standardDerivatives = new QObject(this);
             return QVariant::fromValue(m_standardDerivatives);
@@ -6097,7 +6097,7 @@ QVariant CanvasContext::getExtension(const QString &name)
                 m_compressedTextureS3TC = new CompressedTextureS3TC(this);
             return QVariant::fromValue(m_compressedTextureS3TC);
         } else if (upperCaseName == QStringLiteral("WEBGL_COMPRESSED_TEXTURE_PVRTC") &&
-                   m_extensions.contains("IMG_texture_compression_pvrtc")) {
+                   m_extensions.contains("GL_IMG_texture_compression_pvrtc")) {
             if (!m_compressedTexturePVRTC)
                 m_compressedTexturePVRTC = new CompressedTexturePVRTC(this);
             return QVariant::fromValue(m_compressedTexturePVRTC);
