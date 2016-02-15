@@ -198,7 +198,7 @@ void CanvasTextureImage::cleanupNetworkReply()
 
 CanvasTextureImage::~CanvasTextureImage()
 {
-    if (m_parentFactory)
+    if (!m_parentFactory.isNull())
         m_parentFactory->handleImageDestroyed(this);
     cleanupNetworkReply();
     delete[] m_pixelCache;
@@ -257,7 +257,8 @@ void CanvasTextureImage::load()
         return;
 
     setImageState(LOADING);
-    m_parentFactory->handleImageLoadingStarted(this);
+    if (!m_parentFactory.isNull())
+        m_parentFactory->handleImageLoadingStarted(this);
     emit imageLoadingStarted(this);
 
     QNetworkRequest request(m_source);
