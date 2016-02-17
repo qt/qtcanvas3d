@@ -65,12 +65,13 @@ function initializeGL(canvas) {
 
     //! [1]
     // Load textures
-    var textureCase1 = THREE.ImageUtils.loadTexture(canvas.image1);
-    var textureCase2 = THREE.ImageUtils.loadTexture(canvas.image2);
-    var textureCase3 = THREE.ImageUtils.loadTexture(canvas.image3);
-    var textureCase4 = THREE.ImageUtils.loadTexture(canvas.image4);
-    var textureCase5 = THREE.ImageUtils.loadTexture(canvas.image5);
-    var textureCase6 = THREE.ImageUtils.loadTexture(canvas.image6);
+    var textureLoader = new THREE.TextureLoader();
+    var textureCase1 = textureLoader.load(canvas.image1);
+    var textureCase2 = textureLoader.load(canvas.image2);
+    var textureCase3 = textureLoader.load(canvas.image3);
+    var textureCase4 = textureLoader.load(canvas.image4);
+    var textureCase5 = textureLoader.load(canvas.image5);
+    var textureCase6 = textureLoader.load(canvas.image6);
 
     // Materials
     var materials = [];
