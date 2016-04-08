@@ -64,7 +64,7 @@ function initializeGL(canvas, textureSource) {
     scene = new THREE.Scene();
 
     cubeCamera = new THREE.CubeCamera(5, 100, 512);
-    cubeCamera.renderTarget.minFilter = THREE.LinearMipMapLinearFilter;
+    cubeCamera.renderTarget.texture.minFilter = THREE.LinearMipMapLinearFilter;
     scene.add(cubeCamera);
 
     // Background sphere
@@ -74,8 +74,10 @@ function initializeGL(canvas, textureSource) {
     sphere.side = THREE.BackSide;
     sphere.scale.x = -1;
     scene.add(sphere);
+    var textureLoader = new THREE.TextureLoader();
     if (sphereImage) {
-        var sphereTexture = THREE.ImageUtils.loadTexture(sphereImage, THREE.UVMapping, updateEnvMap);
+        var sphereTexture = textureLoader.load(sphereImage, updateEnvMap);
+        sphereTexture.mapping = THREE.UVMapping;
         sphereTexture.minFilter = THREE.LinearFilter;
         sphere.material.map = sphereTexture;
     } else {
@@ -104,7 +106,7 @@ function initializeGL(canvas, textureSource) {
 
     var iconMaterial = new THREE.MeshPhongMaterial( { transparent:true } );
     if (iconImage) {
-        var iconTexture = THREE.ImageUtils.loadTexture(iconImage);
+        var iconTexture = textureLoader.load(iconImage);
         iconTexture.minFilter = THREE.LinearFilter;
         iconMaterial.map = iconTexture;
     } else {

@@ -85,9 +85,10 @@ QT_CANVAS3D_BEGIN_NAMESPACE
 class QtCanvas3DPlugin : public QQmlExtensionPlugin
 {
     Q_OBJECT
-    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface")
+    Q_PLUGIN_METADATA(IID "org.qt-project.Qt.QQmlExtensionInterface/1.0")
 
 public:
+    QtCanvas3DPlugin(QObject *parent = 0);
     void registerTypes(const char *uri);
 };
 
