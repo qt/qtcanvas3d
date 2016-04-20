@@ -1,6 +1,6 @@
 <RCC>
     <qresource prefix="/">
-        <file alias="gl-matrix.js">../../../examples/canvas3d/canvas3d/3rdparty/gl-matrix.js</file>
+        <file alias="gl-matrix.js">../../../examples/canvas3d/3rdparty/gl-matrix.js</file>
         <file alias="main.qml">qml/multiwindowtest/main.qml</file>
         <file alias="framebuffer.js">qml/multiwindowtest/framebuffer.js</file>
         <file alias="framebuffer.qml">qml/multiwindowtest/framebuffer.qml</file>
