@@ -11,7 +11,7 @@ imagedirs  += images
 headerdirs += ..
 sourcedirs += ..
 
-examplesinstallpath = qtcanvas3d/canvas3d
+examplesinstallpath = canvas3d
 
 depends     = qtcore qtgui qtqml qtquick qtquickcontrols qtquicklayouts qtdoc qtmultimedia
 
