@@ -4521,22 +4521,20 @@ QJSValue CanvasContext::getParameter(glEnums pname)
     case COMPRESSED_TEXTURE_FORMATS: {
         syncCommand.i1 = GLint(GL_NUM_COMPRESSED_TEXTURE_FORMATS);
         scheduleSyncCommand(&syncCommand);
+        QV4::Scope scope(m_v4engine);
+        QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
+                                             m_v4engine->newArrayBuffer(sizeof(int) * value));
         if (value > 0) {
-            QV4::Scope scope(m_v4engine);
-            QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
-                                                 m_v4engine->newArrayBuffer(sizeof(int) * value));
-
             syncCommand.i1 = GLint(pname);
             syncCommand.returnValue = buffer->data();
             scheduleSyncCommand(&syncCommand);
-
-            QV4::ScopedFunctionObject constructor(scope,
-                                                  m_v4engine->typedArrayCtors[
-                                                  QV4::Heap::TypedArray::UInt32Array]);
-            QV4::ScopedCallData callData(scope, 1);
-            callData->args[0] = buffer;
-            return QJSValue(m_v4engine, constructor->construct(callData));
         }
+        QV4::ScopedFunctionObject constructor(scope,
+                                              m_v4engine->typedArrayCtors[
+                                              QV4::Heap::TypedArray::UInt32Array]);
+        QV4::ScopedCallData callData(scope, 1);
+        callData->args[0] = buffer;
+        return QJSValue(m_v4engine, constructor->construct(callData));
     }
     case FRAMEBUFFER_BINDING: {
         return m_engine->newQObject(m_currentFramebuffer);
