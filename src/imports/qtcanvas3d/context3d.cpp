@@ -4400,7 +4400,8 @@ QJSValue CanvasContext::getParameter(glEnums pname)
                                               QV4::Heap::TypedArray::Float32Array]);
         QV4::ScopedCallData callData(scope, 1);
         callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
+        constructor->construct(scope, callData);
+        return QJSValue(m_v4engine, scope.result.asReturnedValue());
     }
 
         // Float32Array (with 4 values)
@@ -4420,7 +4421,8 @@ QJSValue CanvasContext::getParameter(glEnums pname)
                                               QV4::Heap::TypedArray::Float32Array]);
         QV4::ScopedCallData callData(scope, 1);
         callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
+        constructor->construct(scope, callData);
+        return QJSValue(m_v4engine, scope.result.asReturnedValue());
     }
 
         // Int32Array (with 2 elements)
@@ -4437,7 +4439,8 @@ QJSValue CanvasContext::getParameter(glEnums pname)
                                               QV4::Heap::TypedArray::Int32Array]);
         QV4::ScopedCallData callData(scope, 1);
         callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
+        constructor->construct(scope, callData);
+        return QJSValue(m_v4engine, scope.result.asReturnedValue());
     }
         // Int32Array (with 4 elements)
         // Intentional flow through
@@ -4455,7 +4458,8 @@ QJSValue CanvasContext::getParameter(glEnums pname)
                                               QV4::Heap::TypedArray::Int32Array]);
         QV4::ScopedCallData callData(scope, 1);
         callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
+        constructor->construct(scope, callData);
+        return QJSValue(m_v4engine, scope.result.asReturnedValue());
     }
 
         // sequence<GLboolean> (with 4 values)
@@ -4534,7 +4538,8 @@ QJSValue CanvasContext::getParameter(glEnums pname)
                                               QV4::Heap::TypedArray::UInt32Array]);
         QV4::ScopedCallData callData(scope, 1);
         callData->args[0] = buffer;
-        return QJSValue(m_v4engine, constructor->construct(callData));
+        constructor->construct(scope, callData);
+        return QJSValue(m_v4engine, scope.result.asReturnedValue());
     }
     case FRAMEBUFFER_BINDING: {
         return m_engine->newQObject(m_currentFramebuffer);
@@ -5675,7 +5680,8 @@ QJSValue CanvasContext::getVertexAttrib(uint index, glEnums pname)
                                                       QV4::Heap::TypedArray::Float32Array]);
                 QV4::ScopedCallData callData(scope, 1);
                 callData->args[0] = buffer;
-                return QJSValue(m_v4engine, constructor->construct(callData));
+                constructor->construct(scope, callData);
+                return QJSValue(m_v4engine, scope.result.asReturnedValue());
             }
         }
         default:
@@ -5878,7 +5884,8 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
                                                       QV4::Heap::TypedArray::Int32Array]);
                 QV4::ScopedCallData callData(scope, 1);
                 callData->args[0] = buffer;
-                return QJSValue(m_v4engine, constructor->construct(callData));
+                constructor->construct(scope, callData);
+                return QJSValue(m_v4engine, scope.result.asReturnedValue());
             }
         }
         case FLOAT_VEC2:
@@ -5903,7 +5910,8 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
                                                       QV4::Heap::TypedArray::Float32Array]);
                 QV4::ScopedCallData callData(scope, 1);
                 callData->args[0] = buffer;
-                return QJSValue(m_v4engine, constructor->construct(callData));
+                constructor->construct(scope, callData);
+                return QJSValue(m_v4engine, scope.result.asReturnedValue());
             }
         }
         case BOOL_VEC2:
@@ -5951,7 +5959,8 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
                                                       QV4::Heap::TypedArray::Float32Array]);
                 QV4::ScopedCallData callData(scope, 1);
                 callData->args[0] = buffer;
-                return QJSValue(m_v4engine, constructor->construct(callData));
+                constructor->construct(scope, callData);
+                return QJSValue(m_v4engine, scope.result.asReturnedValue());
             }
         }
         default:
