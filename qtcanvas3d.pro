@@ -1,3 +1,5 @@
+requires(contains(QT_CONFIG, opengl))
+
 load(qt_parts)
 
 # We need opengl, minimum es2
