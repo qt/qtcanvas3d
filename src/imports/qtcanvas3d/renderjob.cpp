@@ -82,7 +82,9 @@ void CanvasRenderJob::run()
         QSurface *oldSurface(0);
         if (!m_renderer->usingQtContext()) {
             oldContext = QOpenGLContext::currentContext();
-            oldSurface = oldContext->surface();
+            if (oldContext)
+                oldSurface = oldContext->surface();
+
             m_renderer->makeCanvasContextCurrent();
         }
 
