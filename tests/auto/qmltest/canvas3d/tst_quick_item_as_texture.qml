@@ -151,7 +151,7 @@ Item {
             activeContent.updateTexture(shaderEffectSource)
             waitForRendering(canvas3d)
 
-            tryCompare(activeContent.readyTexturesCount() === 1)
+            tryCompare(activeContent.readyTextures, "length", 1)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "red", 0x10)
             tryCompare(top, "green", 0x20)
@@ -162,7 +162,7 @@ Item {
             activeContent.updateTexture(shaderEffectSource2)
             waitForRendering(canvas3d)
 
-            tryCompare(activeContent.readyTexturesCount() === 1)
+            tryCompare(activeContent.readyTextures, "length", 1)
             tryCompare(top, "renderOk", true)
             tryCompare(top, "red", 0x12)
             tryCompare(top, "green", 0x22)
@@ -172,7 +172,7 @@ Item {
             // testRect3 is layered
             resetRenderCheck()
             activeContent.updateTexture(testRect3)
-            tryCompare(activeContent.readyTexturesCount() === 1)
+            tryCompare(activeContent.readyTextures, "length", 1)
             waitForRendering(canvas3d)
 
             tryCompare(top, "renderOk", true)
@@ -185,7 +185,7 @@ Item {
             testRect.color = "#405060"
             resetRenderCheck()
             activeContent.updateTexture(shaderEffectSource)
-            tryCompare(activeContent.readyTexturesCount() === 1)
+            tryCompare(activeContent.readyTextures, "length", 1)
 
             waitForRendering(canvas3d)
 
@@ -293,7 +293,7 @@ Item {
             activeContent.updateTexture(testRect2)
             activeContent.updateTexture(testRect3)
 
-            tryCompare(activeContent.readyTexturesCount() === 3)
+            tryCompare(activeContent.readyTextures, "length", 3)
         }
     }
 }
