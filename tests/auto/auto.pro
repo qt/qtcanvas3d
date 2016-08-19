@@ -1,4 +1,4 @@
 TEMPLATE = subdirs
-SUBDIRS = qmltest
+!uikit: SUBDIRS += qmltest
 
 installed_cmake.depends = cmake
