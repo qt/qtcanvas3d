@@ -116,17 +116,20 @@ void CanvasTextureImageFactory::notifyLoadedImages()
     if (!m_loadingImagesList.size())
         return;
 
-    QMutableListIterator<CanvasTextureImage *> it(m_loadingImagesList);
-    while (it.hasNext()) {
-        CanvasTextureImage *image = it.next();
+    auto hasLoadingFinishedOrFailed = [](CanvasTextureImage *image) -> bool {
         if (image->imageState() == CanvasTextureImage::LOADING_FINISHED) {
-            m_loadingImagesList.removeOne(image);
             image->emitImageLoaded();
+            return true;
         } else if (image->imageState() == CanvasTextureImage::LOADING_ERROR) {
-            m_loadingImagesList.removeOne(image);
             image->emitImageLoadingError();
+            return true;
         }
-    }
+        return false;
+    };
+
+    m_loadingImagesList.erase(std::remove_if(m_loadingImagesList.begin(), m_loadingImagesList.end(),
+                                             hasLoadingFinishedOrFailed),
+                              m_loadingImagesList.end());
 }
 
 /*!
