@@ -128,8 +128,8 @@ CanvasContext::~CanvasContext()
     EnumToStringMap::deleteInstance();
 
     // Cleanup quick item textures to avoid crash when parent gets deleted before children
-    QList<CanvasTexture *> quickItemTextures = m_quickItemToTextureMap.values();
-    foreach (CanvasTexture *texture, quickItemTextures)
+    const QList<CanvasTexture *> quickItemTextures = m_quickItemToTextureMap.values();
+    for (CanvasTexture *texture : quickItemTextures)
         texture->del();
 }
 
@@ -6123,9 +6123,9 @@ void CanvasContext::setContextLostState(bool lost)
         m_error = CANVAS_NO_ERRORS;
 
         if (lost) {
-            foreach (CanvasAbstractObject *jsObj, m_validObjectMap.keys()) {
-                jsObj->setInvalidated(true);
-                disconnect(jsObj, &QObject::destroyed, this, &CanvasContext::handleObjectDeletion);
+            for (auto it = m_validObjectMap.cbegin(), end = m_validObjectMap.cend(); it != end; ++it) {
+                it.key()->setInvalidated(true);
+                disconnect(it.key(), &QObject::destroyed, this, &CanvasContext::handleObjectDeletion);
             }
             m_validObjectMap.clear();
             m_quickItemToTextureMap.clear();

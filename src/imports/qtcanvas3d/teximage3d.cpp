@@ -55,8 +55,7 @@ class StaticFactoryMapDeleter
 public:
     StaticFactoryMapDeleter() {}
     ~StaticFactoryMapDeleter() {
-        foreach (CanvasTextureImageFactory *factory, m_qmlEngineToImageFactoryMap)
-            delete factory;
+        qDeleteAll(m_qmlEngineToImageFactoryMap);
     }
 };
 static StaticFactoryMapDeleter staticFactoryMapDeleter;
