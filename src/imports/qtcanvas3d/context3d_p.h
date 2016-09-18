@@ -1283,6 +1283,7 @@ private:
     QV4::ExecutionEngine *m_v4engine;
     bool m_unpackFlipYEnabled;
     bool m_unpackPremultiplyAlphaEnabled;
+    int m_unpackAlignmentValue;
     qreal m_devicePixelRatio;
     CanvasProgram *m_currentProgram;
     CanvasBuffer *m_currentArrayBuffer;
