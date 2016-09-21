@@ -205,7 +205,7 @@ Rectangle {
             model: appGridModel
             cellWidth: width / 3
             cellHeight: cellWidth
-            interactive: false
+            boundsBehavior: Flickable.StopAtBounds
             delegate: Component {
                 id: appGridDelegate
                 Item {
@@ -311,21 +311,18 @@ Rectangle {
         contentHeight: clock.height
         contentX: 0
         boundsBehavior: Flickable.StopAtBounds
-        flickDeceleration: 0
-        onMovementStarted: {
-            // Interpret all drags as flicks instead
-            if (interactive) {
-                interactive = false
+        flickableDirection: Flickable.HorizontalFlick
+        flickDeceleration: 0.1
+        onMovementEnded: {
+            if (contentX == width) {
+                visible = false
+                mainScreen.resetLockTimer()
+            } else if (contentX != 0) {
                 flick(-flickSpeed, 0)
             }
         }
-        onFlickStarted: {
-            interactive = false
-        }
         onFlickEnded: {
-            if (contentX == 0) {
-                interactive = true
-            } else {
+            if (contentX == width) {
                 visible = false
                 mainScreen.resetLockTimer()
             }

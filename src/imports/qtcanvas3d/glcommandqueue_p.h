@@ -319,6 +319,15 @@ private:
     GLbitfield m_clearMask;
 };
 
+inline bool operator==(CanvasGlCommandQueue::GlResource lhs, CanvasGlCommandQueue::GlResource rhs) Q_DECL_NOTHROW
+{
+    return lhs.glId == rhs.glId && lhs.commandId == rhs.commandId;
+}
+inline bool operator!=(CanvasGlCommandQueue::GlResource lhs, CanvasGlCommandQueue::GlResource rhs) Q_DECL_NOTHROW
+{
+    return !operator==(lhs, rhs);
+}
+
 class GlCommand
 {
 public:
