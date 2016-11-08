@@ -204,19 +204,6 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     m_executeStartIndex = 0;
     m_executeEndIndex = 0;
 
-#ifndef QT_NO_DEBUG
-    const GLubyte *version = m_glContext->functions()->glGetString(GL_VERSION);
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "OpenGL version:" << (const char *)version;
-
-    version = m_glContext->functions()->glGetString(GL_SHADING_LANGUAGE_VERSION);
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "GLSL version:" << (const char *)version;
-
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "EXTENSIONS: " << extensions;
-#endif
-
 #if defined(Q_OS_WIN)
     // Check driver vendor. We need to do some additional checking with Intel GPUs in Windows,
     // as our FBOs can get corrupted when some unrelated Qt Quick items are
