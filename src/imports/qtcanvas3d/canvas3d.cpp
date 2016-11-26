@@ -46,6 +46,7 @@
 #include "canvasglstatedump_p.h"
 #include "renderjob_p.h"
 #include "canvasrenderer_p.h"
+#include "openglversionchecker_p.h"
 
 #include <QtGui/QGuiApplication>
 #include <QtGui/QOffscreenSurface>
@@ -118,10 +119,8 @@ Canvas::Canvas(QQuickItem *parent):
     m_runningInDesigner = QGuiApplication::applicationDisplayName() == "Qml2Puppet";
     setFlag(ItemHasContents, !(m_runningInDesigner || m_renderTarget != RenderTargetOffscreenBuffer));
 
-#if (QT_VERSION >= QT_VERSION_CHECK(5, 4, 0))
-    if (QCoreApplication::testAttribute(Qt::AA_UseSoftwareOpenGL))
-        m_isSoftwareRendered = true;
-#endif
+    OpenGLVersionChecker checker;
+    m_isSoftwareRendered = checker.isSoftwareRenderer();
 }
 
 /*!
