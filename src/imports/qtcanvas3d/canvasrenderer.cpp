@@ -1163,7 +1163,7 @@ void CanvasRenderer::executeCommandQueue()
         }
         case CanvasGlCommandQueue::glDrawElements: {
             glDrawElements(GLenum(command.i1), GLsizei(command.i2), GLenum(command.i3),
-                           reinterpret_cast<GLvoid *>(command.i4));
+                           reinterpret_cast<GLvoid *>(qintptr(command.i4)));
             break;
         }
         case CanvasGlCommandQueue::glEnable: {
@@ -1470,7 +1470,7 @@ void CanvasRenderer::executeCommandQueue()
         case CanvasGlCommandQueue::glVertexAttribPointer: {
             glVertexAttribPointer(GLuint(command.i1), command.i2, GLenum(command.i3),
                                   GLboolean(command.i4), GLsizei(command.i5),
-                                  reinterpret_cast<const GLvoid *>(command.i6));
+                                  reinterpret_cast<const GLvoid *>(qintptr(command.i6)));
             break;
         }
         case CanvasGlCommandQueue::glViewport: {

@@ -484,7 +484,7 @@ void GLStateStore::restoreStoredState()
                               m_vertexAttribArrayTypes[i],
                               m_vertexAttribArrayNormalized[i],
                               m_vertexAttribArrayStrides[i],
-                              reinterpret_cast<const GLvoid *>(m_vertexAttribArrayOffsets[i]));
+                              reinterpret_cast<const GLvoid *>(qintptr(m_vertexAttribArrayOffsets[i])));
     }
 
     glBindBuffer(GL_ARRAY_BUFFER, m_boundArrayBuffer);
