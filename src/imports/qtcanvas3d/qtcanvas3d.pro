@@ -30,7 +30,8 @@ SOURCES += arrayutils.cpp \
     renderjob.cpp \
     canvasrenderer.cpp \
     canvastextureprovider.cpp \
-    glstatestore.cpp
+    glstatestore.cpp \
+    openglversionchecker.cpp
 
 HEADERS += arrayutils_p.h \
     qcanvas3d_plugin.h \
@@ -58,7 +59,8 @@ HEADERS += arrayutils_p.h \
     renderjob_p.h \
     canvasrenderer_p.h \
     canvastextureprovider_p.h \
-    glstatestore_p.h
+    glstatestore_p.h \
+    openglversionchecker_p.h
 
 OTHER_FILES = qmldir \
     doc/* \

@@ -204,19 +204,6 @@ void CanvasRenderer::init(QQuickWindow *window, const CanvasContextAttributes &c
     m_executeStartIndex = 0;
     m_executeEndIndex = 0;
 
-#ifndef QT_NO_DEBUG
-    const GLubyte *version = m_glContext->functions()->glGetString(GL_VERSION);
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "OpenGL version:" << (const char *)version;
-
-    version = m_glContext->functions()->glGetString(GL_SHADING_LANGUAGE_VERSION);
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "GLSL version:" << (const char *)version;
-
-    qCDebug(canvas3dinfo).nospace() << "CanvasRenderer::" << __FUNCTION__
-                                    << "EXTENSIONS: " << extensions;
-#endif
-
 #if defined(Q_OS_WIN)
     // Check driver vendor. We need to do some additional checking with Intel GPUs in Windows,
     // as our FBOs can get corrupted when some unrelated Qt Quick items are
@@ -1176,7 +1163,7 @@ void CanvasRenderer::executeCommandQueue()
         }
         case CanvasGlCommandQueue::glDrawElements: {
             glDrawElements(GLenum(command.i1), GLsizei(command.i2), GLenum(command.i3),
-                           reinterpret_cast<GLvoid *>(command.i4));
+                           reinterpret_cast<GLvoid *>(qintptr(command.i4)));
             break;
         }
         case CanvasGlCommandQueue::glEnable: {
@@ -1483,7 +1470,7 @@ void CanvasRenderer::executeCommandQueue()
         case CanvasGlCommandQueue::glVertexAttribPointer: {
             glVertexAttribPointer(GLuint(command.i1), command.i2, GLenum(command.i3),
                                   GLboolean(command.i4), GLsizei(command.i5),
-                                  reinterpret_cast<const GLvoid *>(command.i6));
+                                  reinterpret_cast<const GLvoid *>(qintptr(command.i6)));
             break;
         }
         case CanvasGlCommandQueue::glViewport: {
