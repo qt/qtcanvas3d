@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
     viewer.setTitle(QStringLiteral("Interaction"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
-    viewer.setColor("#fafafa");
+    viewer.setColor(QColor(0xfa, 0xfa, 0xfa));
     viewer.show();
 
     return app.exec();

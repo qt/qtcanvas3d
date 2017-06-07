@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
 
     viewer.setTitle(QStringLiteral("Render into FrameBuffer"));
     viewer.setResizeMode(QQuickView::SizeRootObjectToView);
-    viewer.setColor("#f2f2f2");
+    viewer.setColor(QColor(0xf2, 0xf2, 0xf2));
     viewer.show();
 
     return app.exec();

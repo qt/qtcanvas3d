@@ -5856,9 +5856,9 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
                                   locationId);
         switch (type) {
         case SAMPLER_2D:
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case SAMPLER_CUBE:
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case INT: {
             GLint value = 0;
             syncCommand.returnValue = &value;
@@ -5889,10 +5889,10 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         }
         case INT_VEC2:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case INT_VEC3:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case INT_VEC4: {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
@@ -5914,10 +5914,10 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         }
         case FLOAT_VEC2:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case FLOAT_VEC3:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case FLOAT_VEC4: {
             QV4::Scope scope(m_v4engine);
             QV4::Scoped<QV4::ArrayBuffer> buffer(scope,
@@ -5940,10 +5940,10 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         }
         case BOOL_VEC2:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case BOOL_VEC3:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case BOOL_VEC4: {
             GLint *value = new GLint[numValues];
             QJSValue array = m_engine->newArray(numValues);
@@ -5962,10 +5962,10 @@ QJSValue CanvasContext::getUniform(QJSValue program3D, QJSValue location3D)
         }
         case FLOAT_MAT2:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case FLOAT_MAT3:
             numValues--;
-            // Intentional flow through
+            Q_FALLTHROUGH(); // Intentional flow through
         case FLOAT_MAT4: {
             numValues = numValues * numValues;
             QV4::Scope scope(m_v4engine);
