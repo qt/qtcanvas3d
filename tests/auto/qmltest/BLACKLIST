@@ -1,3 +1,0 @@
-# Race condition when doing requestUpdate via setNeedsDisplay
-[Canvas3D_render_ondemand::test_render_3_ondemand]
-osx

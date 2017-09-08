@@ -809,21 +809,33 @@ void CanvasRenderer::createFBOs()
 void CanvasRenderer::transferCommands()
 {
     if (m_glContext) {
-        const int count = m_commandQueue.queuedCount();
-        if (count > m_executeQueue.size())
-            m_executeQueue.resize(count);
+        const int commandQueueCount = m_commandQueue.queuedCount();
+        const int finalExecuteQueueCount = m_executeQueueCount + commandQueueCount;
+        if (finalExecuteQueueCount > m_executeQueue.size())
+            m_executeQueue.resize(finalExecuteQueueCount);
         if (m_renderTarget == Canvas::RenderTargetOffscreenBuffer) {
-            m_executeQueueCount = count;
-            m_commandQueue.transferCommands(m_executeQueue);
+            m_commandQueue.transferCommands(m_executeQueue.data() + m_executeQueueCount);
+            m_executeQueueCount = finalExecuteQueueCount;
         } else {
             m_clearMask = m_commandQueue.resetClearMask();
-            // Use previous frame count and indices if no new commands, otherwise reset values
-            if (count) {
-                deleteCommandData();
-                m_executeQueueCount = count;
-                m_executeStartIndex = 0;
-                m_executeEndIndex = 0;
-                m_commandQueue.transferCommands(m_executeQueue);
+            if (commandQueueCount) {
+                if (m_executeStartIndex) {
+                    // The commands in the execute queue have been executed at least once,
+                    // so we can assume the new commands represent a new frame. Delete old commands.
+                    deleteCommandData();
+                    m_executeStartIndex = 0;
+                    m_executeEndIndex = 0;
+                    m_commandQueue.transferCommands(m_executeQueue.data());
+                    m_executeQueueCount = commandQueueCount;
+                } else {
+                    // Append new commands to existing non-executed commands
+                    m_commandQueue.transferCommands(m_executeQueue.data() + m_executeQueueCount);
+                    m_executeQueueCount = finalExecuteQueueCount;
+                }
+            } else {
+                // No new commands. Leave m_executeQueue alone, and let the renderer
+                // re-render the commands between m_executeStartIndex and m_executeEndIndex
+                // for the next frame.
             }
         }
     }

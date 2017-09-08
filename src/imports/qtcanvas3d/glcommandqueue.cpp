@@ -176,9 +176,9 @@ GlCommand &CanvasGlCommandQueue::queueCommand(CanvasGlCommandQueue::GlCommandId 
  * Copies command data to execute queue. GUI thread must be locked when this
  * method is called.
  */
-void CanvasGlCommandQueue::transferCommands(QVector<GlCommand> &executeQueue)
+void CanvasGlCommandQueue::transferCommands(GlCommand executeQueue[])
 {
-    memcpy(executeQueue.data(), m_queue.data(), m_queuedCount * sizeof(GlCommand));
+    memcpy(executeQueue, m_queue.data(), m_queuedCount * sizeof(GlCommand));
 
     m_queuedCount = 0;
 
