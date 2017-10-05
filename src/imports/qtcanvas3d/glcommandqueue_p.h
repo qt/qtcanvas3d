@@ -248,7 +248,7 @@ public:
                             GLint i1, GLint i2, GLfloat p1, GLfloat p2 = 0.0f, GLfloat p3 = 0.0f,
                             GLfloat p4 = 0.0f);
 
-    void transferCommands(QVector<GlCommand> &executeQueue);
+    void transferCommands(GlCommand executeQueue[]);
     void resetQueue(int size);
     void deleteUntransferedCommandData();
 
