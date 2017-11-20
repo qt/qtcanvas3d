@@ -13,6 +13,8 @@ sourcedirs += ..
 
 examplesinstallpath = canvas3d
 
+manifestmeta.highlighted.names = "QtCanvas3D/Interactive Mobile Phone Example"
+
 depends     = qtcore qtgui qtqml qtquick qtquickcontrols qtquicklayouts qtdoc qtmultimedia
 
 qhp.projects                   = QtCanvas3D
