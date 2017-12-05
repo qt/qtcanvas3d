@@ -47,18 +47,23 @@ QT_BEGIN_NAMESPACE
 
 QT_CANVAS3D_BEGIN_NAMESPACE
 
-static QMap<QQmlEngine *,CanvasTextureImageFactory *>m_qmlEngineToImageFactoryMap;
-static ulong m_texId = 0;
-
-class StaticFactoryMapDeleter
+class EngineToImageFactoryMap : public QMap<QQmlEngine *, CanvasTextureImageFactory *>
 {
+    bool isDeleting = false;
 public:
-    StaticFactoryMapDeleter() {}
-    ~StaticFactoryMapDeleter() {
-        qDeleteAll(m_qmlEngineToImageFactoryMap);
+    ~EngineToImageFactoryMap() {
+        isDeleting = true;
+        qDeleteAll(*this);
+    }
+    void remove(QQmlEngine *e) {
+        if (isDeleting)
+            return;
+        QMap<QQmlEngine *, CanvasTextureImageFactory *>::remove(e);
     }
 };
-static StaticFactoryMapDeleter staticFactoryMapDeleter;
+
+static EngineToImageFactoryMap m_qmlEngineToImageFactoryMap;
+static ulong m_texId = 0;
 
 CanvasTextureImageFactory::CanvasTextureImageFactory(QQmlEngine *engine, QObject *parent) :
     QObject(parent)
