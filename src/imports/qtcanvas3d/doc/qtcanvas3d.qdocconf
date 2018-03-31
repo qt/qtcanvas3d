@@ -4,6 +4,10 @@ project             = QtCanvas3D
 description         = Qt Canvas 3D Reference Documentation
 version             = $QT_VERSION
 
+# Qt Canvas 3D doesn't expose a C++ API - pass a dummy header for Clang parser
+moduleheader = QtCanvas3D
+includepaths = .
+
 exampledirs = ../../../../examples/canvas3d \
               snippets
 
