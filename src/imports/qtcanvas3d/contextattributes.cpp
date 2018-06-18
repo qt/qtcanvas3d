@@ -49,7 +49,7 @@ QT_CANVAS3D_BEGIN_NAMESPACE
  * \qmltype Canvas3DContextAttributes
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
- * \brief Attribute set for Context3D
+ * \brief Attribute set for Context3D.
  *
  * Canvas3DContextAttributes is an attribute set that can be given as parameter on first call to
  * Canvas3D object's \l{Canvas3D::getContext}{getContext(string type, Canvas3DContextAttributes options)}
