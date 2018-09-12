@@ -30,6 +30,11 @@
     \page qtcanvas3d-index.html
     \brief Provides functionality for 3D drawing inside Qt Quick 2.
 
+    \b{Canvas3D module was deprecated in Qt 5.12.} Depracated modules are no
+    longer maintained. They are provided to keep old source code working, but
+    they can be removed in a future release. We strongly advise against using
+    deprecated modules in new code or project.
+
     Qt Canvas 3D module provides a way to make WebGL-like 3D drawing calls
     from Qt Quick JavaScript.
 
