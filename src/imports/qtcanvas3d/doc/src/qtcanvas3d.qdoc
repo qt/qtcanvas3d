@@ -29,10 +29,14 @@
     \qmlmodule QtCanvas3D 1.1
     \title Qt Canvas 3D QML Types
     \ingroup qmlmodules
+    \deprecated
 
-    \brief QML types for the Qt Canvas 3D API.
+    \brief QML types for the Qt Canvas 3D API (deprecated).
 
-    The Qt Canvas 3D functionality can be accessed via these QML types.
+    \b{Canvas3D module was deprecated in Qt 5.12.} Depracated modules are no
+    longer maintained. They are provided to keep old source code working, but
+    they can be removed in a future release. We strongly advise against using
+    deprecated modules in new code or project.
 */
 
 /*!
@@ -48,6 +52,11 @@
     \title Qt Canvas 3D Getting Started
 
     \section1 Building Qt Canvas 3D
+
+    \b{Canvas3D module was deprecated in Qt 5.12.} Depracated modules are no
+    longer maintained. They are provided to keep old source code working, but
+    they can be removed in a future release. We strongly advise against using
+    deprecated modules in new code or project.
 
     To build the Qt Canvas 3D module from source code, set up a command prompt
     with an environment for building Qt applications, navigate to the
@@ -164,6 +173,11 @@
 
     \brief The logging features in Qt Canvas 3D.
 
+    \b{Canvas3D module was deprecated in Qt 5.12.} Depracated modules are no
+    longer maintained. They are provided to keep old source code working, but
+    they can be removed in a future release. We strongly advise against using
+    deprecated modules in new code or project.
+
     Qt Canvas 3D makes use of Qt's \l {QLoggingCategory}{categorized logging}.
     The following categories are supported:
 
@@ -196,6 +210,12 @@
  *
  * \brief Known WebGL conformance issues
  *
+ * \b{Canvas3D module was deprecated in Qt 5.12.} Depracated modules are no
+ * longer maintained. They are provided to keep old source code working, but
+ * they can be removed in a future release. We strongly advise against using
+ * deprecated modules in new code or project.
+ *
+ * Known WebGL conformance issues:
  * \list
  *      \li No emulation for vertex attrib 0 arrays. Always have vertex attrib 0 array enabled.
  *      In desktop OpenGL on some platforms (for example \macos), nothing gets drawn if vertex attrib

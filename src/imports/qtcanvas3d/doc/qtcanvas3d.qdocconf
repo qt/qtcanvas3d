@@ -17,8 +17,6 @@ sourcedirs += ..
 
 examplesinstallpath = canvas3d
 
-manifestmeta.highlighted.names = "QtCanvas3D/Interactive Mobile Phone Example"
-
 depends     = qtcore qtgui qtqml qtquick qtquickcontrols qtquicklayouts qtdoc qtmultimedia
 
 qhp.projects                   = QtCanvas3D
@@ -48,5 +46,7 @@ qhp.QtCanvas3D.subprojects.types.selectors             = qmlclass
 qhp.QtCanvas3D.subprojects.types.sortPages             = true
 
 navigation.landingpage = Qt Canvas 3D
+navigation.landingtitle = Qt Canvas 3D (deprecated)
 navigation.qmltypespage = Qt Canvas 3D QML Types
+navigation.qmltypestitle = Qt Canvas 3D QML Types (deprecated)
 navigation.examplespage = Qt Canvas 3D Examples

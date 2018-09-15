@@ -84,7 +84,9 @@ CanvasTextureImageFactory::~CanvasTextureImageFactory()
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Create TextureImage elements.
+ * \deprecated
  *
+ * \b{Deprecated in Qt 5.12.}
  * This static QML type is used for creating TextureImage instances by calling the
  * TextureImageFactory::newTexImage() function.
  *
@@ -138,6 +140,7 @@ void CanvasTextureImageFactory::notifyLoadedImages()
 
 /*!
  * \qmlmethod TextureImage TextureImageFactory::newTexImage()
+ * \b{Deprecated in Qt 5.12.}
  * Returns a new empty TextureImage.
  */
 QJSValue CanvasTextureImageFactory::newTexImage()
@@ -156,7 +159,9 @@ void CanvasTextureImageFactory::handleImageDestroyed(CanvasTextureImage *image)
  * \since QtCanvas3D 1.0
  * \inqmlmodule QtCanvas3D
  * \brief Contains a texture image.
+ * \deprecated
  *
+ * \b{Deprecated in Qt 5.12.}
  * An uncreatable QML type that contains a texture image created by calling
  * TextureImageFactory::newTexImage() and settings the \c src of the image.
  *
@@ -216,6 +221,7 @@ CanvasTextureImage::~CanvasTextureImage()
 
 /*!
  * \qmlproperty url TextureImage::src()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the url source where the image data is loaded from.
  */
 const QUrl &CanvasTextureImage::src() const
@@ -236,6 +242,7 @@ void CanvasTextureImage::setSrc(const QUrl &url)
 
 /*!
  * \qmlmethod int TextureImage::id()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the object id.
  */
 ulong CanvasTextureImage::id()
@@ -279,6 +286,7 @@ void CanvasTextureImage::load()
 
 /*!
  * \qmlproperty string TextureImage::errorString()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the error string if an error happened during image creation.
  */
 QString CanvasTextureImage::errorString() const
@@ -321,6 +329,7 @@ void CanvasTextureImage::setAnything(QVariant *value)
 
 /*!
  * \qmlproperty TextureImageState TextureImage::imageState()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the texture image state. It is one of \c{TextureImage.INITIALIZED},
  * \c{TextureImage.LOAD_PENDING}, \c{TextureImage.LOADING}, \c{TextureImage.LOADING_FINISHED} or
  * \c{TextureImage.LOADING_ERROR}.
@@ -340,6 +349,7 @@ void CanvasTextureImage::setImageState(TextureImageState state)
 
 /*!
  * \qmlproperty int TextureImage::width()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the texture image width.
  */
 int CanvasTextureImage::width() const
@@ -352,6 +362,7 @@ int CanvasTextureImage::width() const
 
 /*!
  * \qmlproperty int TextureImage::height()
+ * \b{Deprecated in Qt 5.12.}
  * Contains the texture image height.
  */
 int CanvasTextureImage::height() const
@@ -456,6 +467,7 @@ uchar *CanvasTextureImage::convertToFormat(CanvasContext::glEnums format,
 
 /*!
  * \qmlmethod TextureImage TextureImage::create()
+ * \b{Deprecated in Qt 5.12.}
  * Returns a new texture image.
  */
 QJSValue CanvasTextureImage::create()
@@ -465,6 +477,7 @@ QJSValue CanvasTextureImage::create()
 
 /*!
  * \qmlmethod TextureImage TextureImage::resize(int width, int height)
+ * \b{Deprecated in Qt 5.12.}
  * Returns a copy of the texture image resized to the given \a width and \a height.
  */
 QJSValue CanvasTextureImage::resize(int width, int height)
