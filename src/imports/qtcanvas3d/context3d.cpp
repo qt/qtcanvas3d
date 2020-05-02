@@ -3069,7 +3069,7 @@ void CanvasContext::shaderSource(QJSValue shader3D, const QString &shaderSource)
     qCDebug(canvas3drendering).nospace() << "Context3D::" << __FUNCTION__
                                          << "(shader:" << shader3D.toString()
                                          << ", shaderSource"
-                                         << ")" << endl << modSource << endl;
+                                         << ")\n" << modSource;
 
     CanvasShader *shader = getAsShader3D(shader3D);
     if (!shader) {
