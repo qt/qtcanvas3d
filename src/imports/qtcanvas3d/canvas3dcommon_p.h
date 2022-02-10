@@ -1,6 +1,6 @@
 /****************************************************************************
 **
-** Copyright (C) 2016 The Qt Company Ltd.
+** Copyright (C) 2018 The Qt Company Ltd.
 ** Contact: https://www.qt.io/licensing/
 **
 ** This file is part of the QtCanvas3D module of the Qt Toolkit.
@@ -36,7 +36,6 @@
 ** $QT_END_LICENSE$
 **
 ****************************************************************************/
-
 //
 //  W A R N I N G
 //  -------------
@@ -46,6 +45,8 @@
 // version without notice, or even be removed.
 //
 // We mean it.
+
+#include <private/qglobal_p.h>
 
 #ifndef CANVAS3DCOMMON_P_H
 #define CANVAS3DCOMMON_P_H
